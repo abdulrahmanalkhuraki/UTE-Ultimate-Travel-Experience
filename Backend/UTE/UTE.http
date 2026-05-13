@@ -1,0 +1,6 @@
+@UTE_HostAddress = http://localhost:5107
+
+GET {{UTE_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
