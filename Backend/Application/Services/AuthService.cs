@@ -33,7 +33,7 @@ public class AuthService : IAuthService
         var firstName = request.FirstName.Trim();
         var lastName = request.LastName.Trim();
 
-        var role = await _roles.FirstOrDefaultAsync(r => r.RoleId == request.Role, ct)
+        var role = await _roles.FirstOrDefaultAsync(r => r.Id == request.Role, ct)
                    ?? throw new NotFoundException($"Role with id {request.Role} does not exist.");
 
         if (role.RoleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
@@ -49,23 +49,21 @@ public class AuthService : IAuthService
         var now = DateTime.UtcNow;
         var user = new User
         {
-            FirstName    = firstName,
-            LastName     = lastName,
-            Email        = email,
-            Password     = _hasher.Hash(request.Password),
-            Phone        = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
-            Image        = imageUrl,
-            DateOfBirth  = request.DateOfBirth!.Value,
-            CreatedAt    = now,
-            UpdatedAt    = now,
-            IsApproved   = false,
-            RoleId       = request.Role
+            Username  = username,
+            Email     = email,
+            Password  = _hasher.Hash(request.Password),
+            Phone     = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
+            Image     = string.IsNullOrWhiteSpace(request.Image) ? null : request.Image.Trim(),
+            CreatedAt = now,
+            UpdatedAt = now,
+            Status    = 1,
+            RoleId    = request.Role
         };
 
         await _users.AddAsync(user, ct);
         await _users.SaveChangesAsync(ct);
 
-        var fresh = await _users.GetByIdWithRoleAsync(user.UserId, ct)
+        var fresh = await _users.GetByIdWithRoleAsync(user.Id, ct)
                     ?? throw new InvalidOperationException("Failed to load the created user.");
 
         return BuildResponse(fresh, issueToken: false);
@@ -100,16 +98,12 @@ public class AuthService : IAuthService
 
         return new AuthResponse
         {
-            UserId      = user.UserId,
-            FirstName   = user.FirstName,
-            LastName    = user.LastName,
-            Email       = user.Email,
-            Image       = user.Image,
-            DateOfBirth = user.DateOfBirth,
-            Role        = user.Role?.RoleName ?? string.Empty,
-            IsApproved  = user.IsApproved,
-            Token       = token,
-            ExpiresAt   = expiresAt
+            UserId    = user.UserId,
+            Username  = user.Username,
+            Email     = user.Email,
+            Role      = user.Role?.RoleName ?? string.Empty,
+            Token     = token,
+            ExpiresAt = expiresAt
         };
     }
 }

@@ -17,7 +17,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
     public Task<User?> GetByIdWithRoleAsync(int userId, CancellationToken ct = default) =>
         Db.Users
           .Include(u => u.Role)
-          .FirstOrDefaultAsync(u => u.UserId == userId, ct);
+          .FirstOrDefaultAsync(u => u.Id == userId, ct);
 
     public Task<bool> EmailExistsAsync(string email, CancellationToken ct = default) =>
         Db.Users.AnyAsync(u => u.Email == email, ct);

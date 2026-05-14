@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Domain.Entities;
 
-public partial class Review
+public partial class Review : BaseEntity
 {
     public string? Comment { get; set; }
 
@@ -12,12 +12,6 @@ public partial class Review
     public int? AttractionId { get; set; }
 
     public int? PackageId { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
-
-    public int ReviewId { get; set; }
 
     public virtual Attraction? Attraction { get; set; }
 

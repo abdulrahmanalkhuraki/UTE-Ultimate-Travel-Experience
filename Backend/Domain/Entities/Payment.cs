@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Domain.Entities;
 
-public partial class Payment
+public partial class Payment : BaseEntity
 {
     public decimal Amount { get; set; }
 
@@ -14,8 +14,6 @@ public partial class Payment
     public DateOnly PaymentDate { get; set; }
 
     public int UserId { get; set; }
-
-    public int PaymentId { get; set; }
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 

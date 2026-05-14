@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Domain.Entities;
 
-public partial class User
+public partial class User : BaseEntity
 {
     public int UserId { get; set; }
 
@@ -19,15 +19,11 @@ public partial class User
 
     public DateTime UpdatedAt { get; set; }
 
-    public int RoleId { get; set; }
-
-    public string FirstName { get; set; } = null!;
-
-    public string LastName { get; set; } = null!;
+    public int Status { get; set; }
 
     public DateOnly DateOfBirth { get; set; }
 
-    public bool IsApproved { get; set; }
+    public int UserId { get; set; }
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 

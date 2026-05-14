@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Domain.Entities;
 
-public partial class TourPackage
+public partial class TourPackage : BaseEntity
 {
     public string PackageName { get; set; } = null!;
 
@@ -16,12 +16,6 @@ public partial class TourPackage
     public int AvailableSeats { get; set; }
 
     public int CompanyId { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
-
-    public int PackageId { get; set; }
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 

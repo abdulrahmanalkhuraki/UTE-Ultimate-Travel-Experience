@@ -66,13 +66,13 @@ public partial class AppDbContext : DbContext
     {
         modelBuilder.Entity<Activity>(entity =>
         {
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.Description).HasMaxLength(200);
             entity.Property(e => e.Name).HasMaxLength(50);
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
         });
@@ -80,7 +80,7 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Attraction>(entity =>
         {
             entity.Property(e => e.AttractionName).HasMaxLength(100);
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.Description).HasMaxLength(1000);
@@ -89,7 +89,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("Entry_Fee");
             entity.Property(e => e.Latitude).HasColumnType("decimal(10, 6)");
             entity.Property(e => e.Longitude).HasColumnType("decimal(10, 6)");
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -115,10 +115,10 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<AttractionCategory>(entity =>
         {
             entity.Property(e => e.CategoryName).HasMaxLength(50);
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -131,10 +131,10 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Booking>(entity =>
         {
             entity.Property(e => e.BookingDate).HasColumnType("datetime");
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -164,11 +164,11 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<City>(entity =>
         {
             entity.Property(e => e.CityName).HasMaxLength(100);
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.Image).HasMaxLength(500);
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -182,25 +182,25 @@ public partial class AppDbContext : DbContext
         {
             entity.Property(e => e.CountryCode).HasMaxLength(10);
             entity.Property(e => e.CountryName).HasMaxLength(50);
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.Flag).HasMaxLength(500);
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
         });
 
         modelBuilder.Entity<CustomTrip>(entity =>
         {
-            entity.HasKey(e => e.TripId);
+            entity.HasKey(e => e.Id);
 
             entity.Property(e => e.Budget).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.TripName).HasMaxLength(100);
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -212,10 +212,10 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Favorite>(entity =>
         {
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -235,21 +235,21 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Airline).HasMaxLength(100);
             entity.Property(e => e.Arrival).HasColumnType("datetime");
             entity.Property(e => e.ArrivalCity).HasMaxLength(100);
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.Departure).HasColumnType("datetime");
             entity.Property(e => e.DepartureCity).HasMaxLength(100);
             entity.Property(e => e.FlightNumber).HasMaxLength(20);
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
         });
 
         modelBuilder.Entity<Hotel>(entity =>
         {
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.Description).HasMaxLength(500);
@@ -257,20 +257,20 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Latitude).HasColumnType("decimal(10, 6)");
             entity.Property(e => e.Longitude).HasColumnType("decimal(10, 6)");
             entity.Property(e => e.PricePerNight).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
         });
 
         modelBuilder.Entity<Image>(entity =>
         {
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.ImageUrl)
                 .HasMaxLength(500)
                 .HasColumnName("ImageURL");
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -282,10 +282,10 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Itinerary>(entity =>
         {
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -310,11 +310,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Notification>(entity =>
         {
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.Message).HasMaxLength(500);
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -330,13 +330,13 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<PackageItinerary>(entity =>
         {
-            entity.HasKey(e => e.ItineraryId);
+            entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.DayTitle).HasMaxLength(100);
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -377,10 +377,10 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Rate>(entity =>
         {
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -398,10 +398,10 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Review>(entity =>
         {
             entity.Property(e => e.Comment).HasMaxLength(500);
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -421,27 +421,27 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.Description).HasMaxLength(100);
             entity.Property(e => e.RoleName).HasMaxLength(50);
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
         });
 
         modelBuilder.Entity<TourCompany>(entity =>
         {
-            entity.HasKey(e => e.CompanyId);
+            entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.Logo).HasMaxLength(500);
             entity.Property(e => e.Name).HasMaxLength(100);
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -453,15 +453,15 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<TourPackage>(entity =>
         {
-            entity.HasKey(e => e.PackageId);
+            entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.Description).HasMaxLength(1000);
             entity.Property(e => e.PackageName).HasMaxLength(100);
             entity.Property(e => e.PricePerPerson).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -473,7 +473,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.DateOfBirth).HasColumnName("Date_Of_Birth");
@@ -484,7 +484,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.LastName).HasMaxLength(50);
             entity.Property(e => e.Password).HasMaxLength(255);
             entity.Property(e => e.Phone).HasMaxLength(20);
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -496,10 +496,10 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Wishlist>(entity =>
         {
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.UpdatedAt)
+            entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
