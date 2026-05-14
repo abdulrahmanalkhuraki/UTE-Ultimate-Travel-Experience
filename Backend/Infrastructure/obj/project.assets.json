@@ -4600,23 +4600,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\ASUS\\.nuget\\packages\\": {},
+    "C:\\Users\\LOQ\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\3\\UTE\\Infrastructure\\Infrastructure.csproj",
+      "projectUniqueName": "C:\\studing\\UTE\\Backend\\Infrastructure\\Infrastructure.csproj",
       "projectName": "Infrastructure",
-      "projectPath": "D:\\3\\UTE\\Infrastructure\\Infrastructure.csproj",
-      "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
-      "outputPath": "D:\\3\\UTE\\Infrastructure\\obj\\",
+      "projectPath": "C:\\studing\\UTE\\Backend\\Infrastructure\\Infrastructure.csproj",
+      "packagesPath": "C:\\Users\\LOQ\\.nuget\\packages\\",
+      "outputPath": "C:\\studing\\UTE\\Backend\\Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\LOQ\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -4625,17 +4625,18 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "D:\\3\\UTE\\Application\\Application.csproj": {
-              "projectPath": "D:\\3\\UTE\\Application\\Application.csproj"
+            "C:\\studing\\UTE\\Backend\\Application\\Application.csproj": {
+              "projectPath": "C:\\studing\\UTE\\Backend\\Application\\Application.csproj"
             },
-            "D:\\3\\UTE\\Domain\\Domain.csproj": {
-              "projectPath": "D:\\3\\UTE\\Domain\\Domain.csproj"
+            "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj": {
+              "projectPath": "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj"
             }
           }
         }
@@ -4650,7 +4651,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.200"
+      "SdkAnalysisLevel": "9.0.300"
     },
     "frameworks": {
       "net9.0": {
@@ -4705,7 +4706,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Domain.Entities;
 
-public partial class Flight
+public partial class Flight : BaseEntity
 {
     public string FlightNumber { get; set; } = null!;
 
@@ -18,12 +18,6 @@ public partial class Flight
     public DateTime Arrival { get; set; }
 
     public decimal Price { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
-
-    public int FlightId { get; set; }
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 }

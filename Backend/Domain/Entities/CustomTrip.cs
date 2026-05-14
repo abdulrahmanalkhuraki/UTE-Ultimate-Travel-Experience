@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Domain.Entities;
 
-public partial class CustomTrip
+public partial class CustomTrip : BaseEntity
 {
     public string TripName { get; set; } = null!;
 
@@ -16,12 +16,6 @@ public partial class CustomTrip
     public decimal Budget { get; set; }
 
     public int UserId { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
-
-    public int TripId { get; set; }
 
     public virtual ICollection<Itinerary> Itineraries { get; set; } = new List<Itinerary>();
 

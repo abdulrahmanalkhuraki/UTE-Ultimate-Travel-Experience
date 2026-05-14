@@ -29,7 +29,7 @@ public class AuthService : IAuthService
         var email = request.Email.Trim().ToLowerInvariant();
         var username = request.Username.Trim();
 
-        var role = await _roles.FirstOrDefaultAsync(r => r.RoleId == request.Role, ct)
+        var role = await _roles.FirstOrDefaultAsync(r => r.Id == request.Role, ct)
                    ?? throw new NotFoundException($"Role with id {request.Role} does not exist.");
 
         if (role.RoleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
@@ -49,8 +49,8 @@ public class AuthService : IAuthService
             Password  = _hasher.Hash(request.Password),
             Phone     = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
             Image     = string.IsNullOrWhiteSpace(request.Image) ? null : request.Image.Trim(),
-            CreatedAt = now,
-            UpdatedAt = now,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
             Status    = 1,
             RoleId    = request.Role
         };
@@ -58,7 +58,7 @@ public class AuthService : IAuthService
         await _users.AddAsync(user, ct);
         await _users.SaveChangesAsync(ct);
 
-        var fresh = await _users.GetByIdWithRoleAsync(user.UserId, ct)
+        var fresh = await _users.GetByIdWithRoleAsync(user.Id, ct)
                     ?? throw new InvalidOperationException("Failed to load the created user.");
 
         return BuildResponse(fresh);
@@ -83,7 +83,7 @@ public class AuthService : IAuthService
         var (token, expiresAt) = _tokens.GenerateToken(user);
         return new AuthResponse
         {
-            UserId    = user.UserId,
+            UserId    = user.Id,
             Username  = user.Username,
             Email     = user.Email,
             Role      = user.Role?.RoleName ?? string.Empty,

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Domain.Entities;
 
-public partial class Booking
+public partial class Booking : BaseEntity
 {
     public DateTime BookingDate { get; set; }
 
@@ -24,12 +24,6 @@ public partial class Booking
     public int? FlightId { get; set; }
 
     public int? PackageId { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
-
-    public int BookingId { get; set; }
 
     public virtual Flight? Flight { get; set; }
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Domain.Entities;
 
-public partial class TourCompany
+public partial class TourCompany : BaseEntity
 {
     public string Name { get; set; } = null!;
 
@@ -12,12 +12,6 @@ public partial class TourCompany
     public string? Logo { get; set; }
 
     public int UserId { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
-
-    public int CompanyId { get; set; }
 
     public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 

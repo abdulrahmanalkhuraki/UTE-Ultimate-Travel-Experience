@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Domain.Entities;
 
-public partial class Attraction
+public partial class Attraction : BaseEntity
 {
     public string AttractionName { get; set; } = null!;
 
@@ -20,12 +20,6 @@ public partial class Attraction
     public decimal EntryFee { get; set; }
 
     public int CityId { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
-
-    public int AttractionId { get; set; }
 
     public virtual ICollection<AttractionActivity> AttractionActivities { get; set; } = new List<AttractionActivity>();
 
