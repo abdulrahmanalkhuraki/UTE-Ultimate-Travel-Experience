@@ -5,7 +5,7 @@ namespace Domain.Entities;
 
 public partial class User
 {
-    public string Username { get; set; } = null!;
+    public int UserId { get; set; }
 
     public string Email { get; set; } = null!;
 
@@ -19,11 +19,15 @@ public partial class User
 
     public DateTime UpdatedAt { get; set; }
 
-    public int Status { get; set; }
-
     public int RoleId { get; set; }
 
-    public int UserId { get; set; }
+    public string FirstName { get; set; } = null!;
+
+    public string LastName { get; set; } = null!;
+
+    public DateOnly DateOfBirth { get; set; }
+
+    public bool IsApproved { get; set; }
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 

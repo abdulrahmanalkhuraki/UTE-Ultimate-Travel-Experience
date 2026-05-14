@@ -15,8 +15,9 @@ public class AuthController : ControllerBase
 
     [HttpPost("register")]
     [AllowAnonymous]
+    [Consumes("multipart/form-data")]
     public async Task<ActionResult<AuthResponse>> Register(
-        [FromBody] RegisterRequest request,
+        [FromForm] RegisterRequest request,
         CancellationToken ct)
     {
         var response = await _auth.RegisterAsync(request, ct);

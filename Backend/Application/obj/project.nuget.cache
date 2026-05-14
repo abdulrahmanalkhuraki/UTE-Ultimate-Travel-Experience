@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "GS9lN9Wrj1I=",
+  "dgSpecHash": "C1q5EFQW0lo=",
   "success": true,
-  "projectFilePath": "D:\\3\\UTE\\Application\\Application.csproj",
+  "projectFilePath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Application\\Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ASUS\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
