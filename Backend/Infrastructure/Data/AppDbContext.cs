@@ -163,32 +163,36 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<City>(entity =>
         {
+            entity.HasKey(c => c.Id);
+
             entity.Property(e => e.CityName).HasMaxLength(100);
-            entity.Property(e => e.CreatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+
             entity.Property(e => e.Image).HasMaxLength(500);
-            entity.Property(e => e.UpdatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
 
             entity.HasOne(d => d.Country).WithMany(p => p.Cities)
                 .HasForeignKey(d => d.CountryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Cities__CountryI__60A75C0F");
+
+            entity.HasMany(d => d.Hotels).WithOne(h => h.City)
+                .HasForeignKey(h => h.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(d => d.ArrivalFlights).WithOne(f => f.ArrivalCity)
+                .HasForeignKey(f => f.ArrivalCityId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(d => d.DepartureFlights).WithOne(f => f.DepartureCity)
+                .HasForeignKey(f => f.DepartureCityId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Country>(entity =>
         {
+            entity.HasKey(c => c.Id);
             entity.Property(e => e.CountryCode).HasMaxLength(10);
             entity.Property(e => e.CountryName).HasMaxLength(50);
-            entity.Property(e => e.CreatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
             entity.Property(e => e.Flag).HasMaxLength(500);
-            entity.Property(e => e.UpdatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
         });
 
         modelBuilder.Entity<CustomTrip>(entity =>
@@ -233,13 +237,11 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Flight>(entity =>
         {
             entity.Property(e => e.Airline).HasMaxLength(100);
-            entity.Property(e => e.Arrival).HasColumnType("datetime");
-            entity.Property(e => e.ArrivalCity).HasMaxLength(100);
+            entity.Property(e => e.ArrivalTime).HasColumnType("datetime");
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.Departure).HasColumnType("datetime");
-            entity.Property(e => e.DepartureCity).HasMaxLength(100);
+            entity.Property(e => e.DepartureTime).HasColumnType("datetime");
             entity.Property(e => e.FlightNumber).HasMaxLength(20);
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.UpdatedAtUtc)

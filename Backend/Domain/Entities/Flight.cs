@@ -9,15 +9,19 @@ public partial class Flight : BaseEntity
 
     public string Airline { get; set; } = null!;
 
-    public string DepartureCity { get; set; } = null!;
+    public int DepartureCityId { get; set; }
 
-    public string ArrivalCity { get; set; } = null!;
+    public int ArrivalCityId { get; set; }
 
-    public DateTime Departure { get; set; }
+    public DateTime DepartureTime { get; set; }
 
-    public DateTime Arrival { get; set; }
+    public DateTime ArrivalTime { get; set; }
 
     public decimal Price { get; set; }
+
+    public virtual City DepartureCity { get; set; } = null!;
+
+    public virtual City ArrivalCity { get; set; } = null!;
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 }

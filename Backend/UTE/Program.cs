@@ -1,6 +1,11 @@
-using System.Text;
 using Application.Common;
+using Application.Interfaces;
+using Application.Interfaces.Hotel;
+using Application.Mappings;
+using Application.Services;
+using Domain.Interfaces;
 using Infrastructure;
+using Infrastructure.Repositories;
 using Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
@@ -8,11 +13,21 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
+using System.Reflection;
+using System.Text;
+using System.Text.Json;
+using UTE.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ==========================================
+// 1. ADD INFRASTRUCTURE SERVICES
+// ==========================================
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// ==========================================
+// 2. CONFIGURE JWT AUTHENTICATION
+// ==========================================
 var jwt = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()
           ?? throw new InvalidOperationException("Jwt section missing in configuration.");
 
@@ -37,8 +52,14 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// ==========================================
+// 3. ADD CONTROLLERS
+// ==========================================
 builder.Services.AddControllers();
 
+// ==========================================
+// 4. CONFIGURE VALIDATION RESPONSE
+// ==========================================
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
@@ -64,6 +85,9 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     };
 });
 
+// ==========================================
+// 5. ADD SWAGGER/OPENAPI
+// ==========================================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -95,6 +119,9 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// ==========================================
+// 6. ADD CORS
+// ==========================================
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(p => p
@@ -103,37 +130,31 @@ builder.Services.AddCors(options =>
         .AllowAnyMethod());
 });
 
-var app = builder.Build();
+// ==========================================
+// 7. REGISTER APPLICATION SERVICES
+// ==========================================
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IHotelService, HotelService>();
 
-app.UseExceptionHandler(errorApp =>
+// ==========================================
+// 8. ADD AUTOMAPPER
+// ==========================================
+builder.Services.AddAutoMapper(cfg =>
 {
-    errorApp.Run(async context =>
-    {
-        var feature = context.Features.Get<IExceptionHandlerFeature>();
-        var ex = feature?.Error;
-
-        var (status, message) = ex switch
-        {
-            ConflictException c  => (StatusCodes.Status409Conflict, c.Message),
-            NotFoundException n  => (StatusCodes.Status404NotFound, n.Message),
-            ForbiddenException f => (StatusCodes.Status403Forbidden, f.Message),
-            AuthException a      => (StatusCodes.Status401Unauthorized, a.Message),
-            _                    => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
-        };
-
-        context.Response.StatusCode = status;
-        context.Response.ContentType = "application/problem+json";
-
-        var problem = new ProblemDetails
-        {
-            Status = status,
-            Title = message,
-            Instance = context.Request.Path
-        };
-        await context.Response.WriteAsJsonAsync(problem);
-    });
+    cfg.AddProfile<HotelProfile>();
+    // cfg.AddProfile<AnotherProfile>();
 });
 
+// ==========================================
+// 9. BUILD THE APPLICATION
+// ==========================================
+var app = builder.Build();
+
+
+// ==========================================
+// 11. CONFIGURE DEVELOPMENT TOOLS
+// ==========================================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -141,10 +162,16 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
+// ==========================================
+// 12. CONFIGURE MIDDLEWARE PIPELINE (ORDER MATTERS!)
+// ==========================================
 app.UseHttpsRedirection();
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseCors();
-app.UseAuthentication();
+app.UseAuthentication();  // Must be before Authorization
 app.UseAuthorization();
 app.MapControllers();
-
+// ==========================================
+// 13. RUN THE APPLICATION
+// ==========================================
 app.Run();

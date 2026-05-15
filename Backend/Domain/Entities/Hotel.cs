@@ -17,5 +17,9 @@ public partial class Hotel : BaseEntity
 
     public decimal PricePerNight { get; set; }
 
+    public int CityId { get; set; }
+
+    public virtual City City { get; set; } = null!;
+
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 }
