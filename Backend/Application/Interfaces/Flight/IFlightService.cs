@@ -15,13 +15,17 @@ namespace Application.Interfaces.Flight
         Task<FlightResponse> CreateAsync(FlightCreateRequest request, CancellationToken cancellationToken);
         Task<FlightResponse> GetAsync(int id, CancellationToken cancellationToken);
         Task<IReadOnlyList<FlightResponse>> GetAllAsync(CancellationToken cancellationToken);
-        Task<bool> UpdateAsync(int id, FlightUpdateRequest request, CancellationToken cancellationToken);
+        Task<FlightResponse> UpdateAsync(int id, FlightUpdateRequest request, CancellationToken cancellationToken);
         Task<bool> DeleteAsync(int id, CancellationToken cancellationToken);
-        Task<IReadOnlyList<HotelResponse>> FilterAsync(
-            string? Airline = null,
-            int? DepartureCityId = null,
-            int? ArrivalCityId = null,
-            DateTime? DapartureDateTime = null,
+
+        Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyList<FlightResponse>> FilterAsync(
+            string? airline = null,
+            int? departureCityId = null,
+            int? arrivalCityId = null,
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
             decimal? minPrice = null,
             decimal? maxPrice = null,
             CancellationToken cancellationToken = default);

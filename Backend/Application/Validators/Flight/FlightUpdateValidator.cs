@@ -1,10 +1,9 @@
 ﻿using FluentValidation;
-using Domain.Entities;
-using System;
+using Application.DTOs.Flight.Request;
 
 namespace Domain.Validators
 {
-    public class FlightUpdateValidator : AbstractValidator<Flight>
+    public class FlightUpdateValidator : AbstractValidator<FlightUpdateRequest>
     {
         public FlightUpdateValidator()
         {

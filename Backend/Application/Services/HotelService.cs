@@ -271,7 +271,7 @@ namespace Application.Services
                 if (entity == null)
                 {
                     _logger.LogDebug("Hotel with ID {HotelId} not found", id);
-                    return null;
+                    throw new NotFoundException($"Hotel with ID {id} not found");
                 }
 
                 var response = _mapper.Map<HotelResponse>(entity);
@@ -343,43 +343,86 @@ namespace Application.Services
             decimal? maxPrice = null,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogDebug("Searching hotels...");
+            _logger.LogDebug("Filtering hotels with parameters - CityId: {CityId}, MinStarRating: {MinStarRating}, " +
+                             "MaxStarRating: {MaxStarRating}, MinPrice: {MinPrice}, MaxPrice: {MaxPrice}",
+                cityId?.ToString() ?? "Any",
+                minStarRating?.ToString() ?? "Any",
+                maxStarRating?.ToString() ?? "Any",
+                minPrice?.ToString() ?? "Any",
+                maxPrice?.ToString() ?? "Any");
 
             try
             {
                 var query = _unitOfWork.Hotels.Query();
 
-                if (cityId.HasValue)
-                    query = query.Where(h => h.City.Id == cityId);
 
+                // Apply city filter
+                if (cityId.HasValue && cityId.Value > 0)
+                {
+                    query = query.Where(h => h.CityId == cityId.Value);
+                    _logger.LogDebug("Applied city filter: {CityId}", cityId.Value);
+                }
+
+                // Apply star rating range filters with validation
                 if (minStarRating.HasValue)
-                    query = query.Where(h => h.StarRating >= minStarRating.Value);
+                {
+                    var minRating = Math.Max(1, Math.Min(5, minStarRating.Value)); // Clamp between 1-5
+                    query = query.Where(h => h.StarRating >= minRating);
+                    _logger.LogDebug("Applied min star rating filter: {MinStarRating}", minRating);
+                }
 
                 if (maxStarRating.HasValue)
-                    query = query.Where(h => h.StarRating <= maxStarRating.Value);
+                {
+                    var maxRating = Math.Max(1, Math.Min(5, maxStarRating.Value)); // Clamp between 1-5
+                    query = query.Where(h => h.StarRating <= maxRating);
+                    _logger.LogDebug("Applied max star rating filter: {MaxStarRating}", maxRating);
+                }
 
-                if (minPrice.HasValue)
+                // Validate and apply price range filters
+                if (minPrice.HasValue && minPrice.Value > 0)
+                {
                     query = query.Where(h => h.PricePerNight >= minPrice.Value);
+                    _logger.LogDebug("Applied min price filter: {MinPrice:C}", minPrice.Value);
+                }
 
-                if (maxPrice.HasValue)
+                if (maxPrice.HasValue && maxPrice.Value > 0)
+                {
+                    if (minPrice.HasValue && maxPrice.Value < minPrice.Value)
+                    {
+                        _logger.LogWarning("Invalid price range: MinPrice ({MinPrice}) > MaxPrice ({MaxPrice})",
+                            minPrice.Value, maxPrice.Value);
+                        return new List<HotelResponse>(); // Return empty list for invalid range
+                    }
+
                     query = query.Where(h => h.PricePerNight <= maxPrice.Value);
+                    _logger.LogDebug("Applied max price filter: {MaxPrice:C}", maxPrice.Value);
+                }
 
+                // Execute query with ordering and limits
                 var entities = await query
-                    .OrderByDescending(h => h.StarRating)
-                    .ThenBy(h => h.PricePerNight)
-                    .Take(50) // Limit search results
+                    .AsNoTracking() // Improve performance for read-only queries
+                    .OrderByDescending(h => h.StarRating) // Higher rated first
+                    .ThenBy(h => h.PricePerNight)         // Then cheaper first
+                    .ThenBy(h => h.HotelName)             // Then alphabetically
+                    .Take(50) // Limit search results for performance
                     .ToListAsync(cancellationToken);
 
                 var response = _mapper.Map<IReadOnlyList<HotelResponse>>(entities);
 
-                _logger.LogDebug("Search returned {Count} hotels", response.Count);
+                _logger.LogInformation("Hotel filter completed. Found {Count} hotels matching criteria", response.Count);
 
                 return response;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error searching hotels");
-                throw new ServiceException($"Failed to search hotels: {ex.Message}", ex);
+                _logger.LogError(ex, "Error filtering hotels with parameters - CityId: {CityId}, MinStarRating: {MinStarRating}, " +
+                                    "MaxStarRating: {MaxStarRating}, MinPrice: {MinPrice}, MaxPrice: {MaxPrice}",
+                    cityId?.ToString() ?? "Any",
+                    minStarRating?.ToString() ?? "Any",
+                    maxStarRating?.ToString() ?? "Any",
+                    minPrice?.ToString() ?? "Any",
+                    maxPrice?.ToString() ?? "Any");
+                throw new ServiceException($"Failed to filter hotels: {ex.Message}", ex);
             }
         }
 
