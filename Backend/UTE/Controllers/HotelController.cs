@@ -315,7 +315,7 @@ namespace UTE.Controllers
 
             try
             {
-                var hotels = await _hotelService.SearchAsync(
+                var hotels = await _hotelService.FilterAsync(
                     cityId,
                     minStarRating,
                     maxStarRating,

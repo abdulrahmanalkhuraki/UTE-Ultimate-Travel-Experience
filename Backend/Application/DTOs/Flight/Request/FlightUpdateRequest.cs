@@ -8,6 +8,7 @@ namespace Application.DTOs.Flight.Request
 {
     public sealed record FlightUpdateRequest
     (
+        int Id,
         string FlightNumber,
         string Airline,
         int DepartureCityId,

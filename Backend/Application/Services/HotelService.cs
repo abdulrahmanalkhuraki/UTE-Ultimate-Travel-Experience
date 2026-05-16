@@ -335,7 +335,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<IReadOnlyList<HotelResponse>> SearchAsync(
+        public async Task<IReadOnlyList<HotelResponse>> FilterAsync(
             int? cityId = null,
             int? minStarRating = null,
             int? maxStarRating = null,

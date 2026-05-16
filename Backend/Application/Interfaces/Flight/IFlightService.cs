@@ -17,5 +17,13 @@ namespace Application.Interfaces.Flight
         Task<IReadOnlyList<FlightResponse>> GetAllAsync(CancellationToken cancellationToken);
         Task<bool> UpdateAsync(int id, FlightUpdateRequest request, CancellationToken cancellationToken);
         Task<bool> DeleteAsync(int id, CancellationToken cancellationToken);
+        Task<IReadOnlyList<HotelResponse>> FilterAsync(
+            string? Airline = null,
+            int? DepartureCityId = null,
+            int? ArrivalCityId = null,
+            DateTime? DapartureDateTime = null,
+            decimal? minPrice = null,
+            decimal? maxPrice = null,
+            CancellationToken cancellationToken = default);
     }
 }

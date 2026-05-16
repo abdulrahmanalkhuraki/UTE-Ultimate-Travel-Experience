@@ -16,7 +16,7 @@ namespace Application.Interfaces.Hotel
         Task<HotelResponse> UpdateAsync(int id, HotelUpdateRequest request, CancellationToken cancellationToken);
         Task<bool> DeleteAsync(int id, CancellationToken cancellationToken);
         Task<bool> ExistsAsync(int id, CancellationToken cancellationToken);
-        Task<IReadOnlyList<HotelResponse>> SearchAsync(
+        Task<IReadOnlyList<HotelResponse>> FilterAsync(
             int? cityId = null,
             int? minStarRating = null,
             int? maxStarRating = null,

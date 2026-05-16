@@ -3,9 +3,11 @@ using Application.DTOs.Flight.Response;
 using Application.DTOs.Hotel.Request;
 using Application.DTOs.Hotel.Response;
 using Application.Interfaces.Flight;
+using Application.Validators.Hotel;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -20,6 +22,15 @@ namespace Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<FlightService> _logger;
+        private readonly IMemoryCache _cache;
+        private readonly FlightCreateValidator _createValidator;
+        private readonly FlightUpdateValidator _updateValidator;
+
+        // Cache constants
+        private const string HotelCacheKeyPrefix = "flight_";
+        private const string HotelsListCacheKey = "all_flights";
+        private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan SlidingCacheDuration = TimeSpan.FromMinutes(2);
 
         public FlightService(
             IUnitOfWork unitOfWork,
@@ -53,6 +64,11 @@ namespace Application.Services
             _unitOfWork.Flights.Remove(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return true;
+        }
+
+        public Task<IReadOnlyList<HotelResponse>> FilterAsync(string? Airline = null, int? DepartureCityId = null, int? ArrivalCityId = null, DateTime? DapartureDateTime = null, decimal? minPrice = null, decimal? maxPrice = null, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<IReadOnlyList<FlightResponse>> GetAllAsync(CancellationToken cancellationToken)
