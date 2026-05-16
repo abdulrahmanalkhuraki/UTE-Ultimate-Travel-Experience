@@ -1,11 +1,13 @@
 using Application.DTOs.Hotel.Request;
 using Application.Exceptions;
 using Application.Interfaces;
+using Application.Interfaces.Flight;
 using Application.Interfaces.Hotel;
 using Application.Mappings;
 using Application.Services;
 using Application.Validators.Hotel;
 using Domain.Interfaces;
+using Domain.Validators;
 using FluentValidation;
 using Infrastructure;
 using Infrastructure.Repositories;
@@ -138,9 +140,16 @@ builder.Services.AddCors(options =>
 // ==========================================
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+// Hotel
 builder.Services.AddScoped<HotelCreateValidator>();
 builder.Services.AddScoped<HotelUpdateValidator>();
 builder.Services.AddScoped<IHotelService, HotelService>();
+
+// Flight
+builder.Services.AddScoped<FlightCreateValidator>();
+builder.Services.AddScoped<FlightUpdateValidator>();
+builder.Services.AddScoped<IFlightService, FlightService>();
 builder.Services.AddMemoryCache();
 // ==========================================
 // 8. ADD AUTOMAPPER

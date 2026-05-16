@@ -11,7 +11,7 @@ namespace Infrastructure.Repositories
 {
     public class HotelRepository : GenericRepository<Hotel>, IHotelRepository
     {
-        public HotelRepository(AppDbContext context) : base(context)
+        public HotelRepository(AppDbContext db) : base(db)
         {
         }
 

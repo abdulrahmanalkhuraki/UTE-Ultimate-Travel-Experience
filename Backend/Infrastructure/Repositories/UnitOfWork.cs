@@ -20,11 +20,12 @@ namespace Infrastructure.Repositories
         {
             _context = context;
             Hotels = new GenericRepository<Hotel>(_context);
+            Flights = new GenericRepository<Flight>(_context);
         }
 
         public IGenericRepository<Hotel> Hotels { get; }
 
-        public IGenericRepository<Flight> Flights => throw new NotImplementedException();
+        public IGenericRepository<Flight> Flights { get; }
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
