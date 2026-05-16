@@ -13,9 +13,9 @@ public partial class Flight : BaseEntity
 
     public int ArrivalCityId { get; set; }
 
-    public DateTime DepartureTime { get; set; }
+    public DateTime Departure { get; set; }
 
-    public DateTime ArrivalTime { get; set; }
+    public DateTime Arrival { get; set; }
 
     public decimal Price { get; set; }
 

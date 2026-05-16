@@ -65,6 +65,19 @@
           }
         }
       },
+      "FluentValidation/12.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/FluentValidation.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/FluentValidation.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Humanizer.Core/2.14.1": {
         "type": "package",
         "compile": {
@@ -1636,6 +1649,21 @@
         "azureicon.png",
         "lib/netstandard2.0/Azure.Identity.dll",
         "lib/netstandard2.0/Azure.Identity.xml"
+      ]
+    },
+    "FluentValidation/12.1.1": {
+      "sha512": "EPpkIe1yh1a0OXyC100oOA8WMbZvqUu5plwhvYcb7oSELfyUZzfxV48BLhvs3kKo4NwG7MGLNgy1RJiYtT8Dpw==",
+      "type": "package",
+      "path": "fluentvalidation/12.1.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "fluent-validation-icon.png",
+        "fluentvalidation.12.1.1.nupkg.sha512",
+        "fluentvalidation.nuspec",
+        "lib/net8.0/FluentValidation.dll",
+        "lib/net8.0/FluentValidation.xml"
       ]
     },
     "Humanizer.Core/2.14.1": {
@@ -4463,6 +4491,7 @@
     "net9.0": [
       "AutoMapper >= 16.1.1",
       "Domain >= 1.0.0",
+      "FluentValidation >= 12.1.1",
       "Microsoft.EntityFrameworkCore >= 9.0.15",
       "Microsoft.EntityFrameworkCore.SqlServer >= 9.0.15",
       "Microsoft.EntityFrameworkCore.Tools >= 9.0.15"
@@ -4526,6 +4555,10 @@
           "AutoMapper": {
             "target": "Package",
             "version": "[16.1.1, )"
+          },
+          "FluentValidation": {
+            "target": "Package",
+            "version": "[12.1.1, )"
           },
           "Microsoft.EntityFrameworkCore": {
             "target": "Package",

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace Application.DTOs.Hotel.Request
 {
     public sealed record HotelUpdateRequest(
+        int Id,
         string HotelName,
         string? Description,
         decimal Longitude,

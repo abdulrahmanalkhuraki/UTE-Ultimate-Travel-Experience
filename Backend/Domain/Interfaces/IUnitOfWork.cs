@@ -11,6 +11,7 @@ namespace Domain.Interfaces
     public interface IUnitOfWork : IDisposable
     {
         IGenericRepository<Hotel> Hotels { get; }
+        IGenericRepository<Flight> Flights { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         Task BeginTransactionAsync(CancellationToken cancellationToken = default);

@@ -237,11 +237,11 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Flight>(entity =>
         {
             entity.Property(e => e.Airline).HasMaxLength(100);
-            entity.Property(e => e.ArrivalTime).HasColumnType("datetime");
+            entity.Property(e => e.Arrival).HasColumnType("datetime");
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.DepartureTime).HasColumnType("datetime");
+            entity.Property(e => e.Departure).HasColumnType("datetime");
             entity.Property(e => e.FlightNumber).HasMaxLength(20);
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.UpdatedAtUtc)
