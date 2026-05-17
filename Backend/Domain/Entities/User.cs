@@ -5,8 +5,6 @@ namespace Domain.Entities;
 
 public partial class User : BaseEntity
 {
-    public int UserId { get; set; }
-
     public string Email { get; set; } = null!;
 
     public string Password { get; set; } = null!;
@@ -15,19 +13,21 @@ public partial class User : BaseEntity
 
     public string? Phone { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public int RoleId { get; set; }
 
-    public DateTime UpdatedAt { get; set; }
+    public string FirstName { get; set; } = null!;
 
-    public int Status { get; set; }
+    public string LastName { get; set; } = null!;
 
     public DateOnly DateOfBirth { get; set; }
 
-    public int UserId { get; set; }
+    public bool IsEmailVerified { get; set; }
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
     public virtual ICollection<CustomTrip> CustomTrips { get; set; } = new List<CustomTrip>();
+
+    public virtual ICollection<EmailVerification> EmailVerifications { get; set; } = new List<EmailVerification>();
 
     public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 

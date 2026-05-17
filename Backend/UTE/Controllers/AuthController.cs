@@ -16,11 +16,31 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     [AllowAnonymous]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<AuthResponse>> Register(
+    public async Task<ActionResult<RegisterResponse>> Register(
         [FromForm] RegisterRequest request,
         CancellationToken ct)
     {
         var response = await _auth.RegisterAsync(request, ct);
+        return Ok(response);
+    }
+
+    [HttpPost("verify-otp")]
+    [AllowAnonymous]
+    public async Task<ActionResult<AuthResponse>> VerifyOtp(
+        [FromBody] VerifyOtpRequest request,
+        CancellationToken ct)
+    {
+        var response = await _auth.VerifyOtpAsync(request, ct);
+        return Ok(response);
+    }
+
+    [HttpPost("resend-otp")]
+    [AllowAnonymous]
+    public async Task<ActionResult<OtpResponse>> ResendOtp(
+        [FromBody] ResendOtpRequest request,
+        CancellationToken ct)
+    {
+        var response = await _auth.ResendOtpAsync(request, ct);
         return Ok(response);
     }
 

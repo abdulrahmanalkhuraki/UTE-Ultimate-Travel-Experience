@@ -1,6 +1,7 @@
 using Application.Interfaces;
 using Application.Services;
 using Infrastructure.Data;
+using Infrastructure.Email;
 using Infrastructure.Repositories;
 using Infrastructure.Security;
 using Infrastructure.Storage;
@@ -20,6 +21,7 @@ public static class DependencyInjection
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
+        services.Configure<SmtpSettings>(configuration.GetSection(SmtpSettings.SectionName));
 
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUserRepository, UserRepository>();
@@ -27,6 +29,7 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
         services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IFileStorage, LocalFileStorage>();
+        services.AddScoped<IEmailSender, SmtpEmailSender>();
         services.AddScoped<IAuthService, AuthService>();
 
         return services;

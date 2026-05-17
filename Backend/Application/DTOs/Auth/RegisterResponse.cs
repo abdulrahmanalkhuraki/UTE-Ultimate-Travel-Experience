@@ -1,6 +1,6 @@
 namespace Application.DTOs.Auth;
 
-public class AuthResponse
+public class RegisterResponse
 {
     public int UserId { get; set; }
     public string FirstName { get; set; } = null!;
@@ -10,6 +10,6 @@ public class AuthResponse
     public DateOnly DateOfBirth { get; set; }
     public string Role { get; set; } = null!;
     public bool IsEmailVerified { get; set; }
-    public string Token { get; set; } = null!;
-    public DateTime ExpiresAt { get; set; }
+    public string Message { get; set; } =
+        "Account created successfully. A verification code has been sent to your email.";
 }

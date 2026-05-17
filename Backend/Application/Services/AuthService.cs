@@ -1,33 +1,49 @@
+using System.Security.Cryptography;
 using Application.Common;
 using Application.DTOs.Auth;
 using Application.Interfaces;
 using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Services;
 
 public class AuthService : IAuthService
 {
+    private const int OtpLength = 6;
+    private const int OtpExpiryMinutes = 10;
+    private const int MaxOtpAttempts = 5;
+
     private readonly IUserRepository _users;
     private readonly IGenericRepository<Role> _roles;
+    private readonly IGenericRepository<EmailVerification> _verifications;
     private readonly IPasswordHasher _hasher;
     private readonly IJwtTokenGenerator _tokens;
     private readonly IFileStorage _files;
+    private readonly IEmailSender _email;
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         IUserRepository users,
         IGenericRepository<Role> roles,
+        IGenericRepository<EmailVerification> verifications,
         IPasswordHasher hasher,
         IJwtTokenGenerator tokens,
-        IFileStorage files)
+        IFileStorage files,
+        IEmailSender email,
+        ILogger<AuthService> logger)
     {
         _users = users;
         _roles = roles;
+        _verifications = verifications;
         _hasher = hasher;
         _tokens = tokens;
         _files = files;
+        _email = email;
+        _logger = logger;
     }
 
-    public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
+    public async Task<RegisterResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
     {
         var email = request.Email.Trim().ToLowerInvariant();
         var firstName = request.FirstName.Trim();
@@ -49,24 +65,113 @@ public class AuthService : IAuthService
         var now = DateTime.UtcNow;
         var user = new User
         {
-            Username  = username,
-            Email     = email,
-            Password  = _hasher.Hash(request.Password),
-            Phone     = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
-            Image     = string.IsNullOrWhiteSpace(request.Image) ? null : request.Image.Trim(),
-            CreatedAt = now,
-            UpdatedAt = now,
-            Status    = 1,
-            RoleId    = request.Role
+            FirstName       = firstName,
+            LastName        = lastName,
+            Email           = email,
+            Password        = _hasher.Hash(request.Password),
+            Phone           = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
+            Image           = imageUrl,
+            DateOfBirth     = request.DateOfBirth!.Value,
+            CreatedAtUtc    = now,
+            UpdatedAtUtc    = now,
+            IsEmailVerified = false,
+            RoleId          = request.Role
         };
 
         await _users.AddAsync(user, ct);
         await _users.SaveChangesAsync(ct);
 
-        var fresh = await _users.GetByIdWithRoleAsync(user.Id, ct)
-                    ?? throw new InvalidOperationException("Failed to load the created user.");
+        await IssueAndSendOtpAsync(user, ct);
 
-        return BuildResponse(fresh, issueToken: false);
+        return new RegisterResponse
+        {
+            UserId          = user.Id,
+            FirstName       = user.FirstName,
+            LastName        = user.LastName,
+            Email           = user.Email,
+            Image           = user.Image,
+            DateOfBirth     = user.DateOfBirth,
+            Role            = role.RoleName,
+            IsEmailVerified = false
+        };
+    }
+
+    public async Task<AuthResponse> VerifyOtpAsync(VerifyOtpRequest request, CancellationToken ct = default)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+        var user = await _users.GetByEmailAsync(email, ct)
+                   ?? throw new NotFoundException("No account found for this email.");
+
+        if (user.IsEmailVerified)
+            throw new ConflictException("Email is already verified.");
+
+        var verification = await _verifications.Query()
+            .Where(v => v.UserId == user.Id && !v.IsUsed)
+            .OrderByDescending(v => v.CreatedAtUtc)
+            .FirstOrDefaultAsync(ct)
+            ?? throw new NotFoundException("No active verification code. Please request a new one.");
+
+        if (verification.ExpiresAt < DateTime.UtcNow)
+            throw new AuthException("Verification code has expired. Please request a new one.");
+
+        if (verification.Attempts >= MaxOtpAttempts)
+            throw new ForbiddenException(
+                $"Too many failed attempts ({MaxOtpAttempts}). Please request a new verification code.");
+
+        if (!FixedTimeEquals(verification.Code, request.Code))
+        {
+            verification.Attempts++;
+            verification.UpdatedAtUtc = DateTime.UtcNow;
+            _verifications.Update(verification);
+            await _verifications.SaveChangesAsync(ct);
+            throw new AuthException(
+                $"Invalid verification code. Attempts left: {MaxOtpAttempts - verification.Attempts}.");
+        }
+
+        verification.IsUsed = true;
+        verification.UsedAt = DateTime.UtcNow;
+        verification.UpdatedAtUtc = DateTime.UtcNow;
+        _verifications.Update(verification);
+
+        user.IsEmailVerified = true;
+        user.UpdatedAtUtc = DateTime.UtcNow;
+        _users.Update(user);
+
+        await _users.SaveChangesAsync(ct);
+
+        var (token, expiresAt) = _tokens.GenerateToken(user);
+        return new AuthResponse
+        {
+            UserId          = user.Id,
+            FirstName       = user.FirstName,
+            LastName        = user.LastName,
+            Email           = user.Email,
+            Image           = user.Image,
+            DateOfBirth     = user.DateOfBirth,
+            Role            = user.Role?.RoleName ?? string.Empty,
+            IsEmailVerified = true,
+            Token           = token,
+            ExpiresAt       = expiresAt
+        };
+    }
+
+    public async Task<OtpResponse> ResendOtpAsync(ResendOtpRequest request, CancellationToken ct = default)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+        var user = await _users.GetByEmailAsync(email, ct)
+                   ?? throw new NotFoundException("No account found for this email.");
+
+        if (user.IsEmailVerified)
+            throw new ConflictException("Email is already verified.");
+
+        var expiresAt = await IssueAndSendOtpAsync(user, ct);
+
+        return new OtpResponse
+        {
+            Email        = user.Email,
+            ExpiresAtUtc = expiresAt,
+            Message      = "A new verification code has been sent to your email."
+        };
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct = default)
@@ -77,33 +182,161 @@ public class AuthService : IAuthService
         if (user is null || !_hasher.Verify(request.Password, user.Password))
             throw new AuthException("Invalid email or password.");
 
-        if (!user.IsApproved)
+        if (!user.IsEmailVerified)
             throw new ForbiddenException(
-                "Your account is pending approval. Please wait for an administrator to approve your account.");
+                "Email is not verified. Please verify your email using the OTP sent at registration.");
 
-        return BuildResponse(user, issueToken: true);
-    }
-
-    private AuthResponse BuildResponse(User user, bool issueToken)
-    {
-        string? token = null;
-        DateTime? expiresAt = null;
-
-        if (issueToken)
-        {
-            var t = _tokens.GenerateToken(user);
-            token = t.Token;
-            expiresAt = t.ExpiresAt;
-        }
-
+        var (token, expiresAt) = _tokens.GenerateToken(user);
         return new AuthResponse
         {
-            UserId    = user.UserId,
-            Username  = user.Username,
-            Email     = user.Email,
-            Role      = user.Role?.RoleName ?? string.Empty,
-            Token     = token,
-            ExpiresAt = expiresAt
+            UserId          = user.Id,
+            FirstName       = user.FirstName,
+            LastName        = user.LastName,
+            Email           = user.Email,
+            Image           = user.Image,
+            DateOfBirth     = user.DateOfBirth,
+            Role            = user.Role?.RoleName ?? string.Empty,
+            IsEmailVerified = true,
+            Token           = token,
+            ExpiresAt       = expiresAt
         };
+    }
+
+    private async Task<DateTime> IssueAndSendOtpAsync(User user, CancellationToken ct)
+    {
+        // Invalidate any previous unused codes for this user.
+        var oldCodes = await _verifications.WhereAsync(v => v.UserId == user.Id && !v.IsUsed, ct);
+        foreach (var old in oldCodes)
+        {
+            old.IsUsed = true;
+            old.UsedAt = DateTime.UtcNow;
+            old.UpdatedAtUtc = DateTime.UtcNow;
+            _verifications.Update(old);
+        }
+
+        var code = GenerateNumericCode(OtpLength);
+        var now = DateTime.UtcNow;
+        var expiresAt = now.AddMinutes(OtpExpiryMinutes);
+
+        var verification = new EmailVerification
+        {
+            UserId       = user.Id,
+            Code         = code,
+            ExpiresAt    = expiresAt,
+            Attempts     = 0,
+            IsUsed       = false,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now
+        };
+
+        await _verifications.AddAsync(verification, ct);
+        await _verifications.SaveChangesAsync(ct);
+
+        // Always log the code in non-production for debugging. Email send failures
+        // should not break registration — the user can call resend-otp later.
+        _logger.LogInformation("OTP for {Email} is {Code} (expires at {ExpiresAt:u})",
+            user.Email, code, expiresAt);
+
+        try
+        {
+            await SendOtpEmailAsync(user, code, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Failed to send OTP email to {Email}. The code is stored; user can call resend-otp.",
+                user.Email);
+        }
+
+        return expiresAt;
+    }
+
+    private async Task SendOtpEmailAsync(User user, string code, CancellationToken ct)
+    {
+        var html = Infrastructure_EmailTemplate(user.FirstName, code, OtpExpiryMinutes);
+        await _email.SendAsync(
+            user.Email,
+            $"{user.FirstName} {user.LastName}",
+            "Your UTE Tourism verification code",
+            html,
+            ct);
+    }
+
+    private static string Infrastructure_EmailTemplate(string firstName, string code, int minutes) => $@"
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8' />
+<meta name='viewport' content='width=device-width, initial-scale=1.0' />
+<meta name='color-scheme' content='dark' />
+<meta name='supported-color-schemes' content='dark' />
+<title>Verification code</title>
+</head>
+<body style='margin:0;padding:0;background-color:#0f0f14;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e2e8f0;'>
+<div style='display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#0f0f14;opacity:0;'>Your UTE Tourism verification code. Expires in {minutes} minutes.</div>
+<table role='presentation' cellpadding='0' cellspacing='0' border='0' width='100%' bgcolor='#0f0f14' style='background-color:#0f0f14;padding:32px 16px;'>
+<tr><td align='center'>
+<table role='presentation' cellpadding='0' cellspacing='0' border='0' width='560' bgcolor='#1a1a22' style='max-width:560px;width:100%;background-color:#1a1a22;border-radius:18px;border:1px solid #2a2a35;overflow:hidden;'>
+<tr><td align='center' style='padding:44px 32px 16px;'>
+<table role='presentation' cellpadding='0' cellspacing='0' border='0'><tr>
+<td align='center' bgcolor='#7c3aed' style='width:84px;height:84px;background-color:#7c3aed;background-image:linear-gradient(135deg,#7c3aed 0%,#a78bfa 100%);border-radius:20px;text-align:center;vertical-align:middle;'>
+<div style='font-size:44px;line-height:84px;'>&#9992;&#65039;</div>
+</td></tr></table>
+</td></tr>
+<tr><td align='center' style='padding:8px 32px 4px;'>
+<h1 style='margin:0;color:#c4b5fd;font-size:34px;font-weight:700;letter-spacing:0.5px;'>Verification code</h1>
+</td></tr>
+<tr><td align='center' style='padding:6px 32px 20px;'>
+<p style='margin:0;font-size:30px;line-height:1;'>&#128274;</p>
+</td></tr>
+<tr><td style='padding:0 32px;'>
+<hr style='border:none;border-top:1px solid #4c1d95;margin:0;' />
+</td></tr>
+<tr><td align='center' style='padding:28px 32px 0;'>
+<p style='margin:0;color:#e2e8f0;font-size:16px;line-height:1.6;'>Hi <strong style='color:#ffffff;'>{firstName}</strong>,</p>
+</td></tr>
+<tr><td align='center' style='padding:8px 32px 24px;'>
+<p style='margin:0;color:#cbd5e1;font-size:15px;line-height:1.7;'>Copy the code below to verify your <strong style='color:#ffffff;'>UTE Tourism</strong> account.</p>
+</td></tr>
+<tr><td align='center' style='padding:0 32px 24px;'>
+<table role='presentation' cellpadding='0' cellspacing='0' border='0' width='100%'><tr>
+<td align='center' bgcolor='#0d2818' style='background-color:#0d2818;border:1px solid #166534;border-radius:14px;padding:26px 16px;'>
+<p style='margin:0;color:#4ade80;font-size:42px;font-weight:700;letter-spacing:14px;font-family:Courier New,Courier,monospace;text-shadow:0 0 12px rgba(74,222,128,0.35);'>{code}</p>
+</td></tr></table>
+</td></tr>
+<tr><td align='center' style='padding:0 32px 18px;'>
+<p style='margin:0;color:#e2e8f0;font-size:15px;line-height:1.7;'>The code can only be used once and expires in <strong style='color:#ffffff;'>{minutes} minutes</strong>.</p>
+</td></tr>
+<tr><td align='center' style='padding:0 32px 28px;'>
+<p style='margin:0;color:#f87171;font-size:14px;line-height:1.6;'>If you did not request this code, please ignore this email &#9888;&#65039;.</p>
+</td></tr>
+<tr><td style='padding:0 32px;'>
+<hr style='border:none;border-top:1px solid #2a2a35;margin:0;' />
+</td></tr>
+<tr><td align='center' style='padding:22px 32px 32px;'>
+<p style='margin:0;color:#64748b;font-size:12px;line-height:1.6;'>&#169; 2026 UTE Tourism &mdash; Ultimate Travel Experience. All rights reserved.</p>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>";
+
+    private static string GenerateNumericCode(int length)
+    {
+        Span<byte> buffer = stackalloc byte[length];
+        RandomNumberGenerator.Fill(buffer);
+        var chars = new char[length];
+        for (int i = 0; i < length; i++)
+            chars[i] = (char)('0' + buffer[i] % 10);
+        return new string(chars);
+    }
+
+    private static bool FixedTimeEquals(string a, string b)
+    {
+        if (a.Length != b.Length) return false;
+        return CryptographicOperations.FixedTimeEquals(
+            System.Text.Encoding.UTF8.GetBytes(a),
+            System.Text.Encoding.UTF8.GetBytes(b));
     }
 }
