@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\Infrastructure.csproj": {}
+    "C:\\studing\\UTE\\Backend\\Infrastructure\\Infrastructure.csproj": {}
   },
   "projects": {
-    "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Application\\Application.csproj": {
+    "C:\\studing\\UTE\\Backend\\Application\\Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Application\\Application.csproj",
+        "projectUniqueName": "C:\\studing\\UTE\\Backend\\Application\\Application.csproj",
         "projectName": "Application",
-        "projectPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Application\\Application.csproj",
-        "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Application\\obj\\",
+        "projectPath": "C:\\studing\\UTE\\Backend\\Application\\Application.csproj",
+        "packagesPath": "C:\\Users\\LOQ\\.nuget\\packages\\",
+        "outputPath": "C:\\studing\\UTE\\Backend\\Application\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\LOQ\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,14 +26,15 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj": {
-                "projectPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj"
+              "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj": {
+                "projectPath": "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj"
               }
             }
           }
@@ -48,20 +49,12 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
-            "AutoMapper": {
-              "target": "Package",
-              "version": "[16.1.1, )"
-            },
-            "FluentValidation": {
-              "target": "Package",
-              "version": "[12.1.1, )"
-            },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
               "version": "[9.0.15, )"
@@ -96,24 +89,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj": {
+    "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj",
+        "projectUniqueName": "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj",
         "projectName": "Domain",
-        "projectPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj",
-        "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\obj\\",
+        "projectPath": "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj",
+        "packagesPath": "C:\\Users\\LOQ\\.nuget\\packages\\",
+        "outputPath": "C:\\studing\\UTE\\Backend\\Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\LOQ\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -122,6 +115,7 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -140,7 +134,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
@@ -177,24 +171,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\Infrastructure.csproj": {
+    "C:\\studing\\UTE\\Backend\\Infrastructure\\Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\Infrastructure.csproj",
+        "projectUniqueName": "C:\\studing\\UTE\\Backend\\Infrastructure\\Infrastructure.csproj",
         "projectName": "Infrastructure",
-        "projectPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\Infrastructure.csproj",
-        "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\obj\\",
+        "projectPath": "C:\\studing\\UTE\\Backend\\Infrastructure\\Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\LOQ\\.nuget\\packages\\",
+        "outputPath": "C:\\studing\\UTE\\Backend\\Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\LOQ\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -203,17 +197,18 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Application\\Application.csproj": {
-                "projectPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Application\\Application.csproj"
+              "C:\\studing\\UTE\\Backend\\Application\\Application.csproj": {
+                "projectPath": "C:\\studing\\UTE\\Backend\\Application\\Application.csproj"
               },
-              "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj": {
-                "projectPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj"
+              "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj": {
+                "projectPath": "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj"
               }
             }
           }
@@ -228,7 +223,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
@@ -287,7 +282,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
