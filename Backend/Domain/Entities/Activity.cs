@@ -9,7 +9,6 @@ public partial class Activity : BaseEntity
 
     public string? Description { get; set; }
 
-    // Duration of the Activity in minutes
     public int Duration { get; set; }
 
     public decimal Price { get; set; }

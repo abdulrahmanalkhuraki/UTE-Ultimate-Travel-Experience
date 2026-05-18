@@ -28,6 +28,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<CustomTrip> CustomTrips { get; set; }
 
+    public virtual DbSet<EmailVerification> EmailVerifications { get; set; }
+
     public virtual DbSet<Favorite> Favorites { get; set; }
 
     public virtual DbSet<Flight> Flights { get; set; }
@@ -101,6 +103,13 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<AttractionActivity>(entity =>
         {
+            entity.Property(e => e.CreatedAtUtc)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAtUtc)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime");
+
             entity.HasOne(d => d.Activity).WithMany(p => p.AttractionActivities)
                 .HasForeignKey(d => d.ActivityId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -197,8 +206,6 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<CustomTrip>(entity =>
         {
-            entity.HasKey(e => e.Id);
-
             entity.Property(e => e.Budget).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
@@ -212,6 +219,29 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__CustomTri__UserI__787EE5A0");
+        });
+
+        modelBuilder.Entity<EmailVerification>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__EmailVer__3214EC075FAC316A");
+
+            entity.HasIndex(e => e.UserId, "IX_EmailVerifications_UserId");
+
+            entity.HasIndex(e => new { e.UserId, e.IsUsed }, "IX_EmailVerifications_UserId_IsUsed");
+
+            entity.Property(e => e.Code).HasMaxLength(10);
+            entity.Property(e => e.CreatedAtUtc)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.ExpiresAt).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAtUtc)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UsedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.User).WithMany(p => p.EmailVerifications)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_EmailVerifications_Users");
         });
 
         modelBuilder.Entity<Favorite>(entity =>
@@ -299,6 +329,13 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<ItineraryAttraction>(entity =>
         {
+            entity.Property(e => e.CreatedAtUtc)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAtUtc)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime");
+
             entity.HasOne(d => d.Attraction).WithMany(p => p.ItineraryAttractions)
                 .HasForeignKey(d => d.AttractionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -332,8 +369,6 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<PackageItinerary>(entity =>
         {
-            entity.HasKey(e => e.Id);
-
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -350,6 +385,13 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<PackageItineraryAttraction>(entity =>
         {
+            entity.Property(e => e.CreatedAtUtc)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAtUtc)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime");
+
             entity.HasOne(d => d.Attraction).WithMany(p => p.PackageItineraryAttractions)
                 .HasForeignKey(d => d.AttractionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -366,10 +408,16 @@ public partial class AppDbContext : DbContext
             entity.ToTable("payments");
 
             entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.CreatedAtUtc)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime");
             entity.Property(e => e.PaymentMethod)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("Payment_Method");
+            entity.Property(e => e.UpdatedAtUtc)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime");
 
             entity.HasOne(d => d.User).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.UserId)
@@ -435,8 +483,6 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<TourCompany>(entity =>
         {
-            entity.HasKey(e => e.Id);
-
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -455,8 +501,6 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<TourPackage>(entity =>
         {
-            entity.HasKey(e => e.Id);
-
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -478,14 +522,16 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.DateOfBirth).HasColumnName("Date_Of_Birth");
             entity.Property(e => e.Email).HasMaxLength(75);
+            entity.Property(e => e.FirstName).HasMaxLength(50);
             entity.Property(e => e.Image).HasMaxLength(500);
+            entity.Property(e => e.LastName).HasMaxLength(50);
             entity.Property(e => e.Password).HasMaxLength(255);
             entity.Property(e => e.Phone).HasMaxLength(20);
             entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.Username).HasMaxLength(50);
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)

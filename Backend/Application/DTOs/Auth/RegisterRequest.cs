@@ -1,14 +1,18 @@
 using System.ComponentModel.DataAnnotations;
+using Application.Common.Validation;
+using Microsoft.AspNetCore.Http;
 
 namespace Application.DTOs.Auth;
 
 public class RegisterRequest
 {
-    [Required(ErrorMessage = "Username is required.")]
-    [StringLength(50, MinimumLength = 3, ErrorMessage = "Username must be between 3 and 50 characters.")]
-    //[RegularExpression(@"^[A-Za-z0-9_\.]+$",
-    //    ErrorMessage = "Username can only contain letters, digits, dot and underscore.")]
-    public string Username { get; set; } = null!;
+    [Required(ErrorMessage = "First name is required.")]
+    [StringLength(50, MinimumLength = 2, ErrorMessage = "First name must be between 2 and 50 characters.")]
+    public string FirstName { get; set; } = null!;
+
+    [Required(ErrorMessage = "Last name is required.")]
+    [StringLength(50, MinimumLength = 2, ErrorMessage = "Last name must be between 2 and 50 characters.")]
+    public string LastName { get; set; } = null!;
 
     [Required(ErrorMessage = "Email is required.")]
     [EmailAddress(ErrorMessage = "Email format is invalid.")]
@@ -27,14 +31,17 @@ public class RegisterRequest
     [DataType(DataType.Password)]
     public string ConfirmPassword { get; set; } = null!;
 
+    [Required(ErrorMessage = "Date of birth is required.")]
+    [DateOfBirth(MinAge = 18, MaxAge = 120)]
+    [DataType(DataType.Date)]
+    public DateOnly? DateOfBirth { get; set; }
+
     [RegularExpression(@"^[\+]?[\d\s\-\(\)]{6,20}$",
         ErrorMessage = "Phone number format is invalid.")]
     [StringLength(20)]
     public string? Phone { get; set; }
 
-   // [Url(ErrorMessage = "Image must be a valid URL.")]
-    [StringLength(500)]
-    public string? Image { get; set; }
+    public IFormFile? Image { get; set; }
 
     [Required(ErrorMessage = "Role is required.")]
     [Range(1, int.MaxValue, ErrorMessage = "Role must be a positive number.")]

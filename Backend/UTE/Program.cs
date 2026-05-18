@@ -13,11 +13,16 @@ using Infrastructure;
 using Infrastructure.Repositories;
 using Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
+using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using UTE.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -66,17 +71,103 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
     {
-        var errors = context.ModelState
-            .Where(kvp => kvp.Value is { Errors.Count: > 0 })
-            .ToDictionary(
-                kvp => kvp.Key,
-                kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray());
+        var ms = context.ModelState;
+
+        var bodyParamName = context.ActionDescriptor.Parameters
+            .OfType<ControllerParameterDescriptor>()
+            .FirstOrDefault(p =>
+                p.BindingInfo?.BindingSource == BindingSource.Body
+                || (p.BindingInfo?.BindingSource is null
+                    && !p.ParameterType.IsValueType
+                    && p.ParameterType != typeof(string)
+                    && p.ParameterType != typeof(CancellationToken)))
+            ?.Name;
+
+        bool IsBodyLevelError(KeyValuePair<string, ModelStateEntry?> kvp)
+        {
+            if (kvp.Value is null || kvp.Value.Errors.Count == 0) return false;
+            if (kvp.Key == "$" || string.IsNullOrEmpty(kvp.Key)) return true;
+            if (!string.IsNullOrEmpty(bodyParamName) &&
+                kvp.Key.Equals(bodyParamName, StringComparison.OrdinalIgnoreCase)) return true;
+            if (kvp.Value.Errors.Any(e => e.Exception is JsonException)) return true;
+            return false;
+        }
+
+        var hasBodyParseError = ms.Any(IsBodyLevelError);
+
+        Dictionary<string, string[]> errors;
+        string title;
+        string detail;
+
+        if (hasBodyParseError)
+        {
+            var bodyParam = context.ActionDescriptor.Parameters
+                .OfType<ControllerParameterDescriptor>()
+                .FirstOrDefault(p =>
+                    !string.IsNullOrEmpty(bodyParamName)
+                    && p.Name.Equals(bodyParamName, StringComparison.OrdinalIgnoreCase));
+
+            var perFieldErrors = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+
+            if (bodyParam is not null)
+            {
+                try
+                {
+                    var emptyInstance = Activator.CreateInstance(bodyParam.ParameterType);
+                    if (emptyInstance is not null)
+                    {
+                        var vc = new ValidationContext(emptyInstance);
+                        var results = new List<ValidationResult>();
+                        Validator.TryValidateObject(emptyInstance, vc, results, validateAllProperties: true);
+
+                        foreach (var r in results)
+                        {
+                            foreach (var member in r.MemberNames.DefaultIfEmpty(string.Empty))
+                            {
+                                var key = string.IsNullOrEmpty(member) ? "body" : member;
+                                if (!perFieldErrors.TryGetValue(key, out var list))
+                                {
+                                    list = new List<string>();
+                                    perFieldErrors[key] = list;
+                                }
+                                if (!string.IsNullOrWhiteSpace(r.ErrorMessage))
+                                    list.Add(r.ErrorMessage);
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // ignore reflection failures; fall back to a generic body error
+                }
+            }
+
+            perFieldErrors["body"] = new List<string>
+            {
+                "Request body is missing or has invalid JSON format. Send the data as a JSON object in the request body (not as URL params)."
+            };
+
+            errors = perFieldErrors.ToDictionary(kv => kv.Key, kv => kv.Value.ToArray());
+            title = "Invalid or missing request body.";
+            detail = "The request body could not be read. Send the data as JSON inside the request Body (not in URL params).";
+        }
+        else
+        {
+            errors = ms
+                .Where(kvp => kvp.Value is { Errors.Count: > 0 })
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray());
+
+            title = "Validation failed.";
+            detail = "One or more fields are invalid. Please review the errors and try again.";
+        }
 
         var problem = new ValidationProblemDetails(errors)
         {
             Status = StatusCodes.Status400BadRequest,
-            Title = "Validation failed.",
-            Detail = "One or more fields are invalid. Please review the errors and try again.",
+            Title = title,
+            Detail = detail,
             Instance = context.HttpContext.Request.Path
         };
 

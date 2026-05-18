@@ -21,7 +21,4 @@ public class UserRepository : GenericRepository<User>, IUserRepository
 
     public Task<bool> EmailExistsAsync(string email, CancellationToken ct = default) =>
         Db.Users.AnyAsync(u => u.Email == email, ct);
-
-    public Task<bool> UsernameExistsAsync(string username, CancellationToken ct = default) =>
-        Db.Users.AnyAsync(u => u.Username == username, ct);
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Domain.Entities;
 
-public partial class ItineraryAttraction
+public partial class ItineraryAttraction : BaseEntity
 {
     public int OrderNumber { get; set; }
 
@@ -12,8 +12,6 @@ public partial class ItineraryAttraction
     public int ItineraryId { get; set; }
 
     public int AttractionId { get; set; }
-
-    public int ItineraryAttractionId { get; set; }
 
     public virtual Attraction Attraction { get; set; } = null!;
 
