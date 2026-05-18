@@ -21,11 +21,17 @@ namespace Infrastructure.Repositories
             _context = context;
             Hotels = new GenericRepository<Hotel>(_context);
             Flights = new GenericRepository<Flight>(_context);
+            Cities = new GenericRepository<City>(_context);
+            Countries = new GenericRepository<Country>(_context);
         }
 
         public IGenericRepository<Hotel> Hotels { get; }
 
         public IGenericRepository<Flight> Flights { get; }
+
+        public IGenericRepository<City> Cities { get; }
+
+        public IGenericRepository<Country> Countries { get; }
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

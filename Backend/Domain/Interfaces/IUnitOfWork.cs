@@ -12,6 +12,8 @@ namespace Domain.Interfaces
     {
         IGenericRepository<Hotel> Hotels { get; }
         IGenericRepository<Flight> Flights { get; }
+        IGenericRepository<City> Cities { get; }
+        IGenericRepository<Country> Countries { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         Task BeginTransactionAsync(CancellationToken cancellationToken = default);

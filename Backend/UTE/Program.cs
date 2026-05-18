@@ -1,6 +1,6 @@
-using Application.DTOs.Hotel.Request;
-using Application.Exceptions;
 using Application.Interfaces;
+using Application.Interfaces.City;
+using Application.Interfaces.Country;
 using Application.Interfaces.Flight;
 using Application.Interfaces.Hotel;
 using Application.Mappings;
@@ -13,14 +13,11 @@ using Infrastructure;
 using Infrastructure.Repositories;
 using Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
-using System.Reflection;
 using System.Text;
-using System.Text.Json;
 using UTE.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -150,6 +147,13 @@ builder.Services.AddScoped<IHotelService, HotelService>();
 builder.Services.AddScoped<FlightCreateValidator>();
 builder.Services.AddScoped<FlightUpdateValidator>();
 builder.Services.AddScoped<IFlightService, FlightService>();
+
+// Country
+builder.Services.AddScoped<ICountryService, CountryService>();
+
+// City
+builder.Services.AddScoped<ICityService, CityService>();
+
 builder.Services.AddMemoryCache();
 // ==========================================
 // 8. ADD AUTOMAPPER
@@ -158,6 +162,8 @@ builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<HotelProfile>();
     cfg.AddProfile<FlightProfile>();
+    cfg.AddProfile<CityProfile>();
+    cfg.AddProfile<CountryProfile>();
 });
 
 // ==========================================
