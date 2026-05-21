@@ -1,1 +1,12 @@
-appsettings.Development.json 
+# IDEs and Editors caches (for everyone in the team)
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userprefs
+*.sln.docstates
+
+# OS temporary files
+.DS_Store
+Thumbs.db
