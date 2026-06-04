@@ -21,5 +21,5 @@ public partial class Hotel : BaseEntity
 
     public virtual City City { get; set; } = null!;
 
-    public virtual ICollection<HotelBooking> HotelBookings { get; set; } = new List<HotelBooking>();
+    public virtual ICollection<TourPackageHotel> TourPackageHotels { get; set; } = new List<TourPackageHotel>();
 }

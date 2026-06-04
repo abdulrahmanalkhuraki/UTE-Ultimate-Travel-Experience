@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace Domain.Entities
 {
-    public partial class HotelBooking
+    public partial class TourPackageHotel
     {
         public int Id { get; set; }
-        public DateOnly StartDate { get; set; }
-        public DateOnly EndDate { get; set; }
+        public DateTime CheckIn { get; set; }
+        public DateTime CheckOut { get; set; }
         public int HotelId { get; set; }
-        public int BookingId { get; set; }
+        public int TourPackageId { get; set; }
+        public virtual TourPackage TourPackage { get; set; } = null!;
         public virtual Hotel Hotel { get; set; } = null!;
-        public virtual Booking Booking { get; set;} = null!;
     }
 }

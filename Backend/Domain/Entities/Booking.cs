@@ -10,25 +10,21 @@ public partial class Booking : BaseEntity
 
     public int NumberOfChildren { get; set; }
 
+    public string? RoomTypePreference { get; set; }
+
+    public string? DietaryRequirements { get; set; }
+
+    public string? SpecialRequests { get; set; }
+
+    public int PackageId { get; set; }
+
     public BookingStatus Status { get; set; }
+
+    public BookingType BookingType { get; set; }
 
     public int UserId { get; set; }
 
     public int PaymentId { get; set; }
-
-    public BookingType BookingType { get; set; }
-
-    public int? PackageBookingId { get; set; }
-
-    public int? HotelBookingId { get; set; }
-
-    public int? FlightBookingId { get; set; }
-
-    public virtual PackageBooking? PackageBooking { get; set; }
-
-    public virtual HotelBooking? HotelBooking { get; set; }
-
-    public virtual FlightBooking? FlightBooking { get; set; }
 
     public virtual Payment Payment { get; set; } = null!;
 

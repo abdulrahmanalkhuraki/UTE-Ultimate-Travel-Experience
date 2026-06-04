@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 namespace Application.DTOs.PackageBooking.Request
 {
     public sealed record PackageBookingCreateRequest
-        (
-        );
+    (
+    );
 }

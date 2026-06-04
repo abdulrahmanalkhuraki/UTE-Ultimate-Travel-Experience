@@ -8,8 +8,8 @@ namespace Domain.Enums
 {
     public enum BookingType
     {
-        TourPackage,
-        Hotel,
-        Flight
+        Standard,
+        Premium,
+        VIP
     }
 }

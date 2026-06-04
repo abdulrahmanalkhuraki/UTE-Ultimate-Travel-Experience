@@ -197,18 +197,16 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("TourPackage");
+                        .HasDefaultValue("Standard");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
-                    b.Property<int?>("FlightBookingId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("HotelBookingId")
-                        .HasColumnType("int");
+                    b.Property<string>("DietaryRequirements")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("NumberOfAdults")
                         .ValueGeneratedOnAdd()
@@ -220,11 +218,19 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
-                    b.Property<int?>("PackageBookingId")
+                    b.Property<int>("PackageId")
                         .HasColumnType("int");
 
                     b.Property<int>("PaymentId")
                         .HasColumnType("int");
+
+                    b.Property<string>("RoomTypePreference")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("SpecialRequests")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -250,7 +256,7 @@ namespace Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("CK_Booking_BookingStatus", "[Status] IN ('Pending', 'Confirmed', 'In_Progress', 'Completed', 'Cancelled', 'No_Show')");
 
-                            t.HasCheckConstraint("CK_Booking_BookingType", "[BookingType] IN ('TourPackage', 'Hotel', 'Flight')");
+                            t.HasCheckConstraint("CK_Booking_BookingType", "[BookingType] IN ('Standard', 'Premium', 'VIP')");
                         });
                 });
 
@@ -288,7 +294,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("NatinalityCountryID");
 
-                    b.ToTable("BookingPassenger", t =>
+                    b.ToTable("BookingsPassengers", t =>
                         {
                             t.HasCheckConstraint("CK_BookingPassengers_IdentityType", "[IdentityType] IN ('NationalID','Passport')");
 
@@ -351,51 +357,6 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Countries");
-                });
-
-            modelBuilder.Entity("Domain.Entities.CustomTrip", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Budget")
-                        .HasColumnType("decimal(10, 2)");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<DateOnly>("EndDate")
-                        .HasColumnType("date");
-
-                    b.Property<int>("NumberOfPeople")
-                        .HasColumnType("int");
-
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("TripName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("CustomTrips");
                 });
 
             modelBuilder.Entity("Domain.Entities.EmailVerification", b =>
@@ -531,30 +492,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Flights");
                 });
 
-            modelBuilder.Entity("Domain.Entities.FlightBooking", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FlightId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BookingId")
-                        .IsUnique();
-
-                    b.HasIndex("FlightId");
-
-                    b.ToTable("FlightBookings");
-                });
-
             modelBuilder.Entity("Domain.Entities.Hotel", b =>
                 {
                     b.Property<int>("Id")
@@ -604,41 +541,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Hotels");
                 });
 
-            modelBuilder.Entity("Domain.Entities.HotelBooking", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int");
-
-                    b.Property<DateOnly>("EndDate")
-                        .HasColumnType("date");
-
-                    b.Property<int>("HotelId")
-                        .HasColumnType("int");
-
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BookingId")
-                        .IsUnique();
-
-                    b.HasIndex("HotelId");
-
-                    b.ToTable("HotelBookings", t =>
-                        {
-                            t.HasCheckConstraint("CHK_EndDate_StartDate", "[EndDate] > [StartDate]");
-
-                            t.HasCheckConstraint("CHK_Future_StartDate", "[StartDate] > GETDATE()");
-                        });
-                });
-
             modelBuilder.Entity("Domain.Entities.Image", b =>
                 {
                     b.Property<int>("Id")
@@ -671,79 +573,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("AttractionId");
 
                     b.ToTable("Images");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Itinerary", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<DateOnly>("DayDate")
-                        .HasColumnType("date");
-
-                    b.Property<int>("DayNumber")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TripId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TripId");
-
-                    b.ToTable("Itineraries");
-                });
-
-            modelBuilder.Entity("Domain.Entities.ItineraryAttraction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AttractionId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getutcdate())");
-
-                    b.Property<int>("ItineraryId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OrderNumber")
-                        .HasColumnType("int");
-
-                    b.Property<TimeOnly>("Time")
-                        .HasColumnType("time");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getutcdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AttractionId");
-
-                    b.HasIndex("ItineraryId");
-
-                    b.ToTable("ItineraryAttractions");
                 });
 
             modelBuilder.Entity("Domain.Entities.Notification", b =>
@@ -788,39 +617,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Notifications");
-                });
-
-            modelBuilder.Entity("Domain.Entities.PackageBooking", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("DietaryRequirements")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PackageId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RoomTypePreference")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SpecialRequests")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BookingId")
-                        .IsUnique();
-
-                    b.HasIndex("PackageId");
-
-                    b.ToTable("PackageBookings");
                 });
 
             modelBuilder.Entity("Domain.Entities.PackageItinerary", b =>
@@ -1148,6 +944,63 @@ namespace Infrastructure.Migrations
                     b.ToTable("TourPackages");
                 });
 
+            modelBuilder.Entity("Domain.Entities.TourPackageFlight", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("FlightId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TourPackageId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FlightId");
+
+                    b.HasIndex("TourPackageId");
+
+                    b.ToTable("TourPackageFlights");
+                });
+
+            modelBuilder.Entity("Domain.Entities.TourPackageHotel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CheckIn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CheckOut")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("HotelId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TourPackageId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HotelId");
+
+                    b.HasIndex("TourPackageId");
+
+                    b.ToTable("TourPackageHotels", t =>
+                        {
+                            t.HasCheckConstraint("CHK_CheckIn_CheckOut", "[CheckOut] > [CheckIn]");
+
+                            t.HasCheckConstraint("CHK_Future_CheckIn", "[CheckIn] > GETDATE()");
+                        });
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -1334,17 +1187,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Country");
                 });
 
-            modelBuilder.Entity("Domain.Entities.CustomTrip", b =>
-                {
-                    b.HasOne("Domain.Entities.User", "User")
-                        .WithMany("CustomTrips")
-                        .HasForeignKey("UserId")
-                        .IsRequired()
-                        .HasConstraintName("FK__CustomTri__UserI__787EE5A0");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Domain.Entities.EmailVerification", b =>
                 {
                     b.HasOne("Domain.Entities.User", "User")
@@ -1395,26 +1237,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("DepartureCity");
                 });
 
-            modelBuilder.Entity("Domain.Entities.FlightBooking", b =>
-                {
-                    b.HasOne("Domain.Entities.Booking", "Booking")
-                        .WithOne("FlightBooking")
-                        .HasForeignKey("Domain.Entities.FlightBooking", "BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Flight", "Flight")
-                        .WithMany("FlightBookings")
-                        .HasForeignKey("FlightId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK__Bookings__Flight__10566F31");
-
-                    b.Navigation("Booking");
-
-                    b.Navigation("Flight");
-                });
-
             modelBuilder.Entity("Domain.Entities.Hotel", b =>
                 {
                     b.HasOne("Domain.Entities.City", "City")
@@ -1426,26 +1248,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("City");
                 });
 
-            modelBuilder.Entity("Domain.Entities.HotelBooking", b =>
-                {
-                    b.HasOne("Domain.Entities.Booking", "Booking")
-                        .WithOne("HotelBooking")
-                        .HasForeignKey("Domain.Entities.HotelBooking", "BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Hotel", "Hotel")
-                        .WithMany("HotelBookings")
-                        .HasForeignKey("HotelId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK__Bookings__HotelI__0E6E26BF");
-
-                    b.Navigation("Booking");
-
-                    b.Navigation("Hotel");
-                });
-
             modelBuilder.Entity("Domain.Entities.Image", b =>
                 {
                     b.HasOne("Domain.Entities.Attraction", "Attraction")
@@ -1455,36 +1257,6 @@ namespace Infrastructure.Migrations
                         .HasConstraintName("FK__Images__Attracti__09A971A2");
 
                     b.Navigation("Attraction");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Itinerary", b =>
-                {
-                    b.HasOne("Domain.Entities.CustomTrip", "Trip")
-                        .WithMany("Itineraries")
-                        .HasForeignKey("TripId")
-                        .IsRequired()
-                        .HasConstraintName("FK__Itinerari__TripI__7D439ABD");
-
-                    b.Navigation("Trip");
-                });
-
-            modelBuilder.Entity("Domain.Entities.ItineraryAttraction", b =>
-                {
-                    b.HasOne("Domain.Entities.Attraction", "Attraction")
-                        .WithMany("ItineraryAttractions")
-                        .HasForeignKey("AttractionId")
-                        .IsRequired()
-                        .HasConstraintName("FK__Itinerary__Attra__2A164134");
-
-                    b.HasOne("Domain.Entities.Itinerary", "Itinerary")
-                        .WithMany("ItineraryAttractions")
-                        .HasForeignKey("ItineraryId")
-                        .IsRequired()
-                        .HasConstraintName("FK__Itinerary__Itine__29221CFB");
-
-                    b.Navigation("Attraction");
-
-                    b.Navigation("Itinerary");
                 });
 
             modelBuilder.Entity("Domain.Entities.Notification", b =>
@@ -1503,26 +1275,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Booking");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Domain.Entities.PackageBooking", b =>
-                {
-                    b.HasOne("Domain.Entities.Booking", "Booking")
-                        .WithOne("PackageBooking")
-                        .HasForeignKey("Domain.Entities.PackageBooking", "BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.TourPackage", "Package")
-                        .WithMany("PackageBookings")
-                        .HasForeignKey("PackageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK__Bookings__Packag__114A936A");
-
-                    b.Navigation("Booking");
-
-                    b.Navigation("Package");
                 });
 
             modelBuilder.Entity("Domain.Entities.PackageItinerary", b =>
@@ -1640,6 +1392,44 @@ namespace Infrastructure.Migrations
                     b.Navigation("Country");
                 });
 
+            modelBuilder.Entity("Domain.Entities.TourPackageFlight", b =>
+                {
+                    b.HasOne("Domain.Entities.Flight", "Flight")
+                        .WithMany("TourPackageFlights")
+                        .HasForeignKey("FlightId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.TourPackage", "TourPackage")
+                        .WithMany("TourPackageFlights")
+                        .HasForeignKey("TourPackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Flight");
+
+                    b.Navigation("TourPackage");
+                });
+
+            modelBuilder.Entity("Domain.Entities.TourPackageHotel", b =>
+                {
+                    b.HasOne("Domain.Entities.Hotel", "Hotel")
+                        .WithMany("TourPackageHotels")
+                        .HasForeignKey("HotelId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.TourPackage", "TourPackage")
+                        .WithMany("TourPackageHotels")
+                        .HasForeignKey("TourPackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Hotel");
+
+                    b.Navigation("TourPackage");
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.HasOne("Domain.Entities.Role", "Role")
@@ -1683,8 +1473,6 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Images");
 
-                    b.Navigation("ItineraryAttractions");
-
                     b.Navigation("PackageItineraryAttractions");
 
                     b.Navigation("Reviews");
@@ -1696,13 +1484,7 @@ namespace Infrastructure.Migrations
                 {
                     b.Navigation("BookingPassengers");
 
-                    b.Navigation("FlightBooking");
-
-                    b.Navigation("HotelBooking");
-
                     b.Navigation("Notifications");
-
-                    b.Navigation("PackageBooking");
                 });
 
             modelBuilder.Entity("Domain.Entities.City", b =>
@@ -1725,24 +1507,14 @@ namespace Infrastructure.Migrations
                     b.Navigation("TourPackages");
                 });
 
-            modelBuilder.Entity("Domain.Entities.CustomTrip", b =>
-                {
-                    b.Navigation("Itineraries");
-                });
-
             modelBuilder.Entity("Domain.Entities.Flight", b =>
                 {
-                    b.Navigation("FlightBookings");
+                    b.Navigation("TourPackageFlights");
                 });
 
             modelBuilder.Entity("Domain.Entities.Hotel", b =>
                 {
-                    b.Navigation("HotelBookings");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Itinerary", b =>
-                {
-                    b.Navigation("ItineraryAttractions");
+                    b.Navigation("TourPackageHotels");
                 });
 
             modelBuilder.Entity("Domain.Entities.PackageItinerary", b =>
@@ -1769,20 +1541,20 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.TourPackage", b =>
                 {
-                    b.Navigation("PackageBookings");
-
                     b.Navigation("PackageItineraries");
 
                     b.Navigation("Rates");
 
                     b.Navigation("Reviews");
+
+                    b.Navigation("TourPackageFlights");
+
+                    b.Navigation("TourPackageHotels");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.Navigation("Bookings");
-
-                    b.Navigation("CustomTrips");
 
                     b.Navigation("EmailVerifications");
 

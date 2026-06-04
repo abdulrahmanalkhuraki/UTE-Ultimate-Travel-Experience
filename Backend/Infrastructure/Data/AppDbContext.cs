@@ -24,17 +24,15 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Booking> Bookings { get; set; }
 
-    public virtual DbSet<PackageBooking> PackageBookings { get; set; }
+    public virtual DbSet<BookingPassenger> BookingsPassengers { get; set; }
 
-    public virtual DbSet<HotelBooking> HotelBookings { get; set; }
+    public virtual DbSet<TourPackageHotel> TourPackageHotels { get; set; }
 
-    public virtual DbSet<FlightBooking> FlightBookings { get; set; }
+    public virtual DbSet<TourPackageFlight> TourPackageFlights { get; set; }
 
     public virtual DbSet<City> Cities { get; set; }
 
     public virtual DbSet<Country> Countries { get; set; }
-
-    public virtual DbSet<CustomTrip> CustomTrips { get; set; }
 
     public virtual DbSet<EmailVerification> EmailVerifications { get; set; }
 
@@ -45,10 +43,6 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Hotel> Hotels { get; set; }
 
     public virtual DbSet<Image> Images { get; set; }
-
-    public virtual DbSet<Itinerary> Itineraries { get; set; }
-
-    public virtual DbSet<ItineraryAttraction> ItineraryAttractions { get; set; }
 
     public virtual DbSet<Notification> Notifications { get; set; }
 
@@ -163,6 +157,15 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.NumberOfChildren)
                 .HasDefaultValue(0);
 
+            entity.Property(e => e.RoomTypePreference)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.DietaryRequirements)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.SpecialRequests)
+                .HasMaxLength(200);
+
             entity.Property(e => e.Status)
                 .HasConversion<string>()
                 .HasDefaultValue(BookingStatus.Pending);
@@ -173,11 +176,11 @@ public partial class AppDbContext : DbContext
 
             entity.Property(e => e.BookingType)
                 .HasConversion<string>()
-                .HasDefaultValue(BookingType.TourPackage);
+                .HasDefaultValue(BookingType.Standard);
 
             entity.ToTable(t => t.HasCheckConstraint(
                 "CK_Booking_BookingType",
-                "[BookingType] IN ('TourPackage', 'Hotel', 'Flight')"));
+                "[BookingType] IN ('Standard', 'Premium', 'VIP')"));
 
             entity.HasOne(d => d.Payment).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.PaymentId)
@@ -213,47 +216,36 @@ public partial class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<PackageBooking>(entity =>
+        modelBuilder.Entity<TourPackageHotel>(entity =>
         {
-            entity.HasKey(e => e.Id);
+            entity.HasKey(e => e.Id); 
 
-            entity.HasOne(d => d.Package).WithMany(p => p.PackageBookings)
-                .HasForeignKey(d => d.PackageId)
-                .HasConstraintName("FK__Bookings__Packag__114A936A")
-                .OnDelete(DeleteBehavior.Restrict);
+            entity.ToTable(e => e.HasCheckConstraint(
+                "CHK_Future_CheckIn",
+                "[CheckIn] > GETDATE()"));
 
-            entity.HasOne(d => d.Booking).WithOne(p => p.PackageBooking)
-                .HasForeignKey<PackageBooking>(d => d.BookingId);              
+            entity.ToTable(e => e.HasCheckConstraint(
+                "CHK_CheckIn_CheckOut",
+                "[CheckOut] > [CheckIn]"));
+
+            entity.HasOne(e => e.Hotel).WithMany(d => d.TourPackageHotels)
+                .HasForeignKey(e => e.HotelId).OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.TourPackage).WithMany(d => d.TourPackageHotels)
+                .HasForeignKey(e => e.TourPackageId).OnDelete(DeleteBehavior.Restrict);
+
         });
 
-        modelBuilder.Entity<HotelBooking>(entity =>
+        modelBuilder.Entity<TourPackageFlight>(entity =>
         {
-            entity.HasKey(e => e.Id);
+            entity.HasKey(e => e.Id); 
 
-            entity.ToTable(e => e.HasCheckConstraint("CHK_Future_StartDate", "[StartDate] > GETDATE()"));
+            entity.HasOne(e => e.Flight).WithMany(d => d.TourPackageFlights)
+                .HasForeignKey(e => e.FlightId).OnDelete(DeleteBehavior.Restrict);
 
-            entity.ToTable(e => e.HasCheckConstraint("CHK_EndDate_StartDate", "[EndDate] > [StartDate]"));
+            entity.HasOne(e => e.TourPackage).WithMany(d => d.TourPackageFlights)
+                .HasForeignKey(e => e.TourPackageId).OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(d => d.Hotel).WithMany(p => p.HotelBookings)
-                .HasForeignKey(d => d.HotelId)
-                .HasConstraintName("FK__Bookings__HotelI__0E6E26BF")
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(d => d.Booking).WithOne(p => p.HotelBooking)
-                .HasForeignKey<HotelBooking>(d => d.BookingId);
-        });
-
-        modelBuilder.Entity<FlightBooking>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-
-            entity.HasOne(d => d.Flight).WithMany(p => p.FlightBookings)
-                .HasForeignKey(d => d.FlightId)
-                .HasConstraintName("FK__Bookings__Flight__10566F31")
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(d => d.Booking).WithOne(p => p.FlightBooking)
-            .HasForeignKey<FlightBooking>(d => d.BookingId);
         });
 
         modelBuilder.Entity<City>(entity =>
@@ -288,23 +280,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.CountryCode).HasMaxLength(10);
             entity.Property(e => e.CountryName).HasMaxLength(50);
             entity.Property(e => e.Flag).HasMaxLength(500);
-        });
-
-        modelBuilder.Entity<CustomTrip>(entity =>
-        {
-            entity.Property(e => e.Budget).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.CreatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.TripName).HasMaxLength(100);
-            entity.Property(e => e.UpdatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-
-            entity.HasOne(d => d.User).WithMany(p => p.CustomTrips)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__CustomTri__UserI__787EE5A0");
         });
 
         modelBuilder.Entity<EmailVerification>(entity =>
@@ -396,41 +371,6 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.AttractionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Images__Attracti__09A971A2");
-        });
-
-        modelBuilder.Entity<Itinerary>(entity =>
-        {
-            entity.Property(e => e.CreatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.UpdatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-
-            entity.HasOne(d => d.Trip).WithMany(p => p.Itineraries)
-                .HasForeignKey(d => d.TripId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Itinerari__TripI__7D439ABD");
-        });
-
-        modelBuilder.Entity<ItineraryAttraction>(entity =>
-        {
-            entity.Property(e => e.CreatedAtUtc)
-                .HasDefaultValueSql("(getutcdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.UpdatedAtUtc)
-                .HasDefaultValueSql("(getutcdate())")
-                .HasColumnType("datetime");
-
-            entity.HasOne(d => d.Attraction).WithMany(p => p.ItineraryAttractions)
-                .HasForeignKey(d => d.AttractionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Itinerary__Attra__2A164134");
-
-            entity.HasOne(d => d.Itinerary).WithMany(p => p.ItineraryAttractions)
-                .HasForeignKey(d => d.ItineraryId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Itinerary__Itine__29221CFB");
         });
 
         modelBuilder.Entity<Notification>(entity =>
