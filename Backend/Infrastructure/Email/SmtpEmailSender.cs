@@ -1,4 +1,4 @@
-using Application.Interfaces;
+using Application.Interfaces.User;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;

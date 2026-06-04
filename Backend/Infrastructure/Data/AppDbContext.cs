@@ -1,7 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using Domain.Entities;
+﻿using Domain.Entities;
+using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
+using System;
+using System.Collections.Generic;
 
 namespace Infrastructure.Data;
 
@@ -21,6 +23,12 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<AttractionCategory> AttractionCategories { get; set; }
 
     public virtual DbSet<Booking> Bookings { get; set; }
+
+    public virtual DbSet<PackageBooking> PackageBookings { get; set; }
+
+    public virtual DbSet<HotelBooking> HotelBookings { get; set; }
+
+    public virtual DbSet<FlightBooking> FlightBookings { get; set; }
 
     public virtual DbSet<City> Cities { get; set; }
 
@@ -140,24 +148,36 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Booking>(entity =>
         {
             entity.Property(e => e.BookingDate).HasColumnType("datetime");
+
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+
             entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
-            entity.HasOne(d => d.Flight).WithMany(p => p.Bookings)
-                .HasForeignKey(d => d.FlightId)
-                .HasConstraintName("FK__Bookings__Flight__10566F31");
+            entity.Property(e => e.NumberOfAdults)
+                .HasDefaultValue(1);
 
-            entity.HasOne(d => d.Hotel).WithMany(p => p.Bookings)
-                .HasForeignKey(d => d.HotelId)
-                .HasConstraintName("FK__Bookings__HotelI__0E6E26BF");
+            entity.Property(e => e.NumberOfChildren)
+                .HasDefaultValue(0);
 
-            entity.HasOne(d => d.Package).WithMany(p => p.Bookings)
-                .HasForeignKey(d => d.PackageId)
-                .HasConstraintName("FK__Bookings__Packag__114A936A");
+            entity.Property(e => e.Status)
+                .HasConversion<string>()
+                .HasDefaultValue(BookingStatus.Pending);
+
+            entity.ToTable(t => t.HasCheckConstraint(
+                "CK_Booking_BookingStatus",
+                "[Status] IN ('Pending', 'Confirmed', 'In_Progress', 'Completed', 'Cancelled', 'No_Show')"));
+
+            entity.Property(e => e.BookingType)
+                .HasConversion<string>()
+                .HasDefaultValue(BookingType.TourPackage);
+
+            entity.ToTable(t => t.HasCheckConstraint(
+                "CK_Booking_BookingType",
+                "[BookingType] IN ('TourPackage', 'Hotel', 'Flight')"));
 
             entity.HasOne(d => d.Payment).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.PaymentId)
@@ -168,6 +188,72 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Bookings__UserId__0F624AF8");
+        });
+
+        modelBuilder.Entity<BookingPassenger>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Fullname).HasMaxLength(50);
+
+            entity.ToTable(e => e.HasCheckConstraint(
+                "CK_Valid_Age",
+                "[Age] Between 1 and 100"));
+
+            entity.ToTable(t => t.HasCheckConstraint(
+                "CK_BookingPassengers_IdentityType",
+                "[IdentityType] IN ('NationalID','Passport')"));
+
+            entity.HasOne(d => d.Country).WithMany(c => c.BookingPassengers)
+            .HasForeignKey(d => d.NatinalityCountryID)
+            .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.Booking).WithMany(c => c.BookingPassengers)
+            .HasForeignKey(d => d.BookingID)
+            .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PackageBooking>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.HasOne(d => d.Package).WithMany(p => p.PackageBookings)
+                .HasForeignKey(d => d.PackageId)
+                .HasConstraintName("FK__Bookings__Packag__114A936A")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.Booking).WithOne(p => p.PackageBooking)
+                .HasForeignKey<PackageBooking>(d => d.BookingId);              
+        });
+
+        modelBuilder.Entity<HotelBooking>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable(e => e.HasCheckConstraint("CHK_Future_StartDate", "[StartDate] > GETDATE()"));
+
+            entity.ToTable(e => e.HasCheckConstraint("CHK_EndDate_StartDate", "[EndDate] > [StartDate]"));
+
+            entity.HasOne(d => d.Hotel).WithMany(p => p.HotelBookings)
+                .HasForeignKey(d => d.HotelId)
+                .HasConstraintName("FK__Bookings__HotelI__0E6E26BF")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.Booking).WithOne(p => p.HotelBooking)
+                .HasForeignKey<HotelBooking>(d => d.BookingId);
+        });
+
+        modelBuilder.Entity<FlightBooking>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.HasOne(d => d.Flight).WithMany(p => p.FlightBookings)
+                .HasForeignKey(d => d.FlightId)
+                .HasConstraintName("FK__Bookings__Flight__10566F31")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.Booking).WithOne(p => p.FlightBooking)
+            .HasForeignKey<FlightBooking>(d => d.BookingId);
         });
 
         modelBuilder.Entity<City>(entity =>

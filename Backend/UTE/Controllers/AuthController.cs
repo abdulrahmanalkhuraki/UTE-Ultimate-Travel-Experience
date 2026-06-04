@@ -1,5 +1,5 @@
 using Application.DTOs.Auth;
-using Application.Interfaces;
+using Application.Interfaces.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

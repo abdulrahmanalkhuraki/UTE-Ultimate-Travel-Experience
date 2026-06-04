@@ -3,6 +3,7 @@ using Application.Interfaces.City;
 using Application.Interfaces.Country;
 using Application.Interfaces.Flight;
 using Application.Interfaces.Hotel;
+using Application.Interfaces.User;
 using Application.Mappings;
 using Application.Services;
 using Application.Validators.Hotel;
@@ -20,6 +21,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -244,6 +246,10 @@ builder.Services.AddScoped<ICountryService, CountryService>();
 
 // City
 builder.Services.AddScoped<ICityService, CityService>();
+
+// Current User
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 builder.Services.AddMemoryCache();
 // ==========================================

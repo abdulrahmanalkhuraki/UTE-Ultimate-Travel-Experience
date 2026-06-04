@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Domain.Enums;
 
 namespace Domain.Entities;
 
@@ -7,33 +6,35 @@ public partial class Booking : BaseEntity
 {
     public DateTime BookingDate { get; set; }
 
-    public DateOnly StartDate { get; set; }
+    public int NumberOfAdults { get; set; }
 
-    public DateOnly EndDate { get; set; }
+    public int NumberOfChildren { get; set; }
 
-    public int NumberOfPeople { get; set; }
-
-    public int Status { get; set; }
-
-    public int? HotelId { get; set; }
+    public BookingStatus Status { get; set; }
 
     public int UserId { get; set; }
 
     public int PaymentId { get; set; }
 
-    public int? FlightId { get; set; }
+    public BookingType BookingType { get; set; }
 
-    public int? PackageId { get; set; }
+    public int? PackageBookingId { get; set; }
 
-    public virtual Flight? Flight { get; set; }
+    public int? HotelBookingId { get; set; }
 
-    public virtual Hotel? Hotel { get; set; }
+    public int? FlightBookingId { get; set; }
 
-    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    public virtual PackageBooking? PackageBooking { get; set; }
 
-    public virtual TourPackage? Package { get; set; }
+    public virtual HotelBooking? HotelBooking { get; set; }
+
+    public virtual FlightBooking? FlightBooking { get; set; }
 
     public virtual Payment Payment { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;
+
+    public virtual ICollection<BookingPassenger> BookingPassengers { get; set; } = new List<BookingPassenger>();
+
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }

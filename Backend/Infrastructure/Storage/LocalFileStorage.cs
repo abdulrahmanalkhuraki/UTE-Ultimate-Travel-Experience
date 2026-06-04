@@ -1,5 +1,6 @@
-using Application.Common;
-using Application.Interfaces;
+
+using Application.Exceptions;
+using Application.Interfaces.User;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 

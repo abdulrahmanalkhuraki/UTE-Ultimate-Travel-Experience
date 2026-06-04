@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.Interfaces.User;
 using Application.Services;
 using Infrastructure.Data;
 using Infrastructure.Email;

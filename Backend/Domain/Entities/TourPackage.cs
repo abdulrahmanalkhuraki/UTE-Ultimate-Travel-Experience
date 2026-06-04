@@ -15,9 +15,15 @@ public partial class TourPackage : BaseEntity
 
     public int AvailableSeats { get; set; }
 
+    public int CountryId { get; set; }
+
     public int CompanyId { get; set; }
 
-    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+    public string PickupLocation { get; set; } = null!;
+
+    public virtual ICollection<PackageBooking> PackageBookings { get; set; } = new List<PackageBooking>();
+
+    public virtual Country Country { get; set; } = null!;
 
     public virtual TourCompany Company { get; set; } = null!;
 
