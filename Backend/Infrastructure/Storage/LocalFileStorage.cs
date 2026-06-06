@@ -1,4 +1,5 @@
 using Application.Common;
+using Application.Exceptions;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

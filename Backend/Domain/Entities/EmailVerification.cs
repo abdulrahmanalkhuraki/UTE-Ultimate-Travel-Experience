@@ -9,6 +9,8 @@ public partial class EmailVerification : BaseEntity
 
     public string Code { get; set; } = null!;
 
+    public string Purpose { get; set; } = "EmailVerification";
+
     public DateTime ExpiresAt { get; set; }
 
     public int Attempts { get; set; }

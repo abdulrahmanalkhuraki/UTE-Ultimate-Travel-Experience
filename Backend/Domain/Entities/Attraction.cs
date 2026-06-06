@@ -31,8 +31,6 @@ public partial class Attraction : BaseEntity
 
     public virtual ICollection<ItineraryAttraction> ItineraryAttractions { get; set; } = new List<ItineraryAttraction>();
 
-    public virtual ICollection<PackageItineraryAttraction> PackageItineraryAttractions { get; set; } = new List<PackageItineraryAttraction>();
-
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
     public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();

@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Application.Interfaces;
+using Application.Interfaces.Auth;
 using Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -18,21 +18,24 @@ public class JwtTokenGenerator : IJwtTokenGenerator
     {
         var expiresAt = DateTime.UtcNow.AddMinutes(_settings.ExpiresInMinutes);
 
-        var fullName = $"{user.FirstName} {user.LastName}".Trim();
+        var firstName = user.FirstName ?? string.Empty;
+        var lastName  = user.LastName ?? string.Empty;
+        var fullName  = $"{firstName} {lastName}".Trim();
+        var roleName  = user.Role?.RoleName ?? string.Empty;
 
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Email, user.Email),
-            new(JwtRegisteredClaimNames.GivenName, user.FirstName),
-            new(JwtRegisteredClaimNames.FamilyName, user.LastName),
+            new(JwtRegisteredClaimNames.GivenName, firstName),
+            new(JwtRegisteredClaimNames.FamilyName, lastName),
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, fullName),
-            new(ClaimTypes.GivenName, user.FirstName),
-            new(ClaimTypes.Surname, user.LastName),
+            new(ClaimTypes.GivenName, firstName),
+            new(ClaimTypes.Surname, lastName),
             new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.Role, user.Role?.RoleName ?? string.Empty)
+            new(ClaimTypes.Role, roleName)
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
