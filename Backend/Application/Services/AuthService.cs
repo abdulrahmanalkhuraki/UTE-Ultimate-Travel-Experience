@@ -1,11 +1,12 @@
 using Application.Exceptions;
-using Application.DTOs.Auth;
 using Application.Interfaces;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
-using Application.Interfaces.User;
+using Application.Interfaces.Auth;
+using Application.DTOs.Auth.Request;
+using Application.DTOs.Auth.Response;
 
 namespace Application.Services;
 
@@ -15,31 +16,28 @@ public class AuthService : IAuthService
     private const int OtpExpiryMinutes = 10;
     private const int MaxOtpAttempts = 5;
 
+    private const string PurposeEmailVerification = "EmailVerification";
+    private const string PurposePasswordReset = "PasswordReset";
+
     private readonly IUserRepository _users;
-    private readonly IGenericRepository<Role> _roles;
     private readonly IGenericRepository<EmailVerification> _verifications;
     private readonly IPasswordHasher _hasher;
     private readonly IJwtTokenGenerator _tokens;
-    private readonly IFileStorage _files;
     private readonly IEmailSender _email;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         IUserRepository users,
-        IGenericRepository<Role> roles,
         IGenericRepository<EmailVerification> verifications,
         IPasswordHasher hasher,
         IJwtTokenGenerator tokens,
-        IFileStorage files,
         IEmailSender email,
         ILogger<AuthService> logger)
     {
         _users = users;
-        _roles = roles;
         _verifications = verifications;
         _hasher = hasher;
         _tokens = tokens;
-        _files = files;
         _email = email;
         _logger = logger;
     }
@@ -47,52 +45,30 @@ public class AuthService : IAuthService
     public async Task<RegisterResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
     {
         var email = request.Email.Trim().ToLowerInvariant();
-        var firstName = request.FirstName.Trim();
-        var lastName = request.LastName.Trim();
-
-        var role = await _roles.FirstOrDefaultAsync(r => r.Id == request.Role, ct)
-                   ?? throw new NotFoundException($"Role with id {request.Role} does not exist.");
-
-        if (role.RoleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
-            throw new ForbiddenException("Registering as Admin is not allowed from this endpoint.");
 
         if (await _users.EmailExistsAsync(email, ct))
             throw new ConflictException("This email is already registered.");
 
-        string? imageUrl = null;
-        if (request.Image is { Length: > 0 })
-            imageUrl = await _files.SaveAsync(request.Image, "profiles", ct);
-
         var now = DateTime.UtcNow;
         var user = new User
         {
-            FirstName       = firstName,
-            LastName        = lastName,
-            Email           = email,
-            Password        = _hasher.Hash(request.Password),
-            Phone           = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
-            Image           = imageUrl,
-            DateOfBirth     = request.DateOfBirth!.Value,
-            CreatedAtUtc    = now,
-            UpdatedAtUtc    = now,
-            IsEmailVerified = false,
-            RoleId          = request.Role
+            Email              = email,
+            Password           = _hasher.Hash(request.Password),
+            CreatedAtUtc       = now,
+            UpdatedAtUtc       = now,
+            IsEmailVerified    = false,
+            IsProfileCompleted = false
         };
 
         await _users.AddAsync(user, ct);
         await _users.SaveChangesAsync(ct);
 
-        await IssueAndSendOtpAsync(user, ct);
+        await IssueAndSendOtpAsync(user, PurposeEmailVerification, ct);
 
         return new RegisterResponse
         {
             UserId          = user.Id,
-            FirstName       = user.FirstName,
-            LastName        = user.LastName,
             Email           = user.Email,
-            Image           = user.Image,
-            DateOfBirth     = user.DateOfBirth,
-            Role            = role.RoleName,
             IsEmailVerified = false
         };
     }
@@ -107,7 +83,7 @@ public class AuthService : IAuthService
             throw new ConflictException("Email is already verified.");
 
         var verification = await _verifications.Query()
-            .Where(v => v.UserId == user.Id && !v.IsUsed)
+            .Where(v => v.UserId == user.Id && !v.IsUsed && v.Purpose == PurposeEmailVerification)
             .OrderByDescending(v => v.CreatedAtUtc)
             .FirstOrDefaultAsync(ct)
             ?? throw new NotFoundException("No active verification code. Please request a new one.");
@@ -143,16 +119,17 @@ public class AuthService : IAuthService
         var (token, expiresAt) = _tokens.GenerateToken(user);
         return new AuthResponse
         {
-            UserId          = user.Id,
-            FirstName       = user.FirstName,
-            LastName        = user.LastName,
-            Email           = user.Email,
-            Image           = user.Image,
-            DateOfBirth     = user.DateOfBirth,
-            Role            = user.Role?.RoleName ?? string.Empty,
-            IsEmailVerified = true,
-            Token           = token,
-            ExpiresAt       = expiresAt
+            UserId             = user.Id,
+            FirstName          = user.FirstName,
+            LastName           = user.LastName,
+            Email              = user.Email,
+            Image              = user.Image,
+            DateOfBirth        = user.DateOfBirth,
+            Role               = user.Role?.RoleName,
+            IsEmailVerified    = true,
+            IsProfileCompleted = user.IsProfileCompleted,
+            Token              = token,
+            ExpiresAt          = expiresAt
         };
     }
 
@@ -165,7 +142,7 @@ public class AuthService : IAuthService
         if (user.IsEmailVerified)
             throw new ConflictException("Email is already verified.");
 
-        var expiresAt = await IssueAndSendOtpAsync(user, ct);
+        var expiresAt = await IssueAndSendOtpAsync(user, PurposeEmailVerification, ct);
 
         return new OtpResponse
         {
@@ -190,23 +167,93 @@ public class AuthService : IAuthService
         var (token, expiresAt) = _tokens.GenerateToken(user);
         return new AuthResponse
         {
-            UserId          = user.Id,
-            FirstName       = user.FirstName,
-            LastName        = user.LastName,
-            Email           = user.Email,
-            Image           = user.Image,
-            DateOfBirth     = user.DateOfBirth,
-            Role            = user.Role?.RoleName ?? string.Empty,
-            IsEmailVerified = true,
-            Token           = token,
-            ExpiresAt       = expiresAt
+            UserId             = user.Id,
+            FirstName          = user.FirstName,
+            LastName           = user.LastName,
+            Email              = user.Email,
+            Image              = user.Image,
+            DateOfBirth        = user.DateOfBirth,
+            Role               = user.Role?.RoleName,
+            IsEmailVerified    = true,
+            IsProfileCompleted = user.IsProfileCompleted,
+            Token              = token,
+            ExpiresAt          = expiresAt
         };
     }
 
-    private async Task<DateTime> IssueAndSendOtpAsync(User user, CancellationToken ct)
+    public async Task<OtpResponse> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken ct = default)
     {
-        // Invalidate any previous unused codes for this user.
-        var oldCodes = await _verifications.WhereAsync(v => v.UserId == user.Id && !v.IsUsed, ct);
+        var email = request.Email.Trim().ToLowerInvariant();
+        var user = await _users.GetByEmailAsync(email, ct);
+
+        // Always return success-looking response to avoid revealing whether the email exists.
+        // But if the account does exist, send the reset code.
+        if (user is not null)
+        {
+            var _ = await IssueAndSendOtpAsync(user, PurposePasswordReset, ct);
+        }
+        else
+        {
+            _logger.LogInformation("Password reset requested for non-existent email {Email}", email);
+        }
+
+        return new OtpResponse
+        {
+            Email        = email,
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(OtpExpiryMinutes),
+            Message      = "If an account exists for this email, a password reset code has been sent."
+        };
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken ct = default)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+        var user = await _users.GetByEmailAsync(email, ct)
+                   ?? throw new AuthException("Invalid email or reset code.");
+
+        var verification = await _verifications.Query()
+            .Where(v => v.UserId == user.Id && !v.IsUsed && v.Purpose == PurposePasswordReset)
+            .OrderByDescending(v => v.CreatedAtUtc)
+            .FirstOrDefaultAsync(ct)
+            ?? throw new AuthException("Invalid email or reset code.");
+
+        if (verification.ExpiresAt < DateTime.UtcNow)
+            throw new AuthException("Reset code has expired. Please request a new one.");
+
+        if (verification.Attempts >= MaxOtpAttempts)
+            throw new ForbiddenException(
+                $"Too many failed attempts ({MaxOtpAttempts}). Please request a new reset code.");
+
+        if (!FixedTimeEquals(verification.Code, request.Code))
+        {
+            verification.Attempts++;
+            verification.UpdatedAtUtc = DateTime.UtcNow;
+            _verifications.Update(verification);
+            await _verifications.SaveChangesAsync(ct);
+            throw new AuthException(
+                $"Invalid reset code. Attempts left: {MaxOtpAttempts - verification.Attempts}.");
+        }
+
+        // Mark code as used and update password
+        verification.IsUsed = true;
+        verification.UsedAt = DateTime.UtcNow;
+        verification.UpdatedAtUtc = DateTime.UtcNow;
+        _verifications.Update(verification);
+
+        user.Password = _hasher.Hash(request.NewPassword);
+        user.UpdatedAtUtc = DateTime.UtcNow;
+        _users.Update(user);
+
+        await _users.SaveChangesAsync(ct);
+
+        _logger.LogInformation("Password reset successful for user {UserId}", user.Id);
+    }
+
+    private async Task<DateTime> IssueAndSendOtpAsync(User user, string purpose, CancellationToken ct)
+    {
+        // Invalidate any previous unused codes for this user with the same purpose.
+        var oldCodes = await _verifications.WhereAsync(
+            v => v.UserId == user.Id && !v.IsUsed && v.Purpose == purpose, ct);
         foreach (var old in oldCodes)
         {
             old.IsUsed = true;
@@ -223,6 +270,7 @@ public class AuthService : IAuthService
         {
             UserId       = user.Id,
             Code         = code,
+            Purpose      = purpose,
             ExpiresAt    = expiresAt,
             Attempts     = 0,
             IsUsed       = false,
@@ -233,32 +281,39 @@ public class AuthService : IAuthService
         await _verifications.AddAsync(verification, ct);
         await _verifications.SaveChangesAsync(ct);
 
-        // Always log the code in non-production for debugging. Email send failures
-        // should not break registration — the user can call resend-otp later.
-        _logger.LogInformation("OTP for {Email} is {Code} (expires at {ExpiresAt:u})",
-            user.Email, code, expiresAt);
+        _logger.LogInformation("OTP for {Email} ({Purpose}) is {Code} (expires at {ExpiresAt:u})",
+            user.Email, purpose, code, expiresAt);
 
         try
         {
-            await SendOtpEmailAsync(user, code, ct);
+            await SendOtpEmailAsync(user, code, purpose, ct);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex,
-                "Failed to send OTP email to {Email}. The code is stored; user can call resend-otp.",
+                "Failed to send OTP email to {Email}. The code is stored; user can request a new one.",
                 user.Email);
         }
 
         return expiresAt;
     }
 
-    private async Task SendOtpEmailAsync(User user, string code, CancellationToken ct)
+    private async Task SendOtpEmailAsync(User user, string code, string purpose, CancellationToken ct)
     {
-        var html = Infrastructure_EmailTemplate(user.FirstName, code, OtpExpiryMinutes);
+        var displayName = !string.IsNullOrWhiteSpace(user.FirstName)
+            ? $"{user.FirstName} {user.LastName}".Trim()
+            : user.Email;
+        var greetingName = !string.IsNullOrWhiteSpace(user.FirstName) ? user.FirstName! : "there";
+
+        var subject = purpose == PurposePasswordReset
+            ? "Your UTE Tourism password reset code"
+            : "Your UTE Tourism verification code";
+
+        var html = Infrastructure_EmailTemplate(greetingName, code, OtpExpiryMinutes);
         await _email.SendAsync(
             user.Email,
-            $"{user.FirstName} {user.LastName}",
-            "Your UTE Tourism verification code",
+            displayName,
+            subject,
             html,
             ct);
     }

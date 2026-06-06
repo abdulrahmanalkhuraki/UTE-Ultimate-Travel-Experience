@@ -241,6 +241,10 @@
               "target": "Package",
               "version": "[4.0.3, )"
             },
+            "FirebaseAdmin": {
+              "target": "Package",
+              "version": "[3.1.0, )"
+            },
             "MailKit": {
               "target": "Package",
               "version": "[4.10.0, )"

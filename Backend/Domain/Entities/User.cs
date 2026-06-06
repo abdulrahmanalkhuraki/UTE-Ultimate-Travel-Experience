@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Domain.Entities;
@@ -13,13 +13,31 @@ public partial class User : BaseEntity
 
     public string? Phone { get; set; }
 
-    public int RoleId { get; set; }
+    public int? RoleId { get; set; }
 
-    public string FirstName { get; set; } = null!;
+    public string? FirstName { get; set; }
 
-    public string LastName { get; set; } = null!;
+    public string? LastName { get; set; }
 
-    public DateOnly DateOfBirth { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
+
+    public string? Gender { get; set; }
+
+    public string? PlaceOfResidence { get; set; }
+
+    public string? CurrentLocation { get; set; }
+
+    public string? NationalNumber { get; set; }
+
+    public string? NationalIdImage { get; set; }
+
+    public string? PassportNumber { get; set; }
+
+    public string? PassportImage { get; set; }
+
+    public string? BankAccount { get; set; }
+
+    public bool IsProfileCompleted { get; set; }
 
     public bool IsEmailVerified { get; set; }
 
@@ -37,7 +55,7 @@ public partial class User : BaseEntity
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
-    public virtual Role Role { get; set; } = null!;
+    public virtual Role? Role { get; set; }
 
     public virtual ICollection<TourCompany> TourCompanies { get; set; } = new List<TourCompany>();
 

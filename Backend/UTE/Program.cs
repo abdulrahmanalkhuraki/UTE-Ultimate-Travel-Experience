@@ -1,20 +1,24 @@
+using Application.Common;
 using Application.Interfaces;
-using Application.Interfaces.City;
-using Application.Interfaces.Country;
 using Application.Interfaces.Flight;
 using Application.Interfaces.Hotel;
+using Application.Interfaces.Notifications;
+using Application.Interfaces.TourCompany;
+using Application.Interfaces.TourPackage;
 using Application.Interfaces.User;
 using Application.Mappings;
 using Application.Services;
 using Application.Validators.Hotel;
+using Application.Validators.TourCompany;
+using Application.Validators.User;
 using Domain.Interfaces;
 using Domain.Validators;
-using FluentValidation;
 using Infrastructure;
 using Infrastructure.Repositories;
 using Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -23,6 +27,7 @@ using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+using System.Text;
 using System.Text;
 using System.Text.Json;
 using UTE.Middleware;
@@ -65,6 +70,22 @@ builder.Services.AddAuthorization();
 // 3. ADD CONTROLLERS
 // ==========================================
 builder.Services.AddControllers();
+
+
+
+// ==========================================
+// 3.1. CONFIGURE FORM OPTIONS (MULTIPART UPLOADS)
+// ==========================================
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 10_000_000; // 10 MB
+    options.ValueLengthLimit = 10_000_000;
+    options.MemoryBufferThreshold = 10_000_000;
+
+    Console.WriteLine("FormOptions configured: MultipartBodyLengthLimit = " + options.MultipartBodyLengthLimit);
+});
+
+
 
 // ==========================================
 // 4. CONFIGURE VALIDATION RESPONSE
@@ -173,6 +194,17 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
             Instance = context.HttpContext.Request.Path
         };
 
+
+        foreach (var kv in context.ModelState)
+        {
+            foreach (var err in kv.Value.Errors)
+            {
+                Console.WriteLine($"KEY = {kv.Key}");
+                Console.WriteLine($"ERROR = {err.ErrorMessage}");
+                Console.WriteLine($"EXCEPTION = {err.Exception?.Message}");
+            }
+        }
+
         return new BadRequestObjectResult(problem)
         {
             ContentTypes = { "application/problem+json" }
@@ -241,15 +273,29 @@ builder.Services.AddScoped<FlightCreateValidator>();
 builder.Services.AddScoped<FlightUpdateValidator>();
 builder.Services.AddScoped<IFlightService, FlightService>();
 
-// Country
-builder.Services.AddScoped<ICountryService, CountryService>();
+// User
+builder.Services.AddScoped<UpdateMeValidator>();
+builder.Services.AddScoped<CompleteProfileValidator>();
+builder.Services.AddScoped<CompleteCompanyProfileValidator>();
+builder.Services.AddScoped<IUserService, UserService>();
 
-// City
-builder.Services.AddScoped<ICityService, CityService>();
+// TourCompany
+builder.Services.AddScoped<TourCompanyCreateValidator>();
+builder.Services.AddScoped<TourCompanyUpdateValidator>();
+builder.Services.AddScoped<ITourCompanyService, TourCompanyService>();
 
-// Current User
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+// TourPackage
+builder.Services.AddScoped<TourPackageCreateValidator>();
+builder.Services.AddScoped<TourPackageUpdateValidator>();
+builder.Services.AddScoped<ITourPackageService, TourPackageService>();
+
+// Notifications (IRealtimeNotifier/Firebase is registered in AddInfrastructure)
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
+
+
+
+
 
 builder.Services.AddMemoryCache();
 // ==========================================
@@ -259,8 +305,10 @@ builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<HotelProfile>();
     cfg.AddProfile<FlightProfile>();
-    cfg.AddProfile<CityProfile>();
-    cfg.AddProfile<CountryProfile>();
+    cfg.AddProfile<UserProfile>();
+    cfg.AddProfile<TourCompanyProfile>();
+    cfg.AddProfile<TourPackageProfile>();
+    cfg.AddProfile<NotificationProfile>();
 });
 
 // ==========================================
@@ -283,6 +331,7 @@ if (app.Environment.IsDevelopment())
 // 12. CONFIGURE MIDDLEWARE PIPELINE (ORDER MATTERS!)
 // ==========================================
 app.UseHttpsRedirection();
+app.UseStaticFiles();     // Serves files from wwwroot (e.g. /uploads/profiles/xxx.jpg)
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseCors();
 app.UseAuthentication();  // Must be before Authorization

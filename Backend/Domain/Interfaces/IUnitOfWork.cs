@@ -12,8 +12,17 @@ namespace Domain.Interfaces
     {
         IGenericRepository<Hotel> Hotels { get; }
         IGenericRepository<Flight> Flights { get; }
-        IGenericRepository<City> Cities { get; }
+        IGenericRepository<User> Users { get; }
+        IGenericRepository<Role> Roles { get; }
+        IGenericRepository<TourCompany> TourCompanies { get; }
+        IGenericRepository<TourPackage> TourPackages { get; }
+        IGenericRepository<PackageItinerary> PackageItineraries { get; }
+        IGenericRepository<PackageItineraryAttraction> PackageItineraryAttractions { get; }
+        IGenericRepository<PackageCity> PackageCities { get; }
         IGenericRepository<Country> Countries { get; }
+        IGenericRepository<City> Cities { get; }
+        IGenericRepository<Notification> Notifications { get; }
+        IGenericRepository<DeviceToken> DeviceTokens { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         Task BeginTransactionAsync(CancellationToken cancellationToken = default);

@@ -21,17 +21,44 @@ namespace Infrastructure.Repositories
             _context = context;
             Hotels = new GenericRepository<Hotel>(_context);
             Flights = new GenericRepository<Flight>(_context);
-            Cities = new GenericRepository<City>(_context);
+            Users = new GenericRepository<User>(_context);
+            Roles = new GenericRepository<Role>(_context);
+            TourCompanies = new GenericRepository<TourCompany>(_context);
+            TourPackages = new GenericRepository<TourPackage>(_context);
+            PackageItineraries = new GenericRepository<PackageItinerary>(_context);
+            PackageItineraryAttractions = new GenericRepository<PackageItineraryAttraction>(_context);
+            PackageCities = new GenericRepository<PackageCity>(_context);
             Countries = new GenericRepository<Country>(_context);
+            Cities = new GenericRepository<City>(_context);
+            Notifications = new GenericRepository<Notification>(_context);
+            DeviceTokens = new GenericRepository<DeviceToken>(_context);
         }
 
         public IGenericRepository<Hotel> Hotels { get; }
 
         public IGenericRepository<Flight> Flights { get; }
 
-        public IGenericRepository<City> Cities { get; }
+        public IGenericRepository<User> Users { get; }
+
+        public IGenericRepository<Role> Roles { get; }
+
+        public IGenericRepository<TourCompany> TourCompanies { get; }
+
+        public IGenericRepository<TourPackage> TourPackages { get; }
+
+        public IGenericRepository<PackageItinerary> PackageItineraries { get; }
+
+        public IGenericRepository<PackageItineraryAttraction> PackageItineraryAttractions { get; }
+
+        public IGenericRepository<PackageCity> PackageCities { get; }
 
         public IGenericRepository<Country> Countries { get; }
+
+        public IGenericRepository<City> Cities { get; }
+
+        public IGenericRepository<Notification> Notifications { get; }
+
+        public IGenericRepository<DeviceToken> DeviceTokens { get; }
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
