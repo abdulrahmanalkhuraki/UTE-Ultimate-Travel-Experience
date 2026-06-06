@@ -1,6 +1,7 @@
 {
   "format": 1,
   "restore": {
+<<<<<<< HEAD
     "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Infrastructure\\Infrastructure.csproj": {}
   },
   "projects": {
@@ -12,12 +13,25 @@
         "projectPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Application\\Application.csproj",
         "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Application\\obj\\",
+=======
+    "C:\\studing\\UTE\\Backend\\Infrastructure\\Infrastructure.csproj": {}
+  },
+  "projects": {
+    "C:\\studing\\UTE\\Backend\\Application\\Application.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\studing\\UTE\\Backend\\Application\\Application.csproj",
+        "projectName": "Application",
+        "projectPath": "C:\\studing\\UTE\\Backend\\Application\\Application.csproj",
+        "packagesPath": "C:\\Users\\LOQ\\.nuget\\packages\\",
+        "outputPath": "C:\\studing\\UTE\\Backend\\Application\\obj\\",
+>>>>>>> 6ef139f1c778b90a24159b44cd8d246d845a513d
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\LOQ\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,14 +40,20 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
+<<<<<<< HEAD
               "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\Domain.csproj": {
                 "projectPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\Domain.csproj"
+=======
+              "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj": {
+                "projectPath": "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj"
+>>>>>>> 6ef139f1c778b90a24159b44cd8d246d845a513d
               }
             }
           }
@@ -96,10 +116,11 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.314/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
+<<<<<<< HEAD
     "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\Domain.csproj": {
       "version": "1.0.0",
       "restore": {
@@ -108,12 +129,22 @@
         "projectPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\Domain.csproj",
         "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\obj\\",
+=======
+    "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj",
+        "projectName": "Domain",
+        "projectPath": "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj",
+        "packagesPath": "C:\\Users\\LOQ\\.nuget\\packages\\",
+        "outputPath": "C:\\studing\\UTE\\Backend\\Domain\\obj\\",
+>>>>>>> 6ef139f1c778b90a24159b44cd8d246d845a513d
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\LOQ\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -122,6 +153,7 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -177,10 +209,11 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.314/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
+<<<<<<< HEAD
     "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Infrastructure\\Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
@@ -189,12 +222,22 @@
         "projectPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Infrastructure\\Infrastructure.csproj",
         "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Infrastructure\\obj\\",
+=======
+    "C:\\studing\\UTE\\Backend\\Infrastructure\\Infrastructure.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\studing\\UTE\\Backend\\Infrastructure\\Infrastructure.csproj",
+        "projectName": "Infrastructure",
+        "projectPath": "C:\\studing\\UTE\\Backend\\Infrastructure\\Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\LOQ\\.nuget\\packages\\",
+        "outputPath": "C:\\studing\\UTE\\Backend\\Infrastructure\\obj\\",
+>>>>>>> 6ef139f1c778b90a24159b44cd8d246d845a513d
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\LOQ\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -203,17 +246,26 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
+<<<<<<< HEAD
               "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Application\\Application.csproj": {
                 "projectPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Application\\Application.csproj"
               },
               "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\Domain.csproj": {
                 "projectPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\Domain.csproj"
+=======
+              "C:\\studing\\UTE\\Backend\\Application\\Application.csproj": {
+                "projectPath": "C:\\studing\\UTE\\Backend\\Application\\Application.csproj"
+              },
+              "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj": {
+                "projectPath": "C:\\studing\\UTE\\Backend\\Domain\\Domain.csproj"
+>>>>>>> 6ef139f1c778b90a24159b44cd8d246d845a513d
               }
             }
           }
@@ -291,7 +343,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.314/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
