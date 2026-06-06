@@ -98,6 +98,15 @@
   ],
   "logs": [
     {
+      "code": "Undefined",
+      "level": "Warning",
+      "message": "Problem reading the cache file C:\\studing\\UTE\\Backend\\Infrastructure\\obj\\project.nuget.cache : '<' is an invalid start of a property name. Expected a '\"'. Path: $ | LineNumber: 2 | BytePositionInLine: 0.",
+      "projectPath": "C:\\studing\\UTE\\Backend\\Infrastructure\\Infrastructure.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\studing\\UTE\\Backend\\Infrastructure\\Infrastructure.csproj",
+      "targetGraphs": []
+    },
+    {
       "code": "NU1902",
       "level": "Warning",
       "message": "Package 'MailKit' 4.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr",

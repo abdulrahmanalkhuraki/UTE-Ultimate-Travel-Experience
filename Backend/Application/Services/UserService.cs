@@ -21,7 +21,7 @@ namespace Application.Services
         private readonly IMapper _mapper;
         private readonly ILogger<UserService> _logger;
         private readonly IMemoryCache _cache;
-        private readonly IPasswordHasher _passwordHasher;
+        private readonly Interfaces.Auth.IPasswordHasher _passwordHasher;
         private readonly IFileStorage _fileStorage;
         private readonly UpdateMeValidator _updateMeValidator;
         private readonly CompleteProfileValidator _completeProfileValidator;
@@ -38,7 +38,7 @@ namespace Application.Services
             IMapper mapper,
             ILogger<UserService> logger,
             IMemoryCache cache,
-            IPasswordHasher passwordHasher,
+            Interfaces.Auth.IPasswordHasher passwordHasher,
             IFileStorage fileStorage,
             UpdateMeValidator updateMeValidator,
             CompleteProfileValidator completeProfileValidator,

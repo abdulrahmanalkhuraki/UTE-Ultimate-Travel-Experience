@@ -5,6 +5,7 @@ using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Notifications;
 using Application.Interfaces.TourCompany;
+using Application.Interfaces.User;
 using Application.Validators.TourCompany;
 using AutoMapper;
 using Domain.Enums;
