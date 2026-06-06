@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "vIKRamwRXwk=",
+  "dgSpecHash": "qSya22mQj4U=",
   "success": true,
-  "projectFilePath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\Infrastructure.csproj",
+  "projectFilePath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Infrastructure\\Infrastructure.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ASUS\\.nuget\\packages\\automapper\\16.1.1\\automapper.16.1.1.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
@@ -98,21 +98,12 @@
   ],
   "logs": [
     {
-      "code": "Undefined",
-      "level": "Warning",
-      "message": "Problem reading the cache file C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\obj\\project.nuget.cache : '<' is an invalid start of a property name. Expected a '\"'. Path: $ | LineNumber: 2 | BytePositionInLine: 0.",
-      "projectPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\Infrastructure.csproj",
-      "warningLevel": 1,
-      "filePath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\Infrastructure.csproj",
-      "targetGraphs": []
-    },
-    {
       "code": "NU1902",
       "level": "Warning",
       "message": "Package 'MailKit' 4.10.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr",
-      "projectPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\Infrastructure.csproj",
+      "projectPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Infrastructure\\Infrastructure.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\Infrastructure.csproj",
+      "filePath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Infrastructure\\Infrastructure.csproj",
       "libraryId": "MailKit",
       "targetGraphs": [
         "net9.0"

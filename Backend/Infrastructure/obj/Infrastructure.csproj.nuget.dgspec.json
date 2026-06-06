@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\Infrastructure.csproj": {}
+    "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Infrastructure\\Infrastructure.csproj": {}
   },
   "projects": {
-    "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Application\\Application.csproj": {
+    "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Application\\Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Application\\Application.csproj",
+        "projectUniqueName": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Application\\Application.csproj",
         "projectName": "Application",
-        "projectPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Application\\Application.csproj",
+        "projectPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Application\\Application.csproj",
         "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Application\\obj\\",
+        "outputPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Application\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -32,8 +32,8 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj": {
-                "projectPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj"
+              "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\Domain.csproj": {
+                "projectPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\Domain.csproj"
               }
             }
           }
@@ -100,14 +100,14 @@
         }
       }
     },
-    "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj": {
+    "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj",
+        "projectUniqueName": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\Domain.csproj",
         "projectName": "Domain",
-        "projectPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj",
+        "projectPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\Domain.csproj",
         "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\obj\\",
+        "outputPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -181,14 +181,14 @@
         }
       }
     },
-    "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\Infrastructure.csproj": {
+    "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Infrastructure\\Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\Infrastructure.csproj",
+        "projectUniqueName": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Infrastructure\\Infrastructure.csproj",
         "projectName": "Infrastructure",
-        "projectPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\Infrastructure.csproj",
+        "projectPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Infrastructure\\Infrastructure.csproj",
         "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Infrastructure\\obj\\",
+        "outputPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -209,11 +209,11 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Application\\Application.csproj": {
-                "projectPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Application\\Application.csproj"
+              "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Application\\Application.csproj": {
+                "projectPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Application\\Application.csproj"
               },
-              "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj": {
-                "projectPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj"
+              "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\Domain.csproj": {
+                "projectPath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\Domain.csproj"
               }
             }
           }

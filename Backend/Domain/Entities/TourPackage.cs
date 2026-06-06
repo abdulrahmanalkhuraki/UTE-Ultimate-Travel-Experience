@@ -58,6 +58,10 @@ public partial class TourPackage : BaseEntity
 
     public virtual ICollection<PackageItinerary> PackageItineraries { get; set; } = new List<PackageItinerary>();
 
+    public virtual ICollection<TourPackageFlight> TourPackageFlights { get; set; } = new List<TourPackageFlight>();
+
+    public virtual ICollection<TourPackageHotel> TourPackageHotels { get; set; } = new List<TourPackageHotel>();
+
     public virtual ICollection<Rate> Rates { get; set; } = new List<Rate>();
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();

@@ -1,3 +1,4 @@
+using Application.Interfaces.Auth;
 using Application.Interfaces.User;
 using MailKit.Net.Smtp;
 using MailKit.Security;

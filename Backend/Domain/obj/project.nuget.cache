@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "DOdY7bVBW78=",
+  "dgSpecHash": "D6aoeEKwzqA=",
   "success": true,
-  "projectFilePath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj",
+  "projectFilePath": "C:\\Users\\ASUS\\source\\repos\\UTE-Ultimate-Tourism-Experience\\Backend\\Domain\\Domain.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ASUS\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
@@ -84,15 +84,5 @@
     "C:\\Users\\ASUS\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4\\system.threading.tasks.extensions.4.5.4.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.windows.extensions\\6.0.0\\system.windows.extensions.6.0.0.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "Undefined",
-      "level": "Warning",
-      "message": "Problem reading the cache file C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\obj\\project.nuget.cache : '<' is an invalid start of a property name. Expected a '\"'. Path: $ | LineNumber: 2 | BytePositionInLine: 0.",
-      "projectPath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj",
-      "warningLevel": 1,
-      "filePath": "C:\\Users\\ASUS\\Source\\Repos\\UTE-Ultimate-Travel-Experience\\Backend\\Domain\\Domain.csproj",
-      "targetGraphs": []
-    }
-  ]
+  "logs": []
 }

@@ -1,3 +1,4 @@
+using Application.Interfaces.Auth;
 using Application.Interfaces.User;
 
 namespace Infrastructure.Security;

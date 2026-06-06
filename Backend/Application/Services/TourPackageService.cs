@@ -3,6 +3,7 @@ using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.TourPackage;
+using Application.Interfaces.User;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;

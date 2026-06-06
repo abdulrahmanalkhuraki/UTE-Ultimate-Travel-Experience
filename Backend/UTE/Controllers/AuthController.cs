@@ -1,4 +1,7 @@
 using Application.DTOs.Auth;
+using Application.DTOs.Auth.Request;
+using Application.DTOs.Auth.Response;
+using Application.Interfaces.Auth;
 using Application.Interfaces.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
