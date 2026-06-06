@@ -22,5 +22,5 @@ public partial class Flight : BaseEntity
 
     public virtual City ArrivalCity { get; set; } = null!;
 
-    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+    public virtual ICollection<TourPackageFlight> TourPackageFlights { get; set; } = new List<TourPackageFlight>();
 }

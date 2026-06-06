@@ -29,7 +29,7 @@ public partial class Attraction : BaseEntity
 
     public virtual ICollection<Image> Images { get; set; } = new List<Image>();
 
-    public virtual ICollection<ItineraryAttraction> ItineraryAttractions { get; set; } = new List<ItineraryAttraction>();
+    public virtual ICollection<PackageItineraryAttraction> PackageItineraryAttractions { get; set; } = new List<PackageItineraryAttraction>();
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 

@@ -43,8 +43,6 @@ public partial class User : BaseEntity
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
-    public virtual ICollection<CustomTrip> CustomTrips { get; set; } = new List<CustomTrip>();
-
     public virtual ICollection<EmailVerification> EmailVerifications { get; set; } = new List<EmailVerification>();
 
     public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();

@@ -1,6 +1,5 @@
 using Application.Interfaces;
-using Application.Interfaces.Auth;
-using Application.Interfaces.Notifications;
+using Application.Interfaces.User;
 using Application.Services;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;

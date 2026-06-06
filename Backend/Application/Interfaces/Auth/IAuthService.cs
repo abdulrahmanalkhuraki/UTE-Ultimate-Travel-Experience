@@ -1,7 +1,11 @@
 using Application.DTOs.Auth.Request;
 using Application.DTOs.Auth.Response;
 
+<<<<<<<< HEAD:Backend/Application/Interfaces/Auth/IAuthService.cs
 namespace Application.Interfaces.Auth;
+========
+namespace Application.Interfaces.User;
+>>>>>>>> eb3c5c2000dac9b658f595448513569eb27a78bb:Backend/Application/Interfaces/User/IAuthService.cs
 
 public interface IAuthService
 {

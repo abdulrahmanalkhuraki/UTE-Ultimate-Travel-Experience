@@ -14,4 +14,8 @@ public partial class Country
     public string? Flag { get; set; }
 
     public virtual ICollection<City> Cities { get; set; } = new List<City>();
+
+    public virtual ICollection<TourPackage> TourPackages { get; set; } = new List<TourPackage>();
+
+    public virtual ICollection<BookingPassenger> BookingPassengers { get; set; } = new List<BookingPassenger>();
 }
