@@ -656,9 +656,11 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.StartDate).HasColumnType("date");
             entity.Property(e => e.EndDate).HasColumnType("date");
             entity.Property(e => e.RegistrationDeadline).HasColumnType("date");
+
             entity.Property(e => e.Status)
                 .HasConversion<int>()
                 .HasDefaultValue(TourPackageStatus.Active);
+
             entity.Property(e => e.PublishCount)
                 .HasDefaultValue(0);
             entity.Property(e => e.PublishedAtUtc)

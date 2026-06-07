@@ -4,7 +4,6 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -12,11 +11,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260607090415_AddPublishTracking")]
-    partial class AddPublishTracking
+    partial class AppDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -268,48 +265,6 @@ namespace Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Domain.Entities.BookingPassenger", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Age")
-                        .HasColumnType("int");
-
-                    b.Property<int>("BookingID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Fullname")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("IdentityDocumentPath")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("IdentityType")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NatinalityCountryID")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BookingID");
-
-                    b.HasIndex("NatinalityCountryID");
-
-                    b.ToTable("BookingsPassengers", t =>
-                        {
-                            t.HasCheckConstraint("CK_BookingPassengers_IdentityType", "[IdentityType] IN ('NationalID','Passport')");
-
-                            t.HasCheckConstraint("CK_Valid_Age", "[Age] Between 1 and 100");
-                        });
-                });
-
             modelBuilder.Entity("Domain.Entities.City", b =>
                 {
                     b.Property<int>("Id")
@@ -338,6 +293,102 @@ namespace Infrastructure.Migrations
                     b.HasIndex("CountryId");
 
                     b.ToTable("Cities");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Companion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<DateOnly>("DateOfBirth")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Firstname")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("Gender")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("IdCard")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Lastname")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("NationalityCountryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PassportScan")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
+
+                    b.Property<int>("Relationship")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ResidentialCountryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NationalityCountryId");
+
+                    b.HasIndex("ResidentialCountryId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Companions", t =>
+                        {
+                            t.HasCheckConstraint("CHK_Companion_Relationship", "[Relationship] IN ('Spouse', 'Child', 'Parent', 'Sibling', 'Friend', 'Relative', 'Colleague', 'Guardian', 'Partner', 'Other')");
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entities.CompanionBooking", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CompanionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("CompanionId");
+
+                    b.ToTable("CompanionBookings");
                 });
 
             modelBuilder.Entity("Domain.Entities.Country", b =>
@@ -1113,6 +1164,9 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<int>("TouristGuideId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("UpdatedAtUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
@@ -1123,6 +1177,8 @@ namespace Infrastructure.Migrations
                     b.HasIndex("CompanyId");
 
                     b.HasIndex("CountryId");
+
+                    b.HasIndex("TouristGuideId");
 
                     b.ToTable("TourPackages");
                 });
@@ -1181,6 +1237,98 @@ namespace Infrastructure.Migrations
                             t.HasCheckConstraint("CHK_CheckIn_CheckOut", "[CheckOut] > [CheckIn]");
 
                             t.HasCheckConstraint("CHK_Future_CheckIn", "[CheckIn] > GETDATE()");
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entities.TouristGuide", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Bio")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("CityId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<DateOnly>("DateOfBirth")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Firstname")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("Gender")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("IdCard")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Languages")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Lastname")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("LicenseScan")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("NatinalityCountryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NationalityCountryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PassportScan")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int>("YearsOfExperiance")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("NatinalityCountryId");
+
+                    b.ToTable("TouristGuides", t =>
+                        {
+                            t.HasCheckConstraint("CHK_Positive_YearsOfExperience", "[YearsOfExperiance] BETWEEN 0 AND 70");
                         });
                 });
 
@@ -1379,25 +1527,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.BookingPassenger", b =>
-                {
-                    b.HasOne("Domain.Entities.Booking", "Booking")
-                        .WithMany("BookingPassengers")
-                        .HasForeignKey("BookingID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Country", "Country")
-                        .WithMany("BookingPassengers")
-                        .HasForeignKey("NatinalityCountryID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Booking");
-
-                    b.Navigation("Country");
-                });
-
             modelBuilder.Entity("Domain.Entities.City", b =>
                 {
                     b.HasOne("Domain.Entities.Country", "Country")
@@ -1407,6 +1536,52 @@ namespace Infrastructure.Migrations
                         .HasConstraintName("FK__Cities__CountryI__60A75C0F");
 
                     b.Navigation("Country");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Companion", b =>
+                {
+                    b.HasOne("Domain.Entities.Country", "NationalityCountry")
+                        .WithMany("NatinalityCompanions")
+                        .HasForeignKey("NationalityCountryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Country", "ResidentialCountry")
+                        .WithMany("ResidentialCompanions")
+                        .HasForeignKey("ResidentialCountryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany("Companions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("NationalityCountry");
+
+                    b.Navigation("ResidentialCountry");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.CompanionBooking", b =>
+                {
+                    b.HasOne("Domain.Entities.Booking", "Booking")
+                        .WithMany("CompanionBookings")
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Companion", "Companion")
+                        .WithMany("CompanionBookings")
+                        .HasForeignKey("CompanionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("Companion");
                 });
 
             modelBuilder.Entity("Domain.Entities.DeviceToken", b =>
@@ -1636,9 +1811,17 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_TourPackages_Countries");
 
+                    b.HasOne("Domain.Entities.TouristGuide", "TouristGuide")
+                        .WithMany("TourPackages")
+                        .HasForeignKey("TouristGuideId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Company");
 
                     b.Navigation("Country");
+
+                    b.Navigation("TouristGuide");
                 });
 
             modelBuilder.Entity("Domain.Entities.TourPackageFlight", b =>
@@ -1677,6 +1860,25 @@ namespace Infrastructure.Migrations
                     b.Navigation("Hotel");
 
                     b.Navigation("TourPackage");
+                });
+
+            modelBuilder.Entity("Domain.Entities.TouristGuide", b =>
+                {
+                    b.HasOne("Domain.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Country", "NatinalityCountry")
+                        .WithMany()
+                        .HasForeignKey("NatinalityCountryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("City");
+
+                    b.Navigation("NatinalityCountry");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
@@ -1731,7 +1933,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Booking", b =>
                 {
-                    b.Navigation("BookingPassengers");
+                    b.Navigation("CompanionBookings");
 
                     b.Navigation("Notifications");
                 });
@@ -1747,11 +1949,18 @@ namespace Infrastructure.Migrations
                     b.Navigation("Hotels");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Companion", b =>
+                {
+                    b.Navigation("CompanionBookings");
+                });
+
             modelBuilder.Entity("Domain.Entities.Country", b =>
                 {
-                    b.Navigation("BookingPassengers");
-
                     b.Navigation("Cities");
+
+                    b.Navigation("NatinalityCompanions");
+
+                    b.Navigation("ResidentialCompanions");
 
                     b.Navigation("TourPackages");
                 });
@@ -1805,9 +2014,16 @@ namespace Infrastructure.Migrations
                     b.Navigation("TourPackageHotels");
                 });
 
+            modelBuilder.Entity("Domain.Entities.TouristGuide", b =>
+                {
+                    b.Navigation("TourPackages");
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.Navigation("Bookings");
+
+                    b.Navigation("Companions");
 
                     b.Navigation("EmailVerifications");
 
