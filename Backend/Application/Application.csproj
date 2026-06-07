@@ -23,6 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="DTOs\Booking\Request\BookingCreateRequest\" />
+    <Folder Include="DTOs\Booking\Response\" />
     <Folder Include="Services\" />
   </ItemGroup>
 

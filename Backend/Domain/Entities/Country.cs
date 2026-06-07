@@ -17,5 +17,6 @@ public partial class Country
 
     public virtual ICollection<TourPackage> TourPackages { get; set; } = new List<TourPackage>();
 
-    public virtual ICollection<BookingPassenger> BookingPassengers { get; set; } = new List<BookingPassenger>();
+    public virtual ICollection<Companion> NatinalityCompanions { get; set; } = new List<Companion>();
+    public virtual ICollection<Companion> ResidentialCompanions { get; set; } = new List<Companion>();
 }
