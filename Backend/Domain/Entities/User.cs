@@ -60,4 +60,6 @@ public partial class User : BaseEntity
     public virtual ICollection<TourCompany> TourCompanies { get; set; } = new List<TourCompany>();
 
     public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
+
+    public virtual ICollection<Companion> Companions { get; set; } = new List<Companion>();
 }

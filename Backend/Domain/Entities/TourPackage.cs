@@ -47,6 +47,8 @@ public partial class TourPackage : BaseEntity
     /// <summary>Owning tour company.</summary>
     public int CompanyId { get; set; }
 
+    public int TouristGuideId { get; set; }
+
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
     public virtual TourCompany Company { get; set; } = null!;
@@ -55,6 +57,8 @@ public partial class TourPackage : BaseEntity
 
     /// <summary>Regions/cities visited by this program (المناطق اللي رح تنزار).</summary>
     public virtual ICollection<PackageCity> PackageCities { get; set; } = new List<PackageCity>();
+
+    public virtual TouristGuide TouristGuide { get; set; } = null!;
 
     public virtual ICollection<PackageItinerary> PackageItineraries { get; set; } = new List<PackageItinerary>();
 
