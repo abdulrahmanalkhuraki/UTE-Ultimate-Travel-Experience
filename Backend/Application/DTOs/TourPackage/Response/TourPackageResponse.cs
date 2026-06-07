@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Domain.Enums;
 
 namespace Application.DTOs.TourPackage.Response
 {
@@ -35,6 +36,15 @@ namespace Application.DTOs.TourPackage.Response
 
         public bool IsPublished { get; set; }
 
+        /// <summary>Lifecycle status of the program (حالة البرنامج): Active or Cancelled.</summary>
+        public TourPackageStatus Status { get; set; }
+
+        /// <summary>How many times the program has been published (كم مرة نُشر). 0 = never published.</summary>
+        public int PublishCount { get; set; }
+
+        /// <summary>When the program was most recently published (تاريخ آخر نشر). Null if never published.</summary>
+        public DateTime? PublishedAtUtc { get; set; }
+
         public int CompanyId { get; set; }
 
         /// <summary>Cities/regions visited (المناطق).</summary>
@@ -44,5 +54,44 @@ namespace Application.DTOs.TourPackage.Response
         public List<TourPackageDayResponse> Days { get; set; } = new();
 
         public DateTime CreatedAtUtc { get; set; }
+
+        // ===== Computed card fields (حقول البطاقة المحسوبة) =====
+        // Derived from the stored dates at response time; not persisted.
+
+        /// <summary>Days left until registration closes (باقي لانتهاء التسجيل). 0 once the deadline has passed.</summary>
+        public int DaysUntilRegistrationDeadline => DaysFromToday(RegistrationDeadline);
+
+        /// <summary>Days left until the trip starts (باقي لبدء الرحلة). 0 once it has started.</summary>
+        public int DaysUntilStart => DaysFromToday(StartDate);
+
+        /// <summary>How many days the program has been published (اديش صرلو منشور). Null if not currently published.</summary>
+        public int? DaysSincePublished =>
+            IsPublished && PublishedAtUtc is not null
+                ? Math.Max(0, Today.DayNumber - DateOnly.FromDateTime(PublishedAtUtc.Value).DayNumber)
+                : (int?)null;
+
+        /// <summary>Arabic ordinal for the publish count (نص "المرة الأولى/الثانية/..."). Null if never published.</summary>
+        public string? PublishLabel => FormatPublishOrdinal(PublishCount);
+
+        private static DateOnly Today => DateOnly.FromDateTime(DateTime.UtcNow);
+
+        /// <summary>Whole days from today until <paramref name="date"/>, clamped at 0 for past dates.</summary>
+        private static int DaysFromToday(DateOnly date) => Math.Max(0, date.DayNumber - Today.DayNumber);
+
+        private static string? FormatPublishOrdinal(int count)
+        {
+            if (count <= 0)
+                return null;
+
+            string[] ordinals =
+            {
+                "الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة",
+                "السادسة", "السابعة", "الثامنة", "التاسعة", "العاشرة"
+            };
+
+            return count <= ordinals.Length
+                ? $"المرة {ordinals[count - 1]}"
+                : $"المرة رقم {count}";
+        }
     }
 }

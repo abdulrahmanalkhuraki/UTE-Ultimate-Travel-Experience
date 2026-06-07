@@ -15,6 +15,8 @@ bld/
 [Ll]og/
 [Ll]ogs/
 artifacts/
+obj/
+bin/
 
 ## .NET Core user secrets & local configuration
 appsettings.Development.json

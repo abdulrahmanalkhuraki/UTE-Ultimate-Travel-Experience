@@ -601,6 +601,13 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.StartDate).HasColumnType("date");
             entity.Property(e => e.EndDate).HasColumnType("date");
             entity.Property(e => e.RegistrationDeadline).HasColumnType("date");
+            entity.Property(e => e.Status)
+                .HasConversion<int>()
+                .HasDefaultValue(TourPackageStatus.Active);
+            entity.Property(e => e.PublishCount)
+                .HasDefaultValue(0);
+            entity.Property(e => e.PublishedAtUtc)
+                .HasColumnType("datetime");
             entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -610,7 +617,7 @@ public partial class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__TourPacka__Compa__656C112C");
 
-            entity.HasOne(d => d.Country).WithMany()
+            entity.HasOne(d => d.Country).WithMany(c => c.TourPackages)
                 .HasForeignKey(d => d.CountryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TourPackages_Countries");

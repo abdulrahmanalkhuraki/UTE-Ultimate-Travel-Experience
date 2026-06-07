@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Domain.Enums;
 
 namespace Domain.Entities;
 
@@ -43,6 +44,15 @@ public partial class TourPackage : BaseEntity
 
     /// <summary>Whether the program is published and visible to tourists (نشر البرنامج).</summary>
     public bool IsPublished { get; set; }
+
+    /// <summary>Lifecycle status of the program (حالة البرنامج). Defaults to active; set to cancelled when the company cancels it (ملغى).</summary>
+    public TourPackageStatus Status { get; set; } = TourPackageStatus.Active;
+
+    /// <summary>How many times this program has been published (كم مرة نُشر). Incremented on each unpublished→published transition; 1 means first time (المرة الأولى).</summary>
+    public int PublishCount { get; set; }
+
+    /// <summary>When the program was most recently published (تاريخ آخر نشر), used to show how long it has been published (اديش صرلو منشور). Null if never published.</summary>
+    public DateTime? PublishedAtUtc { get; set; }
 
     /// <summary>Owning tour company.</summary>
     public int CompanyId { get; set; }

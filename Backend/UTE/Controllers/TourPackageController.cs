@@ -1,5 +1,6 @@
 using System.Net.Mime;
 using System.Security.Claims;
+using Application.DTOs.TourPackage;
 using Application.DTOs.TourPackage.Request;
 using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
@@ -65,6 +66,53 @@ namespace UTE.Controllers
             catch (ServiceException ex)
             {
                 _logger.LogError(ex, "Error retrieving company's tour packages");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    CreateProblemDetails("Internal Server Error", ex.Message));
+            }
+        }
+
+        /// <summary>Lists the signed-in company's current (ongoing/upcoming) programs (الحالية).</summary>
+        [HttpGet("mine/current")]
+        [Authorize]
+        [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        public Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMineCurrent(CancellationToken cancellationToken = default)
+            => GetMineByTimeline(ProgramTimeline.Current, cancellationToken);
+
+        /// <summary>Lists the signed-in company's past (finished) programs (السابقة).</summary>
+        [HttpGet("mine/previous")]
+        [Authorize]
+        [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        public Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMinePrevious(CancellationToken cancellationToken = default)
+            => GetMineByTimeline(ProgramTimeline.Previous, cancellationToken);
+
+        /// <summary>Lists the signed-in company's cancelled programs (الملغاة).</summary>
+        [HttpGet("mine/cancelled")]
+        [Authorize]
+        [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        public Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMineCancelled(CancellationToken cancellationToken = default)
+            => GetMineByTimeline(ProgramTimeline.Cancelled, cancellationToken);
+
+        private async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMineByTimeline(ProgramTimeline timeline, CancellationToken cancellationToken)
+        {
+            var userId = GetCurrentUserId();
+            if (userId is null)
+                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
+
+            try
+            {
+                return Ok(await _service.GetMineByTimelineAsync(userId.Value, timeline, cancellationToken));
+            }
+            catch (ForbiddenException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
+            }
+            catch (ServiceException ex)
+            {
+                _logger.LogError(ex, "Error retrieving company's {Timeline} tour packages", timeline);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     CreateProblemDetails("Internal Server Error", ex.Message));
             }
@@ -212,6 +260,48 @@ namespace UTE.Controllers
             catch (ServiceException ex)
             {
                 _logger.LogError(ex, "Error updating tour package {PackageId}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    CreateProblemDetails("Internal Server Error", ex.Message));
+            }
+        }
+
+        /// <summary>Cancels a program (sets it to الملغاة). Owner only.</summary>
+        [HttpPost("{id:int:min(1)}/cancel")]
+        [Authorize]
+        [ProducesResponseType(typeof(TourPackageResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<ActionResult<TourPackageResponse>> Cancel(int id, CancellationToken cancellationToken = default)
+        {
+            var userId = GetCurrentUserId();
+            if (userId is null)
+                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
+
+            try
+            {
+                return Ok(await _service.CancelAsync(id, userId.Value, cancellationToken));
+            }
+            catch (ForbiddenException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(CreateProblemDetails("Tour package not found", ex.Message, StatusCodes.Status404NotFound));
+            }
+            catch (BusinessRuleException ex)
+            {
+                return Conflict(CreateProblemDetails("Conflict", ex.Message, StatusCodes.Status409Conflict));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
+            }
+            catch (ServiceException ex)
+            {
+                _logger.LogError(ex, "Error cancelling tour package {PackageId}", id);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     CreateProblemDetails("Internal Server Error", ex.Message));
             }

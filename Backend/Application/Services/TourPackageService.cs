@@ -1,3 +1,4 @@
+using Application.DTOs.TourPackage;
 using Application.DTOs.TourPackage.Request;
 using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
@@ -6,6 +7,7 @@ using Application.Interfaces.TourPackage;
 using Application.Interfaces.User;
 using AutoMapper;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.Interfaces;
 using Domain.Validators;
 using Microsoft.EntityFrameworkCore;
@@ -74,6 +76,9 @@ namespace Application.Services
                     RegistrationDeadline = request.RegistrationDeadline,
                     TourGuide = request.TourGuide?.Trim(),
                     IsPublished = request.IsPublished,
+                    // Publishing on creation counts as the first publish (المرة الأولى).
+                    PublishCount = request.IsPublished ? 1 : 0,
+                    PublishedAtUtc = request.IsPublished ? DateTime.UtcNow : null,
                     CompanyId = companyId,
                     CreatedAtUtc = DateTime.UtcNow,
                     UpdatedAtUtc = DateTime.UtcNow,
@@ -143,6 +148,13 @@ namespace Application.Services
                 entity.EndDate = request.EndDate;
                 entity.RegistrationDeadline = request.RegistrationDeadline;
                 entity.TourGuide = request.TourGuide?.Trim();
+                // Count each unpublished→published transition and stamp the publish time
+                // (drives "كم مرة نُشر" and "اديش صرلو منشور" on the card).
+                if (!entity.IsPublished && request.IsPublished)
+                {
+                    entity.PublishCount++;
+                    entity.PublishedAtUtc = DateTime.UtcNow;
+                }
                 entity.IsPublished = request.IsPublished;
                 entity.UpdatedAtUtc = DateTime.UtcNow;
 
@@ -177,6 +189,45 @@ namespace Application.Services
             {
                 _logger.LogError(ex, "Unexpected error while updating tour package {PackageId}", id);
                 throw new ServiceException($"Failed to update tour package: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<TourPackageResponse> CancelAsync(int id, int ownerUserId, CancellationToken cancellationToken = default)
+        {
+            if (id <= 0)
+                throw new ArgumentException("Invalid tour package ID", nameof(id));
+
+            var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
+
+            try
+            {
+                var entity = await _unitOfWork.TourPackages
+                    .Query()
+                    .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+                if (entity is null)
+                    throw new NotFoundException($"Tour package with ID {id} not found");
+
+                if (entity.CompanyId != companyId)
+                    throw new ForbiddenException("You can only cancel your own tour packages.");
+
+                if (entity.Status == TourPackageStatus.Cancelled)
+                    throw new BusinessRuleException("This program is already cancelled.");
+
+                entity.Status = TourPackageStatus.Cancelled;
+                entity.UpdatedAtUtc = DateTime.UtcNow;
+
+                _unitOfWork.TourPackages.Update(entity);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                _logger.LogInformation("Cancelled tour package {PackageId}", id);
+
+                return await BuildResponseAsync(id, cancellationToken);
+            }
+            catch (Exception ex) when (ex is not NotFoundException and not ForbiddenException and not BusinessRuleException)
+            {
+                _logger.LogError(ex, "Unexpected error while cancelling tour package {PackageId}", id);
+                throw new ServiceException($"Failed to cancel tour package: {ex.Message}", ex);
             }
         }
 
@@ -259,6 +310,33 @@ namespace Application.Services
                 .OrderByDescending(p => p.CreatedAtUtc)
                 .ToListAsync(cancellationToken);
 
+            return _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
+        }
+
+        public async Task<IReadOnlyList<TourPackageResponse>> GetMineByTimelineAsync(int ownerUserId, ProgramTimeline timeline, CancellationToken cancellationToken = default)
+        {
+            var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            var query = QueryWithGraph().Where(p => p.CompanyId == companyId);
+
+            query = timeline switch
+            {
+                // الحالية: active and not finished yet (ongoing or upcoming).
+                ProgramTimeline.Current => query.Where(p => p.Status == TourPackageStatus.Active && p.EndDate >= today),
+                // السابقة: active but already finished.
+                ProgramTimeline.Previous => query.Where(p => p.Status == TourPackageStatus.Active && p.EndDate < today),
+                // الملغاة: cancelled, regardless of dates.
+                ProgramTimeline.Cancelled => query.Where(p => p.Status == TourPackageStatus.Cancelled),
+                _ => query,
+            };
+
+            // Upcoming/cancelled read best soonest-first; finished programs newest-first.
+            query = timeline == ProgramTimeline.Previous
+                ? query.OrderByDescending(p => p.EndDate)
+                : query.OrderBy(p => p.StartDate);
+
+            var entities = await query.ToListAsync(cancellationToken);
             return _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
         }
 

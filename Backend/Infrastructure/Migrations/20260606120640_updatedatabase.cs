@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class init_Database : Migration
+    public partial class updatedatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -91,10 +91,19 @@ namespace Infrastructure.Migrations
                     Password = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Image = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     Phone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    RoleId = table.Column<int>(type: "int", nullable: false),
-                    FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Date_Of_Birth = table.Column<DateOnly>(type: "date", nullable: false),
+                    RoleId = table.Column<int>(type: "int", nullable: true),
+                    FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    Date_Of_Birth = table.Column<DateOnly>(type: "date", nullable: true),
+                    Gender = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
+                    PlaceOfResidence = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    CurrentLocation = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    NationalNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    NationalIdImage = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    PassportNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    PassportImage = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    BankAccount = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    IsProfileCompleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     IsEmailVerified = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())"),
                     UpdatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())")
@@ -106,7 +115,8 @@ namespace Infrastructure.Migrations
                         name: "FK__Users__RoleId__4F7CD00D",
                         column: x => x.RoleId,
                         principalTable: "Roles",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -197,6 +207,29 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DeviceTokens",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Token = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Platform = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())"),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DeviceTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DeviceTokens_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "EmailVerifications",
                 columns: table => new
                 {
@@ -204,6 +237,7 @@ namespace Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     Code = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    Purpose = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false, defaultValue: "EmailVerification"),
                     ExpiresAt = table.Column<DateTime>(type: "datetime", nullable: false),
                     Attempts = table.Column<int>(type: "int", nullable: false),
                     IsUsed = table.Column<bool>(type: "bit", nullable: false),
@@ -253,8 +287,18 @@ namespace Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    RejectionReason = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     Logo = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Location = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(75)", maxLength: 75, nullable: true),
+                    FoundingDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    TourismLicenseNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    TourismLicenseImage = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    BankAccount = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    About = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())"),
                     UpdatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())")
@@ -365,43 +409,6 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Bookings",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    BookingDate = table.Column<DateTime>(type: "datetime", nullable: false),
-                    NumberOfAdults = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
-                    NumberOfChildren = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    RoomTypePreference = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    DietaryRequirements = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    SpecialRequests = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    PackageId = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Pending"),
-                    BookingType = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Standard"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    PaymentId = table.Column<int>(type: "int", nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())"),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Bookings", x => x.Id);
-                    table.CheckConstraint("CK_Booking_BookingStatus", "[Status] IN ('Pending', 'Confirmed', 'In_Progress', 'Completed', 'Cancelled', 'No_Show')");
-                    table.CheckConstraint("CK_Booking_BookingType", "[BookingType] IN ('Standard', 'Premium', 'VIP')");
-                    table.ForeignKey(
-                        name: "FK_Bookings_payments",
-                        column: x => x.PaymentId,
-                        principalTable: "payments",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK__Bookings__UserId__0F624AF8",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Favorites",
                 columns: table => new
                 {
@@ -436,11 +443,17 @@ namespace Infrastructure.Migrations
                     PackageName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     PricePerPerson = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
                     DurationInDays = table.Column<int>(type: "int", nullable: false),
                     AvailableSeats = table.Column<int>(type: "int", nullable: false),
                     CountryId = table.Column<int>(type: "int", nullable: false),
+                    MainImageUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    StartDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    EndDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    RegistrationDeadline = table.Column<DateOnly>(type: "date", nullable: false),
+                    TourGuide = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
+                    IsPublished = table.Column<bool>(type: "bit", nullable: false),
                     CompanyId = table.Column<int>(type: "int", nullable: false),
-                    PickupLocation = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())"),
                     UpdatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())")
                 },
@@ -448,11 +461,10 @@ namespace Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_TourPackages", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TourPackages_Countries_CountryId",
+                        name: "FK_TourPackages_Countries",
                         column: x => x.CountryId,
                         principalTable: "Countries",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK__TourPacka__Compa__656C112C",
                         column: x => x.CompanyId,
@@ -461,64 +473,73 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "BookingsPassengers",
+                name: "Bookings",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Fullname = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Age = table.Column<int>(type: "int", nullable: false),
-                    IdentityType = table.Column<int>(type: "int", nullable: true),
-                    IdentityDocumentPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    NatinalityCountryID = table.Column<int>(type: "int", nullable: false),
-                    BookingID = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_BookingsPassengers", x => x.Id);
-                    table.CheckConstraint("CK_BookingPassengers_IdentityType", "[IdentityType] IN ('NationalID','Passport')");
-                    table.CheckConstraint("CK_Valid_Age", "[Age] Between 1 and 100");
-                    table.ForeignKey(
-                        name: "FK_BookingsPassengers_Bookings_BookingID",
-                        column: x => x.BookingID,
-                        principalTable: "Bookings",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_BookingsPassengers_Countries_NatinalityCountryID",
-                        column: x => x.NatinalityCountryID,
-                        principalTable: "Countries",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Notifications",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Message = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    Type = table.Column<int>(type: "int", nullable: false),
-                    IsRead = table.Column<bool>(type: "bit", nullable: false),
+                    BookingDate = table.Column<DateTime>(type: "datetime", nullable: false),
+                    NumberOfAdults = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    NumberOfChildren = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    RoomTypePreference = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    DietaryRequirements = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    SpecialRequests = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    PackageId = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Pending"),
+                    BookingType = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Standard"),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    BookingId = table.Column<int>(type: "int", nullable: true),
+                    PaymentId = table.Column<int>(type: "int", nullable: false),
+                    TourPackageId = table.Column<int>(type: "int", nullable: true),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())"),
                     UpdatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Notifications", x => x.Id);
+                    table.PrimaryKey("PK_Bookings", x => x.Id);
+                    table.CheckConstraint("CK_Booking_BookingStatus", "[Status] IN ('Pending', 'Confirmed', 'In_Progress', 'Completed', 'Cancelled', 'No_Show')");
+                    table.CheckConstraint("CK_Booking_BookingType", "[BookingType] IN ('Standard', 'Premium', 'VIP')");
                     table.ForeignKey(
-                        name: "FK__Notificat__Booki__17F790F9",
-                        column: x => x.BookingId,
-                        principalTable: "Bookings",
+                        name: "FK_Bookings_TourPackages_TourPackageId",
+                        column: x => x.TourPackageId,
+                        principalTable: "TourPackages",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK__Notificat__UserI__17036CC0",
+                        name: "FK_Bookings_payments",
+                        column: x => x.PaymentId,
+                        principalTable: "payments",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK__Bookings__UserId__0F624AF8",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PackageCities",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PackageId = table.Column<int>(type: "int", nullable: false),
+                    CityId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())"),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PackageCities", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PackageCities_Cities",
+                        column: x => x.CityId,
+                        principalTable: "Cities",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_PackageCities_TourPackages",
+                        column: x => x.PackageId,
+                        principalTable: "TourPackages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -529,6 +550,7 @@ namespace Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     DayNumber = table.Column<int>(type: "int", nullable: false),
                     DayTitle = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    DayDescription = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     PackageId = table.Column<int>(type: "int", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())"),
                     UpdatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())")
@@ -660,15 +682,80 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "BookingsPassengers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Fullname = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Age = table.Column<int>(type: "int", nullable: false),
+                    IdentityType = table.Column<int>(type: "int", nullable: true),
+                    IdentityDocumentPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NatinalityCountryID = table.Column<int>(type: "int", nullable: false),
+                    BookingID = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BookingsPassengers", x => x.Id);
+                    table.CheckConstraint("CK_BookingPassengers_IdentityType", "[IdentityType] IN ('NationalID','Passport')");
+                    table.CheckConstraint("CK_Valid_Age", "[Age] Between 1 and 100");
+                    table.ForeignKey(
+                        name: "FK_BookingsPassengers_Bookings_BookingID",
+                        column: x => x.BookingID,
+                        principalTable: "Bookings",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_BookingsPassengers_Countries_NatinalityCountryID",
+                        column: x => x.NatinalityCountryID,
+                        principalTable: "Countries",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Notifications",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Message = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    IsRead = table.Column<bool>(type: "bit", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    BookingId = table.Column<int>(type: "int", nullable: true),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())"),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Notifications", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK__Notificat__Booki__17F790F9",
+                        column: x => x.BookingId,
+                        principalTable: "Bookings",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK__Notificat__UserI__17036CC0",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PackageItineraryAttractions",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     OrderNumber = table.Column<int>(type: "int", nullable: false),
-                    Time = table.Column<TimeOnly>(type: "time", nullable: false),
-                    AttractionId = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    StartTime = table.Column<TimeOnly>(type: "time(0)", nullable: false),
+                    EndTime = table.Column<TimeOnly>(type: "time(0)", nullable: false),
                     ItineraryId = table.Column<int>(type: "int", nullable: false),
+                    AttractionId = table.Column<int>(type: "int", nullable: true),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getutcdate())"),
                     UpdatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getutcdate())")
                 },
@@ -676,7 +763,7 @@ namespace Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_PackageItineraryAttractions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK__PackageIt__Attra__25518C17",
+                        name: "FK_PackageItineraryAttractions_Attractions_AttractionId",
                         column: x => x.AttractionId,
                         principalTable: "Attractions",
                         principalColumn: "Id");
@@ -713,6 +800,11 @@ namespace Infrastructure.Migrations
                 column: "PaymentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Bookings_TourPackageId",
+                table: "Bookings",
+                column: "TourPackageId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Bookings_UserId",
                 table: "Bookings",
                 column: "UserId");
@@ -731,6 +823,17 @@ namespace Infrastructure.Migrations
                 name: "IX_Cities_CountryId",
                 table: "Cities",
                 column: "CountryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DeviceTokens_Token",
+                table: "DeviceTokens",
+                column: "Token",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DeviceTokens_UserId",
+                table: "DeviceTokens",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_EmailVerifications_UserId",
@@ -781,6 +884,17 @@ namespace Infrastructure.Migrations
                 name: "IX_Notifications_UserId",
                 table: "Notifications",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PackageCities_CityId",
+                table: "PackageCities",
+                column: "CityId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PackageCities_PackageId_CityId",
+                table: "PackageCities",
+                columns: new[] { "PackageId", "CityId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PackageItineraries_PackageId",
@@ -891,6 +1005,9 @@ namespace Infrastructure.Migrations
                 name: "BookingsPassengers");
 
             migrationBuilder.DropTable(
+                name: "DeviceTokens");
+
+            migrationBuilder.DropTable(
                 name: "EmailVerifications");
 
             migrationBuilder.DropTable(
@@ -901,6 +1018,9 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Notifications");
+
+            migrationBuilder.DropTable(
+                name: "PackageCities");
 
             migrationBuilder.DropTable(
                 name: "PackageItineraryAttractions");
