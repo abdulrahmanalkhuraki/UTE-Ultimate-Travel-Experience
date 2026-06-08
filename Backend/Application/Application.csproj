@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <Folder Include="DTOs\Companion\Request\" />
-    <Folder Include="Services\" />
+    <Folder Include="Validators\Payment\" />
   </ItemGroup>
 
 </Project>

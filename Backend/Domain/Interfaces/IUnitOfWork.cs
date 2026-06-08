@@ -12,6 +12,9 @@ namespace Domain.Interfaces
     {
         IGenericRepository<Hotel> Hotels { get; }
         IGenericRepository<Flight> Flights { get; }
+        IGenericRepository<Booking> Bookings { get; }
+        IGenericRepository<Companion> Companions { get; }
+        IGenericRepository<Payment> Payments { get; }
         IGenericRepository<User> Users { get; }
         IGenericRepository<Role> Roles { get; }
         IGenericRepository<TourCompany> TourCompanies { get; }

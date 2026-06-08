@@ -7,6 +7,7 @@ namespace Domain.Enums
     {
         General = 0,
         CompanyApproved = 1,
-        CompanyRejected = 2
+        CompanyRejected = 2,
+        NewBooking = 3
     }
 }

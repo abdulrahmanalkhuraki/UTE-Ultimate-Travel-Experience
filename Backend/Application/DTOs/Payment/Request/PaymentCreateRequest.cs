@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain.Enums;
 
-namespace Application.DTOs.Payment.Request
-{
-    public class PaymentCreateRequest
-    {
-    }
-}
+namespace Application.DTOs.Payment.Request;
+
+public sealed record PaymentCreateRequest
+(
+    decimal Amount,
+    PaymentMethod PaymentMethod
+);

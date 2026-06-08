@@ -33,6 +33,8 @@ namespace Application.DTOs.Booking.Response
 
         public PaymentResponse Payment { get; set; } = null!;
 
-        public ICollection<CompanionResponse> Companions = new List<CompanionResponse>();
+        public int Id { get; set; }
+
+        public ICollection<CompanionResponse> Companions { get; set; } = new List<CompanionResponse>();
     }
 }

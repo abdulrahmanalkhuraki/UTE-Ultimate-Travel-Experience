@@ -10,14 +10,12 @@ namespace Application.DTOs.Booking.Request
 {
     public sealed record BookingCreateRequest
     (
-      int NumberOfAdults,
-      int NumberOfChildren,
       string? RoomTypePreference,
       string? DietaryRequirements,
       string? SpecialRequests,
       int PackageId,
       PaymentCreateRequest Payment,
       List<int> CompanionIds,
-      int FlightType
+      FlightType FlightType
     );
 }
