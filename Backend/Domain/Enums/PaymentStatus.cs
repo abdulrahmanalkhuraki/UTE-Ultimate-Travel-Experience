@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace Domain.Enums
 {
-    public enum BookingType
+    public enum PaymentStatus
     {
-        Standard,
-        Premium,
-        VIP
+        Pending,
+        Completed,
+        Failed,
+        Cancelled
     }
 }

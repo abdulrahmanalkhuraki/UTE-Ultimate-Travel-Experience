@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Enums;
+using System;
 using System.Collections.Generic;
 
 namespace Domain.Entities;
@@ -7,15 +8,15 @@ public partial class Payment : BaseEntity
 {
     public decimal Amount { get; set; }
 
-    public int PaymentStatus { get; set; }
+    public PaymentStatus PaymentStatus { get; set; }
 
-    public string PaymentMethod { get; set; } = null!;
+    public PaymentMethod PaymentMethod { get; set; }
 
-    public DateOnly PaymentDate { get; set; }
+    public DateTime PaymentDate { get; set; }
 
     public int UserId { get; set; }
 
-    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
-
     public virtual User User { get; set; } = null!;
+
+    public virtual Booking Booking { get; set; } = null!;
 }

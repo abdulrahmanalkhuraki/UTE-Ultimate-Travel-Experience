@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\Booking\Response\" />
+    <Folder Include="DTOs\Companion\Request\" />
     <Folder Include="Services\" />
   </ItemGroup>
 

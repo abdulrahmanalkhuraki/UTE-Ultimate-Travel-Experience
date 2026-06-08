@@ -28,7 +28,6 @@ using Scalar.AspNetCore;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text;
-using System.Text;
 using System.Text.Json;
 using UTE.Middleware;
 

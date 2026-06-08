@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs.Payment.Request
 {
-    public class PaymentCreateDto
+    public class PaymentCreateRequest
     {
     }
 }
