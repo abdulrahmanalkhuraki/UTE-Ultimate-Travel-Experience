@@ -23,8 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\Booking\Response\" />
-    <Folder Include="Services\" />
+    <Folder Include="DTOs\Companion\Request\" />
+    <Folder Include="Validators\Payment\" />
   </ItemGroup>
 
 </Project>

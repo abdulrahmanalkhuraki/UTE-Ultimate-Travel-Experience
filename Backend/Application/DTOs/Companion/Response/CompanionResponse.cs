@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Enums
+namespace Application.DTOs.Companion.Response
 {
-    public enum BookingType
+    public sealed class CompanionResponse
     {
-        Standard,
-        Premium,
-        VIP
     }
 }

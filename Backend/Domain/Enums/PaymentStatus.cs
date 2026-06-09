@@ -4,9 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.DTOs.Payment.Request
+namespace Domain.Enums
 {
-    public class PaymentCreateDto
+    public enum PaymentStatus
     {
+        Pending,
+        Completed,
+        Failed,
+        Cancelled
     }
 }

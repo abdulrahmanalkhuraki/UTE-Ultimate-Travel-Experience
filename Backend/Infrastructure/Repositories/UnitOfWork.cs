@@ -21,6 +21,9 @@ namespace Infrastructure.Repositories
             _context = context;
             Hotels = new GenericRepository<Hotel>(_context);
             Flights = new GenericRepository<Flight>(_context);
+            Bookings = new GenericRepository<Booking>(_context);
+            Companions = new GenericRepository<Companion>(_context);
+            Payments = new GenericRepository<Payment>(_context);
             Users = new GenericRepository<User>(_context);
             Roles = new GenericRepository<Role>(_context);
             TourCompanies = new GenericRepository<TourCompany>(_context);
@@ -41,6 +44,11 @@ namespace Infrastructure.Repositories
         public IGenericRepository<Hotel> Hotels { get; }
 
         public IGenericRepository<Flight> Flights { get; }
+
+        public IGenericRepository<Booking> Bookings { get; }
+
+        public IGenericRepository<Companion> Companions { get; }
+        public IGenericRepository<Payment> Payments { get; }
 
         public IGenericRepository<User> Users { get; }
 

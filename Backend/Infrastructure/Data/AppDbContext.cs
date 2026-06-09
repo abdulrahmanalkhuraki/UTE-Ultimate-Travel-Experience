@@ -153,7 +153,7 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK__Attractio__Attra__73BA3083");
         });
 
-        modelBuilder.Entity<Booking>(entity =>
+        modelBuilder.Entity<Booking>(static entity =>
         {
             entity.Property(e => e.BookingDate).HasColumnType("datetime");
 
@@ -162,6 +162,10 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("datetime");
 
             entity.Property(e => e.UpdatedAtUtc)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.Property(e => e.BookingDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
@@ -188,22 +192,22 @@ public partial class AppDbContext : DbContext
                 "CK_Booking_BookingStatus",
                 "[Status] IN ('Pending', 'Confirmed', 'In_Progress', 'Completed', 'Cancelled', 'No_Show')"));
 
-            entity.Property(e => e.BookingType)
-                .HasConversion<string>()
-                .HasDefaultValue(BookingType.Standard);
+            // it should be the default value from tourpackage table //
+            //entity.Property(e => e.FlightType)
+            //    .HasDefaultValueSql("");
 
             entity.ToTable(t => t.HasCheckConstraint(
-                "CK_Booking_BookingType",
-                "[BookingType] IN ('Standard', 'Premium', 'VIP')"));
+                "CK_Booking_FlightType",
+                "[FlightType] IN ('Economy', 'Premium_Economy', 'Business_Class', 'First_Class')"));
 
-            entity.HasOne(d => d.Payment).WithMany(p => p.Bookings)
-                .HasForeignKey(d => d.PaymentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+            entity.HasOne(d => d.Payment).WithOne(p => p.Booking)
+                .HasForeignKey<Booking>(d => d.PaymentId)
+                .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK_Bookings_payments");
 
             entity.HasOne(d => d.User).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK__Bookings__UserId__0F624AF8");
         });
 
@@ -627,19 +631,24 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Payment>(entity =>
         {
-            entity.ToTable("payments");
-
             entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
+
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getutcdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.PaymentMethod)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("Payment_Method");
+
             entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getutcdate())")
                 .HasColumnType("datetime");
+
+            entity.ToTable(e => e.HasCheckConstraint(
+                "CHK_PaymentMethods",
+                "[PaymentMethod] IN ('Credit','Bank_Transfer','Digital_Wallet')"));
+
+            entity.ToTable(e => e.HasCheckConstraint(
+                "CHK_PaymentStatuses",
+                "[PaymentStatus] IN ('Pending','Completed','Failed','Cancelled')"));
+
 
             entity.HasOne(d => d.User).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.UserId)

@@ -20,7 +20,7 @@ public partial class Booking : BaseEntity
 
     public BookingStatus Status { get; set; }
 
-    public BookingType BookingType { get; set; }
+    public FlightType FlightType { get; set; }
 
     public int UserId { get; set; }
 

@@ -14,9 +14,13 @@ namespace Domain.Enums
         Pending,
 
         /// <summary> 
-        /// Payment received or booking officially reserved with supplier (hotel/airline/tour operator) 
+        /// Payment received or booking officially reserved with supplier (tour operator) 
         /// </summary>
         Confirmed,
+        /// <summary> 
+        /// Tour company has rejected user booking
+        /// </summary>
+        Rejected,
 
         /// <summary> 
         /// the service is currently being used
@@ -24,7 +28,7 @@ namespace Domain.Enums
         In_Progress,
 
         /// <summary> 
-        /// Service fully delivered (flight taken, hotel stay finished, tour ended).
+        /// Service fully delivered (tour ended).
         /// </summary>
         Completed,
 
