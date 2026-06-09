@@ -25,11 +25,24 @@ namespace Application.Mappings
                 .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.CityId))
                 .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City.CityName));
 
+            // A program's assigned guide (المرشد المختار) shown on the program.
+            CreateMap<TouristGuide, TourPackageGuideResponse>()
+                .ForMember(dest => dest.FullName,
+                    opt => opt.MapFrom(src => (src.Firstname + " " + src.Lastname).Trim()));
+
+            CreateMap<TourPackageCabinClass, TourPackageCabinClassResponse>();
+
             CreateMap<TourPackage, TourPackageResponse>()
                 .ForMember(dest => dest.CountryName,
                     opt => opt.MapFrom(src => src.Country != null ? src.Country.CountryName : null))
+                .ForMember(dest => dest.CompanyName,
+                    opt => opt.MapFrom(src => src.Company != null ? src.Company.Name : null))
                 .ForMember(dest => dest.Cities,
                     opt => opt.MapFrom(src => src.PackageCities))
+                .ForMember(dest => dest.Guides,
+                    opt => opt.MapFrom(src => src.TourPackageGuides.Select(g => g.TouristGuide)))
+                .ForMember(dest => dest.AvailableCabinClasses,
+                    opt => opt.MapFrom(src => src.CabinClasses))
                 .ForMember(dest => dest.Days,
                     opt => opt.MapFrom(src => src.PackageItineraries
                         .OrderBy(d => d.DayNumber)));

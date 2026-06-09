@@ -8,6 +8,9 @@ namespace Domain.Enums
         General = 0,
         CompanyApproved = 1,
         CompanyRejected = 2,
+        ProgramAccepted = 3,
+        ProgramRejected = 4
+        CompanyRejected = 2,
         NewBooking = 3
     }
 }

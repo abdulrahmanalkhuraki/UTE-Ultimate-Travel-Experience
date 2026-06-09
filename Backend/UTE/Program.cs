@@ -6,12 +6,14 @@ using Application.Interfaces.Hotel;
 using Application.Interfaces.Notifications;
 using Application.Interfaces.TourCompany;
 using Application.Interfaces.TourPackage;
+using Application.Interfaces.TouristGuide;
 using Application.Interfaces.User;
 using Application.Mappings;
 using Application.Services;
 using Application.Validators.Booking;
 using Application.Validators.Hotel;
 using Application.Validators.TourCompany;
+using Application.Validators.TouristGuide;
 using Application.Validators.User;
 using Domain.Interfaces;
 using Domain.Validators;
@@ -296,6 +298,11 @@ builder.Services.AddScoped<TourPackageCreateValidator>();
 builder.Services.AddScoped<TourPackageUpdateValidator>();
 builder.Services.AddScoped<ITourPackageService, TourPackageService>();
 
+// TouristGuide
+builder.Services.AddScoped<TouristGuideCreateValidator>();
+builder.Services.AddScoped<TouristGuideUpdateValidator>();
+builder.Services.AddScoped<ITouristGuideService, TouristGuideService>();
+
 // Notifications (IRealtimeNotifier/Firebase is registered in AddInfrastructure)
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
@@ -315,6 +322,7 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<UserProfile>();
     cfg.AddProfile<TourCompanyProfile>();
     cfg.AddProfile<TourPackageProfile>();
+    cfg.AddProfile<TouristGuideProfile>();
     cfg.AddProfile<NotificationProfile>();
 });
 

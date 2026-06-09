@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260608185028_AddGuidesServiceLevelAndCabinClasses")]
+    partial class AddGuidesServiceLevelAndCabinClasses
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -191,9 +194,13 @@ namespace Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("BookingDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("BookingType")
+                        .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("Standard");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .ValueGeneratedOnAdd()
@@ -203,9 +210,6 @@ namespace Infrastructure.Migrations
                     b.Property<string>("DietaryRequirements")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
-
-                    b.Property<int>("FlightType")
-                        .HasColumnType("int");
 
                     b.Property<int>("NumberOfAdults")
                         .ValueGeneratedOnAdd()
@@ -250,8 +254,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PaymentId")
-                        .IsUnique();
+                    b.HasIndex("PaymentId");
 
                     b.HasIndex("TourPackageId");
 
@@ -261,7 +264,7 @@ namespace Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("CK_Booking_BookingStatus", "[Status] IN ('Pending', 'Confirmed', 'In_Progress', 'Completed', 'Cancelled', 'No_Show')");
 
-                            t.HasCheckConstraint("CK_Booking_FlightType", "[FlightType] IN ('Economy', 'Premium_Economy', 'Business_Class', 'First_Class')");
+                            t.HasCheckConstraint("CK_Booking_BookingType", "[BookingType] IN ('Standard', 'Premium', 'VIP')");
                         });
                 });
 
@@ -904,11 +907,15 @@ namespace Infrastructure.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getutcdate())");
 
-                    b.Property<DateTime>("PaymentDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly>("PaymentDate")
+                        .HasColumnType("date");
 
-                    b.Property<int>("PaymentMethod")
-                        .HasColumnType("int");
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("Payment_Method");
 
                     b.Property<int>("PaymentStatus")
                         .HasColumnType("int");
@@ -925,12 +932,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Payments", t =>
-                        {
-                            t.HasCheckConstraint("CHK_PaymentMethods", "[PaymentMethod] IN ('Credit','Bank_Transfer','Digital_Wallet')");
-
-                            t.HasCheckConstraint("CHK_PaymentStatuses", "[PaymentStatus] IN ('Pending','Completed','Failed','Cancelled')");
-                        });
+                    b.ToTable("payments", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Rate", b =>
@@ -1140,9 +1142,6 @@ namespace Infrastructure.Migrations
                     b.Property<int>("AvailableSeats")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("BusinessClassPrice")
-                        .HasColumnType("decimal(10, 2)");
-
                     b.Property<int>("CompanyId")
                         .HasColumnType("int");
 
@@ -1166,9 +1165,6 @@ namespace Infrastructure.Migrations
                     b.Property<int>("DurationInDays")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("EconomyClassPrice")
-                        .HasColumnType("decimal(10, 2)");
-
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 
@@ -1183,9 +1179,6 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<decimal>("PremiumClassPrice")
-                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<decimal>("PricePerPerson")
                         .HasColumnType("decimal(10, 2)");
@@ -1368,6 +1361,9 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<int>("CityId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
@@ -1435,11 +1431,6 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(25)
                         .HasColumnType("nvarchar(25)");
 
-                    b.Property<string>("PlaceOfResidence")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<string>("ProfileImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -1453,6 +1444,8 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CityId");
 
                     b.HasIndex("NationalityCountryId");
 
@@ -1637,9 +1630,8 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Booking", b =>
                 {
                     b.HasOne("Domain.Entities.Payment", "Payment")
-                        .WithOne("Booking")
-                        .HasForeignKey("Domain.Entities.Booking", "PaymentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .WithMany("Bookings")
+                        .HasForeignKey("PaymentId")
                         .IsRequired()
                         .HasConstraintName("FK_Bookings_payments");
 
@@ -1650,7 +1642,6 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany("Bookings")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK__Bookings__UserId__0F624AF8");
 
@@ -2041,10 +2032,17 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.TouristGuide", b =>
                 {
+                    b.HasOne("Domain.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .IsRequired();
+
                     b.HasOne("Domain.Entities.Country", "NatinalityCountry")
                         .WithMany()
                         .HasForeignKey("NationalityCountryId")
                         .IsRequired();
+
+                    b.Navigation("City");
 
                     b.Navigation("NatinalityCountry");
                 });
@@ -2150,8 +2148,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Payment", b =>
                 {
-                    b.Navigation("Booking")
-                        .IsRequired();
+                    b.Navigation("Bookings");
                 });
 
             modelBuilder.Entity("Domain.Entities.Role", b =>
