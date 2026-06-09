@@ -58,7 +58,7 @@ namespace Application.Services
         /// <returns>The newly created <see cref="BookingResponse"/>.</returns>
         /// <exception cref="ValidationException">Thrown when request validation fails.</exception>
         /// <exception cref="NotFoundException">Thrown when the package or a companion ID is not found.</exception>
-        /// <exception cref="UnauthorizedException">Thrown when the user is not authenticated.</exception>
+        /// <exception cref="AuthException">Thrown when the user is not authenticated.</exception>
         /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
         public async Task<BookingResponse> CreateAsync(BookingCreateRequest request, CancellationToken cancellationToken)
         {
@@ -80,7 +80,7 @@ namespace Application.Services
             {
                 var package = await _unitOfWork.TourPackages
                     .Query()
-                    .Select(p => new { p.Id, p.PackageName, p.CompanyId })
+                    .Select(p => new { p.Id, p.PackageName, p.CompanyId , p.PricePerPerson })
                     .FirstOrDefaultAsync(x => x.Id == request.PackageId, cancellationToken);
 
                 if (package is null)
@@ -108,13 +108,16 @@ namespace Application.Services
                 var childrenCompanions = existingCompanions.Count - adultCompanions;
 
                 var userId = _currentUser.UserId
-                    ?? throw new UnauthorizedException("You must be logged in to create a booking");
+                    ?? throw new AuthException("You must be logged in to create a booking");
 
                 await _unitOfWork.BeginTransactionAsync(cancellationToken);
                 transactionStarted = true;
 
+                var totalAmount = package.PricePerPerson * (adultCompanions + 1 + childrenCompanions); 
+
                 var payment = _mapper.Map<Payment>(request.Payment);
                 payment.UserId = userId;
+                payment.Amount = totalAmount;
                 payment.PaymentDate = DateTime.UtcNow;
                 payment.PaymentStatus = PaymentStatus.Pending;
                 await _unitOfWork.Payments.AddAsync(payment, cancellationToken);
@@ -147,12 +150,14 @@ namespace Application.Services
 
                 _logger.LogInformation("Successfully created booking {BookingId}", booking.Id);
 
+                // notify user
                 await _notificationService.NotifyAsync(
                     userId,
                     "Your booking for {package.PackageName} has been created successfully. Awaiting acceptance by the tour company.",
                     NotificationType.NewBooking,
                     cancellationToken);
 
+                // notify company
                 await _notificationService.NotifyAsync(
                     package.CompanyId,
                     $"New booking received for {package.PackageName}.",
@@ -165,6 +170,10 @@ namespace Application.Services
             {
                 if (transactionStarted)
                     await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                throw;
+            }
+            catch (AuthException)
+            {
                 throw;
             }
             catch (Exception ex)
