@@ -28,6 +28,10 @@ namespace Infrastructure.Repositories
             PackageItineraries = new GenericRepository<PackageItinerary>(_context);
             PackageItineraryAttractions = new GenericRepository<PackageItineraryAttraction>(_context);
             PackageCities = new GenericRepository<PackageCity>(_context);
+            TouristGuides = new GenericRepository<TouristGuide>(_context);
+            CompanyGuides = new GenericRepository<CompanyGuide>(_context);
+            TourPackageGuides = new GenericRepository<TourPackageGuide>(_context);
+            TourPackageCabinClasses = new GenericRepository<TourPackageCabinClass>(_context);
             Countries = new GenericRepository<Country>(_context);
             Cities = new GenericRepository<City>(_context);
             Notifications = new GenericRepository<Notification>(_context);
@@ -51,6 +55,14 @@ namespace Infrastructure.Repositories
         public IGenericRepository<PackageItineraryAttraction> PackageItineraryAttractions { get; }
 
         public IGenericRepository<PackageCity> PackageCities { get; }
+
+        public IGenericRepository<TouristGuide> TouristGuides { get; }
+
+        public IGenericRepository<CompanyGuide> CompanyGuides { get; }
+
+        public IGenericRepository<TourPackageGuide> TourPackageGuides { get; }
+
+        public IGenericRepository<TourPackageCabinClass> TourPackageCabinClasses { get; }
 
         public IGenericRepository<Country> Countries { get; }
 

@@ -32,6 +32,12 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TouristGuide> TouristGuides { get; set; }
 
+    public virtual DbSet<CompanyGuide> CompanyGuides { get; set; }
+
+    public virtual DbSet<TourPackageGuide> TourPackageGuides { get; set; }
+
+    public virtual DbSet<TourPackageCabinClass> TourPackageCabinClasses { get; set; }
+
     public virtual DbSet<CompanionBooking> CompanionBookings { get; set; }
 
     public virtual DbSet<City> Cities { get; set; }
@@ -288,7 +294,19 @@ public partial class AppDbContext : DbContext
 
             entity.Property(e => e.Email).HasMaxLength(50);
 
-            entity.Property(e => e.Bio).HasMaxLength(100);
+            entity.Property(e => e.Bio).HasMaxLength(1000);
+
+            entity.Property(e => e.PlaceOfResidence).HasMaxLength(100);
+            entity.Property(e => e.CurrentLocation).HasMaxLength(100);
+            entity.Property(e => e.NationalNumber).HasMaxLength(50);
+            entity.Property(e => e.PassportNumber).HasMaxLength(50);
+            entity.Property(e => e.ProfileImageUrl).HasMaxLength(500);
+            entity.Property(e => e.IdCard).HasMaxLength(500);
+            entity.Property(e => e.PassportScan).HasMaxLength(500);
+            entity.Property(e => e.LicenseScan).HasMaxLength(500);
+            entity.Property(e => e.Languages).HasMaxLength(250);
+
+            entity.Property(e => e.IsAvailable).HasDefaultValue(true);
 
             entity.ToTable(e => e.HasCheckConstraint(
                 "CHK_Positive_YearsOfExperience",
@@ -303,8 +321,81 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
-            entity.HasMany(e => e.TourPackages).WithOne(d => d.TouristGuide)
-                .HasForeignKey(d => d.TouristGuideId);
+            entity.HasOne(e => e.NatinalityCountry).WithMany()
+                .HasForeignKey(e => e.NationalityCountryId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        modelBuilder.Entity<CompanyGuide>(entity =>
+        {
+            entity.ToTable("CompanyGuides");
+
+            entity.Property(e => e.CreatedAtUtc)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAtUtc)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            // A guide is linked to a given company at most once.
+            entity.HasIndex(e => new { e.CompanyId, e.TouristGuideId }).IsUnique();
+
+            entity.HasOne(d => d.Company).WithMany(p => p.CompanyGuides)
+                .HasForeignKey(d => d.CompanyId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_CompanyGuides_TourCompanies");
+
+            entity.HasOne(d => d.TouristGuide).WithMany(g => g.CompanyGuides)
+                .HasForeignKey(d => d.TouristGuideId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_CompanyGuides_TouristGuides");
+        });
+
+        modelBuilder.Entity<TourPackageGuide>(entity =>
+        {
+            entity.ToTable("TourPackageGuides");
+
+            entity.Property(e => e.CreatedAtUtc)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAtUtc)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            // A guide appears on a given program at most once.
+            entity.HasIndex(e => new { e.PackageId, e.TouristGuideId }).IsUnique();
+
+            entity.HasOne(d => d.Package).WithMany(p => p.TourPackageGuides)
+                .HasForeignKey(d => d.PackageId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_TourPackageGuides_TourPackages");
+
+            entity.HasOne(d => d.TouristGuide).WithMany(g => g.TourPackageGuides)
+                .HasForeignKey(d => d.TouristGuideId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TourPackageGuides_TouristGuides");
+        });
+
+        modelBuilder.Entity<TourPackageCabinClass>(entity =>
+        {
+            entity.ToTable("TourPackageCabinClasses");
+
+            entity.Property(e => e.CabinClass).HasConversion<int>();
+
+            entity.Property(e => e.CreatedAtUtc)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAtUtc)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            // A given cabin class is listed once per program.
+            entity.HasIndex(e => new { e.PackageId, e.CabinClass }).IsUnique();
+
+            entity.HasOne(d => d.Package).WithMany(p => p.CabinClasses)
+                .HasForeignKey(d => d.PackageId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_TourPackageCabinClasses_TourPackages");
         });
 
         modelBuilder.Entity<City>(entity =>
@@ -650,9 +741,11 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(1000);
             entity.Property(e => e.PackageName).HasMaxLength(100);
             entity.Property(e => e.PricePerPerson).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.EconomyClassPrice).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PremiumClassPrice).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.BusinessClassPrice).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Currency).HasMaxLength(10);
             entity.Property(e => e.MainImageUrl).HasMaxLength(500);
-            entity.Property(e => e.TourGuide).HasMaxLength(150);
             entity.Property(e => e.StartDate).HasColumnType("date");
             entity.Property(e => e.EndDate).HasColumnType("date");
             entity.Property(e => e.RegistrationDeadline).HasColumnType("date");
@@ -660,6 +753,15 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Status)
                 .HasConversion<int>()
                 .HasDefaultValue(TourPackageStatus.Active);
+
+            entity.Property(e => e.ApprovalStatus)
+                .HasConversion<int>()
+                .HasDefaultValue(ProgramApprovalStatus.Pending);
+            entity.Property(e => e.RejectionReason).HasMaxLength(1000);
+
+            entity.Property(e => e.ServiceLevel)
+                .HasConversion<int>()
+                .HasDefaultValue(ServiceLevel.Economy);
 
             entity.Property(e => e.PublishCount)
                 .HasDefaultValue(0);

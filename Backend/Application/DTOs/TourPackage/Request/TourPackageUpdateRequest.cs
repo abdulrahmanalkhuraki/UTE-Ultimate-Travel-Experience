@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Domain.Enums;
 using Microsoft.AspNetCore.Http;
 
 namespace Application.DTOs.TourPackage.Request
@@ -23,6 +24,15 @@ namespace Application.DTOs.TourPackage.Request
 
         public decimal PricePerPerson { get; set; }
 
+        /// <summary>Economy flight class price (تكلفة الدرجة الاقتصادية).</summary>
+        public decimal EconomyClassPrice { get; set; }
+
+        /// <summary>Premium flight class price (تكلفة الدرجة المميزة).</summary>
+        public decimal PremiumClassPrice { get; set; }
+
+        /// <summary>Business flight class price (تكلفة درجة رجال الأعمال).</summary>
+        public decimal BusinessClassPrice { get; set; }
+
         public string Currency { get; set; } = "USD";
 
         public int DurationInDays { get; set; }
@@ -35,7 +45,14 @@ namespace Application.DTOs.TourPackage.Request
 
         public int AvailableSeats { get; set; }
 
-        public string TourGuide { get; set; } = null!;
+        /// <summary>Selected tour guides (المرشد السياحي). At least one required.</summary>
+        public List<int> TouristGuideIds { get; set; } = new();
+
+        /// <summary>Service level (مستوى الخدمة).</summary>
+        public ServiceLevel ServiceLevel { get; set; } = ServiceLevel.Economy;
+
+        /// <summary>Available flight cabin classes (تذاكر الطيران المتاحة). Optional.</summary>
+        public List<FlightCabinClass> AvailableCabinClasses { get; set; } = new();
 
         public bool IsPublished { get; set; }
 

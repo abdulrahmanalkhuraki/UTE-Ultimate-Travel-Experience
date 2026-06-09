@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Domain.Enums;
 using Microsoft.AspNetCore.Http;
 
 namespace Application.DTOs.TourPackage.Request
@@ -24,8 +25,17 @@ namespace Application.DTOs.TourPackage.Request
         /// <summary>Cities/regions visited (المناطق اللي رح تنزار).</summary>
         public List<int> CityIds { get; set; } = new();
 
-        /// <summary>Subscription price per person (تكلفة اشتراك البرنامج).</summary>
+        /// <summary>Default/base program price per person (التكلفة الافتراضية للبرنامج).</summary>
         public decimal PricePerPerson { get; set; }
+
+        /// <summary>Economy flight class price (تكلفة الدرجة الاقتصادية).</summary>
+        public decimal EconomyClassPrice { get; set; }
+
+        /// <summary>Premium flight class price (تكلفة الدرجة المميزة).</summary>
+        public decimal PremiumClassPrice { get; set; }
+
+        /// <summary>Business flight class price (تكلفة درجة رجال الأعمال).</summary>
+        public decimal BusinessClassPrice { get; set; }
 
         /// <summary>Currency code (العملة), e.g. USD, JOD.</summary>
         public string Currency { get; set; } = "USD";
@@ -45,8 +55,20 @@ namespace Application.DTOs.TourPackage.Request
         /// <summary>Number of seats (عدد الأشخاص).</summary>
         public int AvailableSeats { get; set; }
 
-        /// <summary>Tour guide name/notes (الدليل السياحي).</summary>
-        public string TourGuide { get; set; } = null!;
+        /// <summary>
+        /// Selected tour guides (المرشد السياحي). One or more guides chosen from the
+        /// company's own guides. At least one is required.
+        /// </summary>
+        public List<int> TouristGuideIds { get; set; } = new();
+
+        /// <summary>Service level (مستوى الخدمة). Defaults to economy (الدرجة الاقتصادية).</summary>
+        public ServiceLevel ServiceLevel { get; set; } = ServiceLevel.Economy;
+
+        /// <summary>
+        /// Available flight cabin classes (تذاكر الطيران المتاحة). Optional and
+        /// multi-valued — leave empty if none are offered.
+        /// </summary>
+        public List<FlightCabinClass> AvailableCabinClasses { get; set; } = new();
 
         /// <summary>Publish immediately (نشر البرنامج).</summary>
         public bool IsPublished { get; set; }

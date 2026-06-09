@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260608185028_AddGuidesServiceLevelAndCabinClasses")]
+    partial class AddGuidesServiceLevelAndCabinClasses
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1139,9 +1142,6 @@ namespace Infrastructure.Migrations
                     b.Property<int>("AvailableSeats")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("BusinessClassPrice")
-                        .HasColumnType("decimal(10, 2)");
-
                     b.Property<int>("CompanyId")
                         .HasColumnType("int");
 
@@ -1165,9 +1165,6 @@ namespace Infrastructure.Migrations
                     b.Property<int>("DurationInDays")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("EconomyClassPrice")
-                        .HasColumnType("decimal(10, 2)");
-
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 
@@ -1182,9 +1179,6 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<decimal>("PremiumClassPrice")
-                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<decimal>("PricePerPerson")
                         .HasColumnType("decimal(10, 2)");
@@ -1367,6 +1361,9 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<int>("CityId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
@@ -1434,11 +1431,6 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(25)
                         .HasColumnType("nvarchar(25)");
 
-                    b.Property<string>("PlaceOfResidence")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<string>("ProfileImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -1452,6 +1444,8 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CityId");
 
                     b.HasIndex("NationalityCountryId");
 
@@ -2038,10 +2032,17 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.TouristGuide", b =>
                 {
+                    b.HasOne("Domain.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .IsRequired();
+
                     b.HasOne("Domain.Entities.Country", "NatinalityCountry")
                         .WithMany()
                         .HasForeignKey("NationalityCountryId")
                         .IsRequired();
+
+                    b.Navigation("City");
 
                     b.Navigation("NatinalityCountry");
                 });

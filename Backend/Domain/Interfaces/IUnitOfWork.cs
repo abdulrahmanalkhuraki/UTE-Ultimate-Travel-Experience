@@ -19,6 +19,10 @@ namespace Domain.Interfaces
         IGenericRepository<PackageItinerary> PackageItineraries { get; }
         IGenericRepository<PackageItineraryAttraction> PackageItineraryAttractions { get; }
         IGenericRepository<PackageCity> PackageCities { get; }
+        IGenericRepository<TouristGuide> TouristGuides { get; }
+        IGenericRepository<CompanyGuide> CompanyGuides { get; }
+        IGenericRepository<TourPackageGuide> TourPackageGuides { get; }
+        IGenericRepository<TourPackageCabinClass> TourPackageCabinClasses { get; }
         IGenericRepository<Country> Countries { get; }
         IGenericRepository<City> Cities { get; }
         IGenericRepository<Notification> Notifications { get; }

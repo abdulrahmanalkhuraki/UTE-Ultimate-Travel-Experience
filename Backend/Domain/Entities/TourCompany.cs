@@ -40,5 +40,8 @@ public partial class TourCompany : BaseEntity
 
     public virtual ICollection<TourPackage> TourPackages { get; set; } = new List<TourPackage>();
 
+    /// <summary>Guides that work for this company (مرشدو الشركة).</summary>
+    public virtual ICollection<CompanyGuide> CompanyGuides { get; set; } = new List<CompanyGuide>();
+
     public virtual User User { get; set; } = null!;
 }

@@ -12,7 +12,17 @@ namespace Application.DTOs.TourPackage.Response
 
         public string? Description { get; set; }
 
+        /// <summary>Default/base program price per person (التكلفة الافتراضية للبرنامج).</summary>
         public decimal PricePerPerson { get; set; }
+
+        /// <summary>Economy flight class price (تكلفة الدرجة الاقتصادية).</summary>
+        public decimal EconomyClassPrice { get; set; }
+
+        /// <summary>Premium flight class price (تكلفة الدرجة المميزة).</summary>
+        public decimal PremiumClassPrice { get; set; }
+
+        /// <summary>Business flight class price (تكلفة درجة رجال الأعمال).</summary>
+        public decimal BusinessClassPrice { get; set; }
 
         public string Currency { get; set; } = null!;
 
@@ -32,12 +42,35 @@ namespace Application.DTOs.TourPackage.Response
 
         public DateOnly RegistrationDeadline { get; set; }
 
-        public string? TourGuide { get; set; }
+        /// <summary>Guides assigned to this program (المرشدون المختارون).</summary>
+        public List<TourPackageGuideResponse> Guides { get; set; } = new();
+
+        /// <summary>Service level (مستوى الخدمة).</summary>
+        public ServiceLevel ServiceLevel { get; set; }
+
+        /// <summary>Arabic label for the service level (اسم مستوى الخدمة).</summary>
+        public string ServiceLevelLabel => ServiceLevel switch
+        {
+            ServiceLevel.Economy => "خدمة اقتصادية",
+            ServiceLevel.Standard => "خدمة عادية",
+            ServiceLevel.Premium => "خدمة مميزة",
+            ServiceLevel.FirstClass => "خدمة من الدرجة الأولى",
+            _ => ServiceLevel.ToString()
+        };
+
+        /// <summary>Available flight cabin classes (تذاكر الطيران المتاحة). May be empty.</summary>
+        public List<TourPackageCabinClassResponse> AvailableCabinClasses { get; set; } = new();
 
         public bool IsPublished { get; set; }
 
         /// <summary>Lifecycle status of the program (حالة البرنامج): Active or Cancelled.</summary>
         public TourPackageStatus Status { get; set; }
+
+        /// <summary>Admin moderation state (حالة الموافقة): Pending, Accepted, or Rejected.</summary>
+        public ProgramApprovalStatus ApprovalStatus { get; set; }
+
+        /// <summary>Reason shown to the company when the program was rejected (سبب الرفض). Null unless rejected.</summary>
+        public string? RejectionReason { get; set; }
 
         /// <summary>How many times the program has been published (كم مرة نُشر). 0 = never published.</summary>
         public int PublishCount { get; set; }
@@ -46,6 +79,9 @@ namespace Application.DTOs.TourPackage.Response
         public DateTime? PublishedAtUtc { get; set; }
 
         public int CompanyId { get; set; }
+
+        /// <summary>Name of the owning company (اسم الشركة). Useful for catalog and admin review.</summary>
+        public string? CompanyName { get; set; }
 
         /// <summary>Cities/regions visited (المناطق).</summary>
         public List<PackageCityResponse> Cities { get; set; } = new();

@@ -32,6 +32,18 @@ namespace Domain.Validators
                 .GreaterThan(0).WithMessage("Price per person must be greater than 0")
                 .LessThan(1000000).WithMessage("Price per person must be less than 1,000,000");
 
+            RuleFor(x => x.EconomyClassPrice)
+                .GreaterThan(0).WithMessage("Economy class price must be greater than 0")
+                .LessThan(1000000).WithMessage("Economy class price must be less than 1,000,000");
+
+            RuleFor(x => x.PremiumClassPrice)
+                .GreaterThan(0).WithMessage("Premium class price must be greater than 0")
+                .LessThan(1000000).WithMessage("Premium class price must be less than 1,000,000");
+
+            RuleFor(x => x.BusinessClassPrice)
+                .GreaterThan(0).WithMessage("Business class price must be greater than 0")
+                .LessThan(1000000).WithMessage("Business class price must be less than 1,000,000");
+
             RuleFor(x => x.Currency)
                 .NotEmpty().WithMessage("Currency is required")
                 .MaximumLength(10).WithMessage("Currency must not exceed 10 characters");
@@ -52,9 +64,17 @@ namespace Domain.Validators
             RuleFor(x => x.AvailableSeats)
                 .GreaterThan(0).WithMessage("Number of seats must be greater than 0");
 
-            RuleFor(x => x.TourGuide)
-                .NotEmpty().WithMessage("Tour guide is required")
-                .MaximumLength(150).WithMessage("Tour guide must not exceed 150 characters");
+            RuleFor(x => x.TouristGuideIds)
+                .NotEmpty().WithMessage("At least one tour guide is required");
+            RuleForEach(x => x.TouristGuideIds)
+                .GreaterThan(0).WithMessage("Tour guide id must be greater than 0");
+
+            RuleFor(x => x.ServiceLevel)
+                .IsInEnum().WithMessage("Invalid service level");
+
+            // Flight cabin classes are optional, but any provided must be valid.
+            RuleForEach(x => x.AvailableCabinClasses)
+                .IsInEnum().WithMessage("Invalid flight cabin class");
 
             RuleFor(x => x)
                 .Must(x => x.MainImage != null || !string.IsNullOrWhiteSpace(x.MainImageUrl))

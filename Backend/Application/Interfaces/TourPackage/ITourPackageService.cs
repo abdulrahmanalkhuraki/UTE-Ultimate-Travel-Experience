@@ -25,11 +25,23 @@ namespace Application.Interfaces.TourPackage
         /// </summary>
         Task<IReadOnlyList<TourPackageResponse>> GetMineByTimelineAsync(int ownerUserId, ProgramTimeline timeline, CancellationToken cancellationToken = default);
 
+        /// <summary>Aggregate counts of the company's own programs for the dashboard stats card.</summary>
+        Task<CompanyProgramStatsResponse> GetMyStatsAsync(int ownerUserId, CancellationToken cancellationToken = default);
+
         /// <summary>Updates a program; only its owning company may do so.</summary>
         Task<TourPackageResponse> UpdateAsync(int id, int ownerUserId, TourPackageUpdateRequest request, CancellationToken cancellationToken = default);
 
         /// <summary>Cancels a program (sets its status to cancelled); only its owning company may do so.</summary>
-        Task<TourPackageResponse> CancelAsync(int id, int ownerUserId, CancellationToken cancellationToken = default);
+        Task<ProgramStatusResponse> CancelAsync(int id, int ownerUserId, CancellationToken cancellationToken = default);
+
+        /// <summary>Admin view: lists all programs awaiting moderation (قيد الانتظار), oldest first.</summary>
+        Task<IReadOnlyList<TourPackageResponse>> GetPendingAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Admin action: accepts a program (المقبولة) and notifies the owning company.</summary>
+        Task<ProgramStatusResponse> AcceptAsync(int id, CancellationToken cancellationToken = default);
+
+        /// <summary>Admin action: rejects a program (المرفوضة) with a reason and notifies the owning company.</summary>
+        Task<ProgramStatusResponse> RejectAsync(int id, string reason, CancellationToken cancellationToken = default);
 
         /// <summary>Deletes a program; only its owning company may do so.</summary>
         Task<bool> DeleteAsync(int id, int ownerUserId, CancellationToken cancellationToken = default);

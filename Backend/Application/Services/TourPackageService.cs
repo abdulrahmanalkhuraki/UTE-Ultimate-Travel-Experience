@@ -1,8 +1,10 @@
+using Application.Common;
 using Application.DTOs.TourPackage;
 using Application.DTOs.TourPackage.Request;
 using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
 using Application.Interfaces;
+using Application.Interfaces.Notifications;
 using Application.Interfaces.TourPackage;
 using Application.Interfaces.User;
 using AutoMapper;
@@ -29,6 +31,7 @@ namespace Application.Services
         private readonly IFileStorage _fileStorage;
         private readonly TourPackageCreateValidator _createValidator;
         private readonly TourPackageUpdateValidator _updateValidator;
+        private readonly INotificationService _notificationService;
 
         private const string MainImageFolder = "package-images";
         private const string ActivityImageFolder = "package-activities";
@@ -39,7 +42,8 @@ namespace Application.Services
             ILogger<TourPackageService> logger,
             IFileStorage fileStorage,
             TourPackageCreateValidator createValidator,
-            TourPackageUpdateValidator updateValidator)
+            TourPackageUpdateValidator updateValidator,
+            INotificationService notificationService)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -47,6 +51,7 @@ namespace Application.Services
             _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
             _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
             _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
 
         public async Task<TourPackageResponse> CreateAsync(int ownerUserId, TourPackageCreateRequest request, CancellationToken cancellationToken = default)
@@ -59,6 +64,7 @@ namespace Application.Services
 
             var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
             await EnsureCountryAndCitiesExistAsync(request.CountryId, request.CityIds, cancellationToken);
+            await EnsureGuidesBelongToCompanyAsync(request.TouristGuideIds, companyId, cancellationToken);
 
             try
             {
@@ -67,6 +73,9 @@ namespace Application.Services
                     PackageName = request.PackageName.Trim(),
                     Description = request.Description?.Trim(),
                     PricePerPerson = request.PricePerPerson,
+                    EconomyClassPrice = request.EconomyClassPrice,
+                    PremiumClassPrice = request.PremiumClassPrice,
+                    BusinessClassPrice = request.BusinessClassPrice,
                     Currency = request.Currency.Trim(),
                     DurationInDays = request.DurationInDays,
                     AvailableSeats = request.AvailableSeats,
@@ -74,7 +83,7 @@ namespace Application.Services
                     StartDate = request.StartDate,
                     EndDate = request.EndDate,
                     RegistrationDeadline = request.RegistrationDeadline,
-                    TourGuide = request.TourGuide?.Trim(),
+                    ServiceLevel = request.ServiceLevel,
                     IsPublished = request.IsPublished,
                     // Publishing on creation counts as the first publish (المرة الأولى).
                     PublishCount = request.IsPublished ? 1 : 0,
@@ -89,6 +98,12 @@ namespace Application.Services
 
                 foreach (var cityId in request.CityIds.Distinct())
                     entity.PackageCities.Add(new PackageCity { CityId = cityId });
+
+                foreach (var guideId in request.TouristGuideIds.Distinct())
+                    entity.TourPackageGuides.Add(new TourPackageGuide { TouristGuideId = guideId });
+
+                foreach (var cabin in request.AvailableCabinClasses.Distinct())
+                    entity.CabinClasses.Add(new TourPackageCabinClass { CabinClass = cabin });
 
                 foreach (var day in request.Days)
                     entity.PackageItineraries.Add(await BuildDayAsync(day, cancellationToken));
@@ -120,12 +135,15 @@ namespace Application.Services
 
             var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
             await EnsureCountryAndCitiesExistAsync(request.CountryId, request.CityIds, cancellationToken);
+            await EnsureGuidesBelongToCompanyAsync(request.TouristGuideIds, companyId, cancellationToken);
 
             try
             {
                 var entity = await _unitOfWork.TourPackages
                     .Query()
                     .Include(p => p.PackageCities)
+                    .Include(p => p.TourPackageGuides)
+                    .Include(p => p.CabinClasses)
                     .Include(p => p.PackageItineraries)
                         .ThenInclude(d => d.PackageItineraryAttractions)
                     .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
@@ -140,6 +158,9 @@ namespace Application.Services
                 entity.PackageName = request.PackageName.Trim();
                 entity.Description = request.Description?.Trim();
                 entity.PricePerPerson = request.PricePerPerson;
+                entity.EconomyClassPrice = request.EconomyClassPrice;
+                entity.PremiumClassPrice = request.PremiumClassPrice;
+                entity.BusinessClassPrice = request.BusinessClassPrice;
                 entity.Currency = request.Currency.Trim();
                 entity.DurationInDays = request.DurationInDays;
                 entity.AvailableSeats = request.AvailableSeats;
@@ -147,7 +168,7 @@ namespace Application.Services
                 entity.StartDate = request.StartDate;
                 entity.EndDate = request.EndDate;
                 entity.RegistrationDeadline = request.RegistrationDeadline;
-                entity.TourGuide = request.TourGuide?.Trim();
+                entity.ServiceLevel = request.ServiceLevel;
                 // Count each unpublished→published transition and stamp the publish time
                 // (drives "كم مرة نُشر" and "اديش صرلو منشور" on the card).
                 if (!entity.IsPublished && request.IsPublished)
@@ -166,6 +187,18 @@ namespace Application.Services
                 _unitOfWork.PackageCities.RemoveRange(entity.PackageCities);
                 entity.PackageCities = request.CityIds.Distinct()
                     .Select(cityId => new PackageCity { CityId = cityId })
+                    .ToList();
+
+                // Replace assigned guides.
+                _unitOfWork.TourPackageGuides.RemoveRange(entity.TourPackageGuides);
+                entity.TourPackageGuides = request.TouristGuideIds.Distinct()
+                    .Select(guideId => new TourPackageGuide { TouristGuideId = guideId })
+                    .ToList();
+
+                // Replace available cabin classes.
+                _unitOfWork.TourPackageCabinClasses.RemoveRange(entity.CabinClasses);
+                entity.CabinClasses = request.AvailableCabinClasses.Distinct()
+                    .Select(cabin => new TourPackageCabinClass { CabinClass = cabin })
                     .ToList();
 
                 // Replace the whole itinerary (days + activities).
@@ -192,7 +225,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<TourPackageResponse> CancelAsync(int id, int ownerUserId, CancellationToken cancellationToken = default)
+        public async Task<ProgramStatusResponse> CancelAsync(int id, int ownerUserId, CancellationToken cancellationToken = default)
         {
             if (id <= 0)
                 throw new ArgumentException("Invalid tour package ID", nameof(id));
@@ -222,7 +255,7 @@ namespace Application.Services
 
                 _logger.LogInformation("Cancelled tour package {PackageId}", id);
 
-                return await BuildResponseAsync(id, cancellationToken);
+                return ToStatusResponse(entity);
             }
             catch (Exception ex) when (ex is not NotFoundException and not ForbiddenException and not BusinessRuleException)
             {
@@ -230,6 +263,98 @@ namespace Application.Services
                 throw new ServiceException($"Failed to cancel tour package: {ex.Message}", ex);
             }
         }
+
+        public async Task<IReadOnlyList<TourPackageResponse>> GetPendingAsync(CancellationToken cancellationToken = default)
+        {
+            var entities = await QueryWithGraph()
+                .Where(p => p.ApprovalStatus == ProgramApprovalStatus.Pending)
+                .OrderBy(p => p.CreatedAtUtc) // longest-waiting first
+                .ToListAsync(cancellationToken);
+
+            return _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
+        }
+
+        public Task<ProgramStatusResponse> AcceptAsync(int id, CancellationToken cancellationToken = default)
+            => SetApprovalAsync(id, ProgramApprovalStatus.Accepted, null, cancellationToken);
+
+        public Task<ProgramStatusResponse> RejectAsync(int id, string reason, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(reason))
+                throw new ArgumentException("Rejection reason is required", nameof(reason));
+
+            return SetApprovalAsync(id, ProgramApprovalStatus.Rejected, reason, cancellationToken);
+        }
+
+        /// <summary>Shared admin-moderation path for accept/reject: updates the status, then best-effort notifies the owning company.</summary>
+        private async Task<ProgramStatusResponse> SetApprovalAsync(int id, ProgramApprovalStatus approval, string? reason, CancellationToken cancellationToken)
+        {
+            if (id <= 0)
+                throw new ArgumentException("Invalid tour package ID", nameof(id));
+
+            try
+            {
+                var entity = await _unitOfWork.TourPackages
+                    .Query()
+                    .Include(p => p.Company)
+                    .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+                if (entity is null)
+                    throw new NotFoundException($"Tour package with ID {id} not found");
+
+                // Reason is kept only for rejections; cleared on accept.
+                var rejectionReason = approval == ProgramApprovalStatus.Rejected ? reason : null;
+
+                entity.ApprovalStatus = approval;
+                entity.RejectionReason = rejectionReason;
+                entity.UpdatedAtUtc = DateTime.UtcNow;
+
+                _unitOfWork.TourPackages.Update(entity);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                _logger.LogInformation("Tour package {PackageId} approval set to {Approval}", id, approval);
+
+                // Notify the owning company's user. A notification failure must not undo the
+                // decision, so it is best-effort here (mirrors the TourCompany approve/reject flow).
+                var (message, notificationType) = approval switch
+                {
+                    ProgramApprovalStatus.Accepted => (ProgramApprovalMessages.Accepted, NotificationType.ProgramAccepted),
+                    ProgramApprovalStatus.Rejected => ($"{ProgramApprovalMessages.Rejected} السبب: {reason}", NotificationType.ProgramRejected),
+                    _ => (string.Empty, NotificationType.General)
+                };
+
+                var ownerUserId = entity.Company?.UserId ?? 0;
+                if (!string.IsNullOrEmpty(message) && ownerUserId > 0)
+                {
+                    try
+                    {
+                        await _notificationService.NotifyAsync(ownerUserId, message, notificationType, cancellationToken);
+                    }
+                    catch (Exception notifyEx)
+                    {
+                        _logger.LogWarning(notifyEx, "Failed to notify owner {UserId} of program {PackageId} approval change",
+                            ownerUserId, id);
+                    }
+                }
+
+                return ToStatusResponse(entity);
+            }
+            catch (Exception ex) when (ex is not NotFoundException and not ArgumentException)
+            {
+                _logger.LogError(ex, "Unexpected error while moderating tour package {PackageId}", id);
+                throw new ServiceException($"Failed to update tour package approval: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>Projects an entity to the lightweight status response returned by the status actions.</summary>
+        private static ProgramStatusResponse ToStatusResponse(TourPackage entity) => new()
+        {
+            Id = entity.Id,
+            PackageName = entity.PackageName,
+            Status = entity.Status,
+            ApprovalStatus = entity.ApprovalStatus,
+            RejectionReason = entity.RejectionReason,
+            UpdatedAtUtc = entity.UpdatedAtUtc,
+        };
 
         public async Task<bool> DeleteAsync(int id, int ownerUserId, CancellationToken cancellationToken = default)
         {
@@ -294,7 +419,8 @@ namespace Application.Services
 
         public async Task<IReadOnlyList<TourPackageResponse>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            var entities = await QueryWithGraph()
+            // Public endpoint: only show published, admin-accepted, non-cancelled programs.
+            var entities = await WherePubliclyVisible(QueryWithGraph())
                 .OrderByDescending(p => p.CreatedAtUtc)
                 .ToListAsync(cancellationToken);
 
@@ -340,6 +466,29 @@ namespace Application.Services
             return _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
         }
 
+        public async Task<CompanyProgramStatsResponse> GetMyStatsAsync(int ownerUserId, CancellationToken cancellationToken = default)
+        {
+            var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            // One trip to the DB, only the columns the counts need.
+            var rows = await _unitOfWork.TourPackages
+                .Query()
+                .AsNoTracking()
+                .Where(p => p.CompanyId == companyId)
+                .Select(p => new { p.Status, p.ApprovalStatus, p.EndDate })
+                .ToListAsync(cancellationToken);
+
+            return new CompanyProgramStatsResponse
+            {
+                Total = rows.Count,
+                Current = rows.Count(r => r.Status == TourPackageStatus.Active && r.EndDate >= today),
+                Accepted = rows.Count(r => r.ApprovalStatus == ProgramApprovalStatus.Accepted),
+                Cancelled = rows.Count(r => r.Status == TourPackageStatus.Cancelled),
+                Rejected = rows.Count(r => r.ApprovalStatus == ProgramApprovalStatus.Rejected),
+            };
+        }
+
         public async Task<IReadOnlyList<TourPackageResponse>> FilterAsync(
             int? countryId = null,
             int? cityId = null,
@@ -348,10 +497,11 @@ namespace Application.Services
             bool publishedOnly = true,
             CancellationToken cancellationToken = default)
         {
-            var query = QueryWithGraph();
+            // Public endpoint: always restrict to published, admin-accepted, non-cancelled
+            // programs. The publishedOnly flag is kept for compatibility but visibility is
+            // always enforced here so unapproved/cancelled programs never leak to tourists.
+            var query = WherePubliclyVisible(QueryWithGraph());
 
-            if (publishedOnly)
-                query = query.Where(p => p.IsPublished);
             if (countryId is > 0)
                 query = query.Where(p => p.CountryId == countryId);
             if (cityId is > 0)
@@ -379,8 +529,21 @@ namespace Application.Services
                 .AsNoTracking()
                 .AsSplitQuery()
                 .Include(p => p.Country)
+                .Include(p => p.Company)
                 .Include(p => p.PackageCities).ThenInclude(pc => pc.City)
+                .Include(p => p.TourPackageGuides).ThenInclude(g => g.TouristGuide)
+                .Include(p => p.CabinClasses)
                 .Include(p => p.PackageItineraries).ThenInclude(d => d.PackageItineraryAttractions);
+
+        /// <summary>
+        /// Restricts a query to programs that should be visible to the public/tourists:
+        /// published, admin-accepted (المقبولة), and not cancelled. Used by the open
+        /// (no-auth) endpoints so drafts, pending, rejected, or cancelled programs never leak.
+        /// </summary>
+        private static IQueryable<TourPackage> WherePubliclyVisible(IQueryable<TourPackage> query) =>
+            query.Where(p => p.IsPublished
+                          && p.ApprovalStatus == ProgramApprovalStatus.Accepted
+                          && p.Status == TourPackageStatus.Active);
 
         private async Task<TourPackageResponse> BuildResponseAsync(int id, CancellationToken cancellationToken)
         {
@@ -454,6 +617,24 @@ namespace Application.Services
                 .CountAsync(c => distinctIds.Contains(c.Id), cancellationToken);
             if (foundCount != distinctIds.Count)
                 throw new NotFoundException("One or more selected cities do not exist.");
+        }
+
+        /// <summary>
+        /// Ensures every selected guide is linked to the owning company. Guarantees a
+        /// company can only assign its own guides to a program (المرشدون التابعون للشركة).
+        /// </summary>
+        private async Task EnsureGuidesBelongToCompanyAsync(IReadOnlyCollection<int> guideIds, int companyId, CancellationToken cancellationToken)
+        {
+            var distinctIds = guideIds.Distinct().ToList();
+            if (distinctIds.Count == 0)
+                return; // a non-empty list is enforced by the validator
+
+            var ownedCount = await _unitOfWork.CompanyGuides
+                .Query().AsNoTracking()
+                .CountAsync(cg => cg.CompanyId == companyId && distinctIds.Contains(cg.TouristGuideId), cancellationToken);
+
+            if (ownedCount != distinctIds.Count)
+                throw new ForbiddenException("One or more selected guides do not belong to your company.");
         }
 
         #endregion

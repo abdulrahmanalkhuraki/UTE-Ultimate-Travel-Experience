@@ -12,8 +12,17 @@ public partial class TourPackage : BaseEntity
     /// <summary>Free-text description shown to tourists (وصف).</summary>
     public string? Description { get; set; }
 
-    /// <summary>Subscription price per person (تكلفة اشتراك البرنامج).</summary>
+    /// <summary>Default/base program price per person (التكلفة الافتراضية للبرنامج).</summary>
     public decimal PricePerPerson { get; set; }
+
+    /// <summary>Economy flight class price (تكلفة الدرجة الاقتصادية).</summary>
+    public decimal EconomyClassPrice { get; set; }
+
+    /// <summary>Premium flight class price (تكلفة الدرجة المميزة).</summary>
+    public decimal PremiumClassPrice { get; set; }
+
+    /// <summary>Business flight class price (تكلفة درجة رجال الأعمال).</summary>
+    public decimal BusinessClassPrice { get; set; }
 
     /// <summary>Currency code for <see cref="PricePerPerson"/> (العملة), e.g. USD, JOD.</summary>
     public string Currency { get; set; } = "USD";
@@ -39,14 +48,20 @@ public partial class TourPackage : BaseEntity
     /// <summary>Last day a tourist may register (تاريخ نهاية التسجيل).</summary>
     public DateOnly RegistrationDeadline { get; set; }
 
-    /// <summary>Tour guide name/notes (الدليل السياحي).</summary>
-    public string? TourGuide { get; set; }
+    /// <summary>Service level offered (مستوى الخدمة). Defaults to economy (الدرجة الاقتصادية).</summary>
+    public ServiceLevel ServiceLevel { get; set; } = ServiceLevel.Economy;
 
     /// <summary>Whether the program is published and visible to tourists (نشر البرنامج).</summary>
     public bool IsPublished { get; set; }
 
     /// <summary>Lifecycle status of the program (حالة البرنامج). Defaults to active; set to cancelled when the company cancels it (ملغى).</summary>
     public TourPackageStatus Status { get; set; } = TourPackageStatus.Active;
+
+    /// <summary>Admin moderation state (حالة الموافقة). New programs start pending until an admin accepts (مقبول) or rejects (مرفوض) them.</summary>
+    public ProgramApprovalStatus ApprovalStatus { get; set; } = ProgramApprovalStatus.Pending;
+
+    /// <summary>Reason shown to the company when an admin rejects the program (سبب الرفض). Set on reject, cleared on accept.</summary>
+    public string? RejectionReason { get; set; }
 
     /// <summary>How many times this program has been published (كم مرة نُشر). Incremented on each unpublished→published transition; 1 means first time (المرة الأولى).</summary>
     public int PublishCount { get; set; }
@@ -57,8 +72,6 @@ public partial class TourPackage : BaseEntity
     /// <summary>Owning tour company.</summary>
     public int CompanyId { get; set; }
 
-    public int TouristGuideId { get; set; }
-
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
     public virtual TourCompany Company { get; set; } = null!;
@@ -68,7 +81,11 @@ public partial class TourPackage : BaseEntity
     /// <summary>Regions/cities visited by this program (المناطق اللي رح تنزار).</summary>
     public virtual ICollection<PackageCity> PackageCities { get; set; } = new List<PackageCity>();
 
-    public virtual TouristGuide TouristGuide { get; set; } = null!;
+    /// <summary>Guides assigned to this program (المرشدون المختارون).</summary>
+    public virtual ICollection<TourPackageGuide> TourPackageGuides { get; set; } = new List<TourPackageGuide>();
+
+    /// <summary>Flight cabin classes made available (تذاكر الطيران المتاحة). Optional.</summary>
+    public virtual ICollection<TourPackageCabinClass> CabinClasses { get; set; } = new List<TourPackageCabinClass>();
 
     public virtual ICollection<PackageItinerary> PackageItineraries { get; set; } = new List<PackageItinerary>();
 
