@@ -9,6 +9,6 @@ namespace Application.DTOs.Booking.Request
       string? DietaryRequirements,
       string? SpecialRequests,
       List<int> CompanionIds,
-      FlightType FlightType
+      FlightCabinClass FlightCabinClass
     );
 }

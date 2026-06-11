@@ -115,16 +115,16 @@ namespace Application.Services
 
                 var totalAmount = package.PricePerPerson * (adultCompanions + 1 + childrenCompanions); 
 
-                var payment = _mapper.Map<Payment>(request.Payment);
-                payment.UserId = userId;
-                payment.Amount = totalAmount;
-                payment.PaymentDate = DateTime.UtcNow;
-                payment.PaymentStatus = PaymentStatus.Pending;
-                await _unitOfWork.Payments.AddAsync(payment, cancellationToken);
+                //var payment = _mapper.Map<Payment>(request.Payment);
+                //payment.UserId = userId;
+                //payment.Amount = totalAmount;
+                //payment.PaymentDate = DateTime.UtcNow;
+                //payment.PaymentStatus = PaymentStatus.Pending;
+                //await _unitOfWork.Payments.AddAsync(payment, cancellationToken);
 
                 var booking = _mapper.Map<Booking>(request);
                 booking.UserId = userId;
-                booking.Payment = payment;
+                //booking.Payment = payment;
                 booking.BookingDate = DateTime.UtcNow;
                 booking.Status = BookingStatus.Pending;
                 booking.NumberOfAdults = adultCompanions + 1;

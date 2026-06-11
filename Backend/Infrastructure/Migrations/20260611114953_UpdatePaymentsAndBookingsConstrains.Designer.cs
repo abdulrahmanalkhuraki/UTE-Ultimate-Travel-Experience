@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260611114953_UpdatePaymentsAndBookingsConstrains")]
+    partial class UpdatePaymentsAndBookingsConstrains
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -291,253 +294,11 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<decimal>("Latitude")
-                        .HasColumnType("decimal(10, 6)");
-
-                    b.Property<decimal>("Longitude")
-                        .HasColumnType("decimal(10, 6)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CountryId");
 
                     b.ToTable("Cities");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CityName = "Amman",
-                            CountryId = 1,
-                            Description = "The capital of Jordan.",
-                            Latitude = 31.945400m,
-                            Longitude = 35.928400m
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CityName = "Aqaba",
-                            CountryId = 1,
-                            Description = "Red Sea coastal city and diving hub.",
-                            Latitude = 29.526700m,
-                            Longitude = 35.007800m
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CityName = "Petra",
-                            CountryId = 1,
-                            Description = "Ancient rose-red city, a wonder of the world.",
-                            Latitude = 30.328500m,
-                            Longitude = 35.444400m
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CityName = "Irbid",
-                            CountryId = 1,
-                            Description = "Northern university city.",
-                            Latitude = 32.555600m,
-                            Longitude = 35.850000m
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CityName = "Damascus",
-                            CountryId = 2,
-                            Description = "One of the oldest continuously inhabited cities.",
-                            Latitude = 33.513800m,
-                            Longitude = 36.276500m
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CityName = "Aleppo",
-                            CountryId = 2,
-                            Description = "Historic city famous for its citadel and souks.",
-                            Latitude = 36.202100m,
-                            Longitude = 37.134300m
-                        },
-                        new
-                        {
-                            Id = 7,
-                            CityName = "Homs",
-                            CountryId = 2,
-                            Description = "Central Syrian city.",
-                            Latitude = 34.732400m,
-                            Longitude = 36.713700m
-                        },
-                        new
-                        {
-                            Id = 8,
-                            CityName = "Latakia",
-                            CountryId = 2,
-                            Description = "Main Mediterranean port city.",
-                            Latitude = 35.519600m,
-                            Longitude = 35.791500m
-                        },
-                        new
-                        {
-                            Id = 9,
-                            CityName = "Beirut",
-                            CountryId = 3,
-                            Description = "The capital and cultural heart of Lebanon.",
-                            Latitude = 33.893800m,
-                            Longitude = 35.501800m
-                        },
-                        new
-                        {
-                            Id = 10,
-                            CityName = "Tripoli",
-                            CountryId = 3,
-                            Description = "Northern city rich in Mamluk architecture.",
-                            Latitude = 34.436700m,
-                            Longitude = 35.849700m
-                        },
-                        new
-                        {
-                            Id = 11,
-                            CityName = "Byblos",
-                            CountryId = 3,
-                            Description = "Ancient port, among the oldest cities in the world.",
-                            Latitude = 34.123200m,
-                            Longitude = 35.651000m
-                        },
-                        new
-                        {
-                            Id = 12,
-                            CityName = "Cairo",
-                            CountryId = 4,
-                            Description = "The capital, home to the Giza pyramids nearby.",
-                            Latitude = 30.044400m,
-                            Longitude = 31.235700m
-                        },
-                        new
-                        {
-                            Id = 13,
-                            CityName = "Alexandria",
-                            CountryId = 4,
-                            Description = "Mediterranean port city founded by Alexander the Great.",
-                            Latitude = 31.200100m,
-                            Longitude = 29.918700m
-                        },
-                        new
-                        {
-                            Id = 14,
-                            CityName = "Luxor",
-                            CountryId = 4,
-                            Description = "Open-air museum of ancient Egyptian temples.",
-                            Latitude = 25.687200m,
-                            Longitude = 32.639600m
-                        },
-                        new
-                        {
-                            Id = 15,
-                            CityName = "Sharm El Sheikh",
-                            CountryId = 4,
-                            Description = "Red Sea resort town.",
-                            Latitude = 27.915800m,
-                            Longitude = 34.330000m
-                        },
-                        new
-                        {
-                            Id = 16,
-                            CityName = "Dubai",
-                            CountryId = 5,
-                            Description = "Global city known for skyscrapers and shopping.",
-                            Latitude = 25.204800m,
-                            Longitude = 55.270800m
-                        },
-                        new
-                        {
-                            Id = 17,
-                            CityName = "Abu Dhabi",
-                            CountryId = 5,
-                            Description = "The capital of the UAE.",
-                            Latitude = 24.453900m,
-                            Longitude = 54.377300m
-                        },
-                        new
-                        {
-                            Id = 18,
-                            CityName = "Sharjah",
-                            CountryId = 5,
-                            Description = "Cultural capital of the UAE.",
-                            Latitude = 25.346300m,
-                            Longitude = 55.420900m
-                        },
-                        new
-                        {
-                            Id = 19,
-                            CityName = "Istanbul",
-                            CountryId = 6,
-                            Description = "Transcontinental city spanning Europe and Asia.",
-                            Latitude = 41.008200m,
-                            Longitude = 28.978400m
-                        },
-                        new
-                        {
-                            Id = 20,
-                            CityName = "Ankara",
-                            CountryId = 6,
-                            Description = "The capital of Turkey.",
-                            Latitude = 39.933400m,
-                            Longitude = 32.859700m
-                        },
-                        new
-                        {
-                            Id = 21,
-                            CityName = "Antalya",
-                            CountryId = 6,
-                            Description = "Mediterranean resort city on the Turkish Riviera.",
-                            Latitude = 36.896900m,
-                            Longitude = 30.713300m
-                        },
-                        new
-                        {
-                            Id = 22,
-                            CityName = "Cappadocia",
-                            CountryId = 6,
-                            Description = "Famous for fairy chimneys and hot-air balloons.",
-                            Latitude = 38.643100m,
-                            Longitude = 34.828900m
-                        },
-                        new
-                        {
-                            Id = 23,
-                            CityName = "Riyadh",
-                            CountryId = 7,
-                            Description = "The capital of Saudi Arabia.",
-                            Latitude = 24.713600m,
-                            Longitude = 46.675300m
-                        },
-                        new
-                        {
-                            Id = 24,
-                            CityName = "Jeddah",
-                            CountryId = 7,
-                            Description = "Red Sea port city and gateway to Mecca.",
-                            Latitude = 21.485800m,
-                            Longitude = 39.192500m
-                        },
-                        new
-                        {
-                            Id = 25,
-                            CityName = "Mecca",
-                            CountryId = 7,
-                            Description = "The holiest city in Islam.",
-                            Latitude = 21.389100m,
-                            Longitude = 39.857900m
-                        },
-                        new
-                        {
-                            Id = 26,
-                            CityName = "Medina",
-                            CountryId = 7,
-                            Description = "The second holiest city in Islam.",
-                            Latitude = 24.524700m,
-                            Longitude = 39.569200m
-                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.Companion", b =>
@@ -692,73 +453,9 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<decimal>("Latitude")
-                        .HasColumnType("decimal(10, 6)");
-
-                    b.Property<decimal>("Longitude")
-                        .HasColumnType("decimal(10, 6)");
-
                     b.HasKey("Id");
 
                     b.ToTable("Countries");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CountryCode = "JO",
-                            CountryName = "Jordan",
-                            Latitude = 31.945400m,
-                            Longitude = 35.928400m
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CountryCode = "SY",
-                            CountryName = "Syria",
-                            Latitude = 33.513800m,
-                            Longitude = 36.276500m
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CountryCode = "LB",
-                            CountryName = "Lebanon",
-                            Latitude = 33.893800m,
-                            Longitude = 35.501800m
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CountryCode = "EG",
-                            CountryName = "Egypt",
-                            Latitude = 30.044400m,
-                            Longitude = 31.235700m
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CountryCode = "AE",
-                            CountryName = "United Arab Emirates",
-                            Latitude = 24.453900m,
-                            Longitude = 54.377300m
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CountryCode = "TR",
-                            CountryName = "Turkey",
-                            Latitude = 39.933400m,
-                            Longitude = 32.859700m
-                        },
-                        new
-                        {
-                            Id = 7,
-                            CountryCode = "SA",
-                            CountryName = "Saudi Arabia",
-                            Latitude = 24.713600m,
-                            Longitude = 46.675300m
-                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.DeviceToken", b =>
@@ -1482,11 +1179,6 @@ namespace Infrastructure.Migrations
                     b.Property<string>("MainImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("MeetingPoint")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("PackageName")
                         .IsRequired()

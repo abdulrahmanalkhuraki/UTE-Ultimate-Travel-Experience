@@ -1,10 +1,4 @@
-﻿using Application.DTOs.Payment.Request;
-using Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain.Enums;
 
 namespace Application.DTOs.Booking.Request
 {
@@ -14,8 +8,7 @@ namespace Application.DTOs.Booking.Request
       string? DietaryRequirements,
       string? SpecialRequests,
       int PackageId,
-      PaymentCreateRequest Payment,
       List<int> CompanionIds,
-      FlightType FlightType
+      FlightCabinClass FlightCabinClass
     );
 }

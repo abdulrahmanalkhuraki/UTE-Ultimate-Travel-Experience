@@ -10,8 +10,6 @@ public partial class Payment : BaseEntity
 
     public PaymentStatus PaymentStatus { get; set; }
 
-    public PaymentMethod PaymentMethod { get; set; }
-
     public DateTime PaymentDate { get; set; }
 
     public int UserId { get; set; }
