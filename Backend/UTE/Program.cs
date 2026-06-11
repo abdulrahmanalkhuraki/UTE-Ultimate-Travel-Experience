@@ -1,5 +1,6 @@
 using Application.Common;
 using Application.Interfaces;
+using Application.Interfaces.Booking;
 using Application.Interfaces.Flight;
 using Application.Interfaces.Hotel;
 using Application.Interfaces.Notifications;
@@ -9,6 +10,7 @@ using Application.Interfaces.TouristGuide;
 using Application.Interfaces.User;
 using Application.Mappings;
 using Application.Services;
+using Application.Validators.Booking;
 using Application.Validators.Hotel;
 using Application.Validators.TourCompany;
 using Application.Validators.TouristGuide;
@@ -38,6 +40,7 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. ADD INFRASTRUCTURE SERVICES
 // ==========================================
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
 
 // ==========================================
 // 2. CONFIGURE JWT AUTHENTICATION
@@ -278,6 +281,12 @@ builder.Services.AddScoped<UpdateMeValidator>();
 builder.Services.AddScoped<CompleteProfileValidator>();
 builder.Services.AddScoped<CompleteCompanyProfileValidator>();
 builder.Services.AddScoped<IUserService, UserService>();
+
+// Booking
+builder.Services.AddScoped<BookingCreateValidator>();
+builder.Services.AddScoped<BookingUpdateValidator>();
+builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 // TourCompany
 builder.Services.AddScoped<TourCompanyCreateValidator>();
