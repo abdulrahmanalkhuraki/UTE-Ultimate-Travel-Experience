@@ -60,6 +60,9 @@ namespace Application.Services
                 var entity = await _unitOfWork.Cities
                     .Query()
                     .IgnoreQueryFilters()
+                    .Include(c => c.Country)
+                    .Include(c => c.Hotels)
+                    .Include(c => c.Attractions)
                     .Where(h => h.Id == id)
                     .FirstOrDefaultAsync(cancellationToken);
 

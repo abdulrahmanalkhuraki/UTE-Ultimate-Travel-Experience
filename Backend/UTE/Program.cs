@@ -276,6 +276,10 @@ builder.Services.AddScoped<FlightCreateValidator>();
 builder.Services.AddScoped<FlightUpdateValidator>();
 builder.Services.AddScoped<IFlightService, FlightService>();
 
+// Country / City
+builder.Services.AddScoped<Application.Interfaces.Country.ICountryService, CountryService>();
+builder.Services.AddScoped<Application.Interfaces.City.ICityService, CityService>();
+
 // User
 builder.Services.AddScoped<UpdateMeValidator>();
 builder.Services.AddScoped<CompleteProfileValidator>();
@@ -324,6 +328,8 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<TourPackageProfile>();
     cfg.AddProfile<TouristGuideProfile>();
     cfg.AddProfile<NotificationProfile>();
+    cfg.AddProfile<CountryProfile>();
+    cfg.AddProfile<CityProfile>();
 });
 
 // ==========================================
