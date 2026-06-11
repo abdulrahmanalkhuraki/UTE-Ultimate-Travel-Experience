@@ -123,6 +123,34 @@ namespace UTE.Controllers
             }
         }
 
+        /// <summary>Returns just the number of the signed-in company's published programs (عدد البرامج المنشورة).</summary>
+        [HttpGet("mine/published/count")]
+        [Authorize]
+        [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult<int>> GetMyPublishedCount(CancellationToken cancellationToken = default)
+        {
+            var userId = GetCurrentUserId();
+            if (userId is null)
+                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
+
+            try
+            {
+                return Ok(await _service.GetMyPublishedCountAsync(userId.Value, cancellationToken));
+            }
+            catch (ForbiddenException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
+            }
+            catch (ServiceException ex)
+            {
+                _logger.LogError(ex, "Error retrieving company's published program count");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    CreateProblemDetails("Internal Server Error", ex.Message));
+            }
+        }
+
         private async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMineByTimeline(ProgramTimeline timeline, CancellationToken cancellationToken)
         {
             var userId = GetCurrentUserId();

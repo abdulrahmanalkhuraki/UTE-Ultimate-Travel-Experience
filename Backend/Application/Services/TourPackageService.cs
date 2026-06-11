@@ -516,6 +516,17 @@ namespace Application.Services
             };
         }
 
+        public async Task<int> GetMyPublishedCountAsync(int ownerUserId, CancellationToken cancellationToken = default)
+        {
+            var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
+
+            // Published only (IsPublished == true). Counted in the DB (COUNT(*)), nothing is materialized.
+            return await _unitOfWork.TourPackages
+                .Query()
+                .AsNoTracking()
+                .CountAsync(p => p.CompanyId == companyId && p.IsPublished, cancellationToken);
+        }
+
         public async Task<IReadOnlyList<TourPackageResponse>> FilterAsync(
             int? countryId = null,
             int? cityId = null,
