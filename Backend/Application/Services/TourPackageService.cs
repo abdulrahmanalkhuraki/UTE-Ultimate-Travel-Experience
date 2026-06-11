@@ -72,10 +72,12 @@ namespace Application.Services
                 {
                     PackageName = request.PackageName.Trim(),
                     Description = request.Description?.Trim(),
-                    PricePerPerson = request.PricePerPerson,
-                    EconomyClassPrice = request.EconomyClassPrice,
-                    PremiumClassPrice = request.PremiumClassPrice,
-                    BusinessClassPrice = request.BusinessClassPrice,
+                    MeetingPoint = request.MeetingPoint.Trim(),
+                    // Optional costs (اختياري): null/omitted is stored as 0.
+                    PricePerPerson = request.PricePerPerson ?? 0,
+                    EconomyClassPrice = request.EconomyClassPrice ?? 0,
+                    PremiumClassPrice = request.PremiumClassPrice ?? 0,
+                    BusinessClassPrice = request.BusinessClassPrice ?? 0,
                     Currency = request.Currency.Trim(),
                     DurationInDays = request.DurationInDays,
                     AvailableSeats = request.AvailableSeats,
@@ -102,7 +104,7 @@ namespace Application.Services
                 foreach (var guideId in request.TouristGuideIds.Distinct())
                     entity.TourPackageGuides.Add(new TourPackageGuide { TouristGuideId = guideId });
 
-                foreach (var cabin in request.AvailableCabinClasses.Distinct())
+                foreach (var cabin in ResolveCabinClasses(request.AvailableCabinClasses))
                     entity.CabinClasses.Add(new TourPackageCabinClass { CabinClass = cabin });
 
                 foreach (var day in request.Days)
@@ -134,8 +136,14 @@ namespace Application.Services
                 throw new ValidationException(validationResult.Errors);
 
             var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
-            await EnsureCountryAndCitiesExistAsync(request.CountryId, request.CityIds, cancellationToken);
-            await EnsureGuidesBelongToCompanyAsync(request.TouristGuideIds, companyId, cancellationToken);
+
+            // Partial update: only validate the foreign keys that are actually being changed.
+            if (request.CountryId.HasValue)
+                await EnsureCountryExistsAsync(request.CountryId.Value, cancellationToken);
+            if (request.CityIds is not null)
+                await EnsureCitiesExistAsync(request.CityIds, cancellationToken);
+            if (request.TouristGuideIds is not null)
+                await EnsureGuidesBelongToCompanyAsync(request.TouristGuideIds, companyId, cancellationToken);
 
             try
             {
@@ -154,62 +162,81 @@ namespace Application.Services
                 if (entity.CompanyId != companyId)
                     throw new ForbiddenException("You can only modify your own tour packages.");
 
-                // Scalars.
-                entity.PackageName = request.PackageName.Trim();
-                entity.Description = request.Description?.Trim();
-                entity.PricePerPerson = request.PricePerPerson;
-                entity.EconomyClassPrice = request.EconomyClassPrice;
-                entity.PremiumClassPrice = request.PremiumClassPrice;
-                entity.BusinessClassPrice = request.BusinessClassPrice;
-                entity.Currency = request.Currency.Trim();
-                entity.DurationInDays = request.DurationInDays;
-                entity.AvailableSeats = request.AvailableSeats;
-                entity.CountryId = request.CountryId;
-                entity.StartDate = request.StartDate;
-                entity.EndDate = request.EndDate;
-                entity.RegistrationDeadline = request.RegistrationDeadline;
-                entity.ServiceLevel = request.ServiceLevel;
-                // Count each unpublished→published transition and stamp the publish time
-                // (drives "كم مرة نُشر" and "اديش صرلو منشور" on the card).
-                if (!entity.IsPublished && request.IsPublished)
+                // Scalars — partial update: apply only the fields that were actually sent
+                // (non-null). Anything omitted keeps its current value.
+                if (request.PackageName is not null) entity.PackageName = request.PackageName.Trim();
+                if (request.Description is not null) entity.Description = request.Description.Trim();
+                if (request.MeetingPoint is not null) entity.MeetingPoint = request.MeetingPoint.Trim();
+                if (request.PricePerPerson.HasValue) entity.PricePerPerson = request.PricePerPerson.Value;
+                if (request.EconomyClassPrice.HasValue) entity.EconomyClassPrice = request.EconomyClassPrice.Value;
+                if (request.PremiumClassPrice.HasValue) entity.PremiumClassPrice = request.PremiumClassPrice.Value;
+                if (request.BusinessClassPrice.HasValue) entity.BusinessClassPrice = request.BusinessClassPrice.Value;
+                if (request.Currency is not null) entity.Currency = request.Currency.Trim();
+                if (request.DurationInDays.HasValue) entity.DurationInDays = request.DurationInDays.Value;
+                if (request.AvailableSeats.HasValue) entity.AvailableSeats = request.AvailableSeats.Value;
+                if (request.CountryId.HasValue) entity.CountryId = request.CountryId.Value;
+                if (request.StartDate.HasValue) entity.StartDate = request.StartDate.Value;
+                if (request.EndDate.HasValue) entity.EndDate = request.EndDate.Value;
+                if (request.RegistrationDeadline.HasValue) entity.RegistrationDeadline = request.RegistrationDeadline.Value;
+                if (request.ServiceLevel.HasValue) entity.ServiceLevel = request.ServiceLevel.Value;
+
+                // Publish flag (only when sent). Count each unpublished→published transition
+                // and stamp the publish time (drives "كم مرة نُشر" and "اديش صرلو منشور").
+                if (request.IsPublished.HasValue)
                 {
-                    entity.PublishCount++;
-                    entity.PublishedAtUtc = DateTime.UtcNow;
+                    if (!entity.IsPublished && request.IsPublished.Value)
+                    {
+                        entity.PublishCount++;
+                        entity.PublishedAtUtc = DateTime.UtcNow;
+                    }
+                    entity.IsPublished = request.IsPublished.Value;
                 }
-                entity.IsPublished = request.IsPublished;
+
                 entity.UpdatedAtUtc = DateTime.UtcNow;
 
                 if (request.MainImage is not null)
                     entity.MainImageUrl = await _fileStorage.SaveAsync(request.MainImage, MainImageFolder, cancellationToken);
                 // else: keep the existing MainImageUrl.
 
-                // Replace visited cities.
-                _unitOfWork.PackageCities.RemoveRange(entity.PackageCities);
-                entity.PackageCities = request.CityIds.Distinct()
-                    .Select(cityId => new PackageCity { CityId = cityId })
-                    .ToList();
+                // Replace visited cities (only when sent).
+                if (request.CityIds is not null)
+                {
+                    _unitOfWork.PackageCities.RemoveRange(entity.PackageCities);
+                    entity.PackageCities = request.CityIds.Distinct()
+                        .Select(cityId => new PackageCity { CityId = cityId })
+                        .ToList();
+                }
 
-                // Replace assigned guides.
-                _unitOfWork.TourPackageGuides.RemoveRange(entity.TourPackageGuides);
-                entity.TourPackageGuides = request.TouristGuideIds.Distinct()
-                    .Select(guideId => new TourPackageGuide { TouristGuideId = guideId })
-                    .ToList();
+                // Replace assigned guides (only when sent).
+                if (request.TouristGuideIds is not null)
+                {
+                    _unitOfWork.TourPackageGuides.RemoveRange(entity.TourPackageGuides);
+                    entity.TourPackageGuides = request.TouristGuideIds.Distinct()
+                        .Select(guideId => new TourPackageGuide { TouristGuideId = guideId })
+                        .ToList();
+                }
 
-                // Replace available cabin classes.
-                _unitOfWork.TourPackageCabinClasses.RemoveRange(entity.CabinClasses);
-                entity.CabinClasses = request.AvailableCabinClasses.Distinct()
-                    .Select(cabin => new TourPackageCabinClass { CabinClass = cabin })
-                    .ToList();
+                // Replace available cabin classes (only when sent; empty defaults to economy).
+                if (request.AvailableCabinClasses is not null)
+                {
+                    _unitOfWork.TourPackageCabinClasses.RemoveRange(entity.CabinClasses);
+                    entity.CabinClasses = ResolveCabinClasses(request.AvailableCabinClasses)
+                        .Select(cabin => new TourPackageCabinClass { CabinClass = cabin })
+                        .ToList();
+                }
 
-                // Replace the whole itinerary (days + activities).
-                var oldActivities = entity.PackageItineraries.SelectMany(d => d.PackageItineraryAttractions).ToList();
-                _unitOfWork.PackageItineraryAttractions.RemoveRange(oldActivities);
-                _unitOfWork.PackageItineraries.RemoveRange(entity.PackageItineraries);
+                // Replace the whole itinerary (days + activities) only when sent.
+                if (request.Days is not null)
+                {
+                    var oldActivities = entity.PackageItineraries.SelectMany(d => d.PackageItineraryAttractions).ToList();
+                    _unitOfWork.PackageItineraryAttractions.RemoveRange(oldActivities);
+                    _unitOfWork.PackageItineraries.RemoveRange(entity.PackageItineraries);
 
-                var newDays = new List<PackageItinerary>();
-                foreach (var day in request.Days)
-                    newDays.Add(await BuildDayAsync(day, cancellationToken));
-                entity.PackageItineraries = newDays;
+                    var newDays = new List<PackageItinerary>();
+                    foreach (var day in request.Days)
+                        newDays.Add(await BuildDayAsync(day, cancellationToken));
+                    entity.PackageItineraries = newDays;
+                }
 
                 _unitOfWork.TourPackages.Update(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -522,6 +549,18 @@ namespace Application.Services
 
         #region Helpers
 
+        /// <summary>
+        /// Resolves the available flight cabin classes (تذاكر الطيران المتاحة) to persist.
+        /// Distinct, and defaults to economy (الدرجة الاقتصادية) when none are provided.
+        /// </summary>
+        private static IReadOnlyList<FlightCabinClass> ResolveCabinClasses(IEnumerable<FlightCabinClass> requested)
+        {
+            var classes = requested.Distinct().ToList();
+            if (classes.Count == 0)
+                classes.Add(FlightCabinClass.Economy);
+            return classes;
+        }
+
         /// <summary>Base query that eager-loads everything needed to build a response.</summary>
         private IQueryable<TourPackage> QueryWithGraph() =>
             _unitOfWork.TourPackages
@@ -605,13 +644,25 @@ namespace Application.Services
 
         private async Task EnsureCountryAndCitiesExistAsync(int countryId, IReadOnlyCollection<int> cityIds, CancellationToken cancellationToken)
         {
+            await EnsureCountryExistsAsync(countryId, cancellationToken);
+            await EnsureCitiesExistAsync(cityIds, cancellationToken);
+        }
+
+        private async Task EnsureCountryExistsAsync(int countryId, CancellationToken cancellationToken)
+        {
             var countryExists = await _unitOfWork.Countries
                 .Query().AsNoTracking()
                 .AnyAsync(c => c.Id == countryId, cancellationToken);
             if (!countryExists)
                 throw new NotFoundException($"Country with ID {countryId} not found");
+        }
 
+        private async Task EnsureCitiesExistAsync(IReadOnlyCollection<int> cityIds, CancellationToken cancellationToken)
+        {
             var distinctIds = cityIds.Distinct().ToList();
+            if (distinctIds.Count == 0)
+                return; // a non-empty list is enforced by the validator when sent
+
             var foundCount = await _unitOfWork.Cities
                 .Query().AsNoTracking()
                 .CountAsync(c => distinctIds.Contains(c.Id), cancellationToken);

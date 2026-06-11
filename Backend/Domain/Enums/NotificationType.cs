@@ -9,8 +9,7 @@ namespace Domain.Enums
         CompanyApproved = 1,
         CompanyRejected = 2,
         ProgramAccepted = 3,
-        ProgramRejected = 4
-        CompanyRejected = 2,
-        NewBooking = 3
+        ProgramRejected = 4,
+        NewBooking = 5
     }
 }

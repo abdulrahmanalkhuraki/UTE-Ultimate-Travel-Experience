@@ -19,23 +19,26 @@ namespace Application.DTOs.TourPackage.Request
         /// <summary>Description (وصف).</summary>
         public string Description { get; set; } = null!;
 
+        /// <summary>Where the company meets the tourists (مكان الالتقاء مع السياح). Required.</summary>
+        public string MeetingPoint { get; set; } = null!;
+
         /// <summary>Destination country id (البلد / الوجهة).</summary>
         public int CountryId { get; set; }
 
         /// <summary>Cities/regions visited (المناطق اللي رح تنزار).</summary>
         public List<int> CityIds { get; set; } = new();
 
-        /// <summary>Default/base program price per person (التكلفة الافتراضية للبرنامج).</summary>
-        public decimal PricePerPerson { get; set; }
+        /// <summary>Default/base program price per person (التكلفة الافتراضية للبرنامج). Optional — null/omitted is stored as 0.</summary>
+        public decimal? PricePerPerson { get; set; }
 
-        /// <summary>Economy flight class price (تكلفة الدرجة الاقتصادية).</summary>
-        public decimal EconomyClassPrice { get; set; }
+        /// <summary>Economy flight class price (تكلفة الدرجة الاقتصادية). Optional — null/omitted is stored as 0.</summary>
+        public decimal? EconomyClassPrice { get; set; }
 
-        /// <summary>Premium flight class price (تكلفة الدرجة المميزة).</summary>
-        public decimal PremiumClassPrice { get; set; }
+        /// <summary>Premium flight class price (تكلفة الدرجة المميزة). Optional — null/omitted is stored as 0.</summary>
+        public decimal? PremiumClassPrice { get; set; }
 
-        /// <summary>Business flight class price (تكلفة درجة رجال الأعمال).</summary>
-        public decimal BusinessClassPrice { get; set; }
+        /// <summary>Business flight class price (تكلفة درجة رجال الأعمال). Optional — null/omitted is stored as 0.</summary>
+        public decimal? BusinessClassPrice { get; set; }
 
         /// <summary>Currency code (العملة), e.g. USD, JOD.</summary>
         public string Currency { get; set; } = "USD";
@@ -65,8 +68,8 @@ namespace Application.DTOs.TourPackage.Request
         public ServiceLevel ServiceLevel { get; set; } = ServiceLevel.Economy;
 
         /// <summary>
-        /// Available flight cabin classes (تذاكر الطيران المتاحة). Optional and
-        /// multi-valued — leave empty if none are offered.
+        /// Available flight cabin classes (تذاكر الطيران المتاحة). Multi-valued.
+        /// Defaults to economy (الدرجة الاقتصادية) when none are sent.
         /// </summary>
         public List<FlightCabinClass> AvailableCabinClasses { get; set; } = new();
 

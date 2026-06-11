@@ -114,7 +114,10 @@ namespace Application.Services
                 throw new ValidationException(validationResult.Errors);
 
             var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
-            await EnsureCountryExistsAsync(request.NationalityCountryId, cancellationToken);
+
+            // Partial update: only validate the country when it is actually being changed.
+            if (request.NationalityCountryId.HasValue)
+                await EnsureCountryExistsAsync(request.NationalityCountryId.Value, cancellationToken);
 
             try
             {
@@ -127,21 +130,23 @@ namespace Application.Services
 
                 await EnsureGuideBelongsToCompanyAsync(id, companyId, cancellationToken);
 
-                entity.Firstname = request.Firstname.Trim();
-                entity.Lastname = request.Lastname.Trim();
-                entity.Phone = request.Phone.Trim();
-                entity.Email = request.Email.Trim();
-                entity.NationalityCountryId = request.NationalityCountryId;
-                entity.Gender = request.Gender;
-                entity.DateOfBirth = request.DateOfBirth;
-                entity.YearsOfExperiance = request.YearsOfExperiance;
-                entity.Bio = request.Bio.Trim();
-                entity.PlaceOfResidence = request.PlaceOfResidence.Trim();
-                entity.CurrentLocation = request.CurrentLocation?.Trim();
-                entity.NationalNumber = request.NationalNumber.Trim();
-                entity.PassportNumber = request.PassportNumber?.Trim();
-                entity.Languages = request.Languages?.Trim();
-                entity.IsAvailable = request.IsAvailable;
+                // Partial update: apply only the fields that were actually sent (non-null).
+                // Anything omitted keeps its current value.
+                if (request.Firstname is not null) entity.Firstname = request.Firstname.Trim();
+                if (request.Lastname is not null) entity.Lastname = request.Lastname.Trim();
+                if (request.Phone is not null) entity.Phone = request.Phone.Trim();
+                if (request.Email is not null) entity.Email = request.Email.Trim();
+                if (request.NationalityCountryId.HasValue) entity.NationalityCountryId = request.NationalityCountryId.Value;
+                if (request.Gender.HasValue) entity.Gender = request.Gender.Value;
+                if (request.DateOfBirth.HasValue) entity.DateOfBirth = request.DateOfBirth.Value;
+                if (request.YearsOfExperiance.HasValue) entity.YearsOfExperiance = request.YearsOfExperiance.Value;
+                if (request.Bio is not null) entity.Bio = request.Bio.Trim();
+                if (request.PlaceOfResidence is not null) entity.PlaceOfResidence = request.PlaceOfResidence.Trim();
+                if (request.CurrentLocation is not null) entity.CurrentLocation = request.CurrentLocation.Trim();
+                if (request.NationalNumber is not null) entity.NationalNumber = request.NationalNumber.Trim();
+                if (request.PassportNumber is not null) entity.PassportNumber = request.PassportNumber.Trim();
+                if (request.Languages is not null) entity.Languages = request.Languages.Trim();
+                if (request.IsAvailable.HasValue) entity.IsAvailable = request.IsAvailable.Value;
                 entity.UpdatedAtUtc = DateTime.UtcNow;
 
                 entity.ProfileImageUrl = request.ProfileImage is not null

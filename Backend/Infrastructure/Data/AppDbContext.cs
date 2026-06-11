@@ -749,6 +749,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("datetime");
             entity.Property(e => e.Description).HasMaxLength(1000);
             entity.Property(e => e.PackageName).HasMaxLength(100);
+            entity.Property(e => e.MeetingPoint).HasMaxLength(200);
             entity.Property(e => e.PricePerPerson).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.EconomyClassPrice).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.PremiumClassPrice).HasColumnType("decimal(10, 2)");

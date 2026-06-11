@@ -12,16 +12,19 @@ public partial class TourPackage : BaseEntity
     /// <summary>Free-text description shown to tourists (وصف).</summary>
     public string? Description { get; set; }
 
-    /// <summary>Default/base program price per person (التكلفة الافتراضية للبرنامج).</summary>
+    /// <summary>Where the company meets the tourists (مكان الالتقاء مع السياح). Required.</summary>
+    public string MeetingPoint { get; set; } = null!;
+
+    /// <summary>Default/base program price per person (التكلفة الافتراضية للبرنامج). Optional.</summary>
     public decimal PricePerPerson { get; set; }
 
-    /// <summary>Economy flight class price (تكلفة الدرجة الاقتصادية).</summary>
+    /// <summary>Economy flight class price (تكلفة الدرجة الاقتصادية). Optional.</summary>
     public decimal EconomyClassPrice { get; set; }
 
-    /// <summary>Premium flight class price (تكلفة الدرجة المميزة).</summary>
+    /// <summary>Premium flight class price (تكلفة الدرجة المميزة). Optional.</summary>
     public decimal PremiumClassPrice { get; set; }
 
-    /// <summary>Business flight class price (تكلفة درجة رجال الأعمال).</summary>
+    /// <summary>Business flight class price (تكلفة درجة رجال الأعمال). Optional.</summary>
     public decimal BusinessClassPrice { get; set; }
 
     /// <summary>Currency code for <see cref="PricePerPerson"/> (العملة), e.g. USD, JOD.</summary>

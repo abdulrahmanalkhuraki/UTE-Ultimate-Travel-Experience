@@ -12,7 +12,10 @@ namespace Application.DTOs.TourPackage.Response
 
         public string? Description { get; set; }
 
-        /// <summary>Default/base program price per person (التكلفة الافتراضية للبرنامج).</summary>
+        /// <summary>Where the company meets the tourists (مكان الالتقاء مع السياح).</summary>
+        public string MeetingPoint { get; set; } = null!;
+
+        /// <summary>Default/base program price per person (التكلفة الافتراضية للبرنامج). Optional.</summary>
         public decimal PricePerPerson { get; set; }
 
         /// <summary>Economy flight class price (تكلفة الدرجة الاقتصادية).</summary>

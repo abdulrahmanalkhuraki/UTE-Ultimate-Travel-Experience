@@ -19,6 +19,11 @@ namespace Domain.Validators
                 .NotEmpty().WithMessage("Description is required")
                 .MaximumLength(1000).WithMessage("Description must not exceed 1000 characters");
 
+            // مكان الالتقاء مع السياح — required.
+            RuleFor(x => x.MeetingPoint)
+                .NotEmpty().WithMessage("Meeting point is required")
+                .MaximumLength(200).WithMessage("Meeting point must not exceed 200 characters");
+
             RuleFor(x => x.CountryId)
                 .GreaterThan(0).WithMessage("A destination country is required");
 
@@ -27,20 +32,21 @@ namespace Domain.Validators
             RuleForEach(x => x.CityIds)
                 .GreaterThan(0).WithMessage("City id must be greater than 0");
 
+            // التكلفة الأربعة — optional: leave blank (0) or provide a non-negative amount below the ceiling.
             RuleFor(x => x.PricePerPerson)
-                .GreaterThan(0).WithMessage("Price per person must be greater than 0")
+                .GreaterThanOrEqualTo(0).WithMessage("Price per person must not be negative")
                 .LessThan(1000000).WithMessage("Price per person must be less than 1,000,000");
 
             RuleFor(x => x.EconomyClassPrice)
-                .GreaterThan(0).WithMessage("Economy class price must be greater than 0")
+                .GreaterThanOrEqualTo(0).WithMessage("Economy class price must not be negative")
                 .LessThan(1000000).WithMessage("Economy class price must be less than 1,000,000");
 
             RuleFor(x => x.PremiumClassPrice)
-                .GreaterThan(0).WithMessage("Premium class price must be greater than 0")
+                .GreaterThanOrEqualTo(0).WithMessage("Premium class price must not be negative")
                 .LessThan(1000000).WithMessage("Premium class price must be less than 1,000,000");
 
             RuleFor(x => x.BusinessClassPrice)
-                .GreaterThan(0).WithMessage("Business class price must be greater than 0")
+                .GreaterThanOrEqualTo(0).WithMessage("Business class price must not be negative")
                 .LessThan(1000000).WithMessage("Business class price must be less than 1,000,000");
 
             RuleFor(x => x.Currency)
