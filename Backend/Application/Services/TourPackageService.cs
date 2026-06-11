@@ -344,8 +344,8 @@ namespace Application.Services
                 // decision, so it is best-effort here (mirrors the TourCompany approve/reject flow).
                 var (message, notificationType) = approval switch
                 {
-                    ProgramApprovalStatus.Accepted => (ProgramApprovalMessages.Accepted, NotificationType.ProgramAccepted),
-                    ProgramApprovalStatus.Rejected => ($"{ProgramApprovalMessages.Rejected} السبب: {reason}", NotificationType.ProgramRejected),
+                    ProgramApprovalStatus.Accepted => (ProgramApprovalMessages.Accepted, NotificationType.PackageAccepted),
+                    ProgramApprovalStatus.Rejected => ($"{ProgramApprovalMessages.Rejected} السبب: {reason}", NotificationType.PackageRejected),
                     _ => (string.Empty, NotificationType.General)
                 };
 

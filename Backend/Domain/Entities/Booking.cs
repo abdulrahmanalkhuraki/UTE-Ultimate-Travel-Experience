@@ -15,12 +15,14 @@ public partial class Booking : BaseEntity
     public string? DietaryRequirements { get; set; }
 
     public string? SpecialRequests { get; set; }
+    // if the company reject the tourist booking it should provide reject reason
+    public string? RejectReason { get; set; }
 
     public int PackageId { get; set; }
 
     public BookingStatus Status { get; set; }
 
-    public FlightType FlightType { get; set; }
+    public FlightCabinClass FlightCabinClass { get; set; }
 
     public int UserId { get; set; }
 

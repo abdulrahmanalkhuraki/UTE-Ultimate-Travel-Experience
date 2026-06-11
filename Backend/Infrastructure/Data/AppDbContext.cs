@@ -7,13 +7,8 @@ using System.Collections.Generic;
 
 namespace Infrastructure.Data;
 
-public partial class AppDbContext : DbContext
+public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options)
-        : base(options)
-    {
-    }
-
     public virtual DbSet<Activity> Activities { get; set; }
 
     public virtual DbSet<Attraction> Attractions { get; set; }
@@ -181,24 +176,27 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.DietaryRequirements)
                 .HasMaxLength(200);
 
+            entity.Property(e => e.RejectReason)
+                .HasMaxLength(500);
+
             entity.Property(e => e.SpecialRequests)
                 .HasMaxLength(200);
 
             entity.Property(e => e.Status)
-                .HasConversion<string>()
+                .HasConversion<int>()
                 .HasDefaultValue(BookingStatus.Pending);
 
             entity.ToTable(t => t.HasCheckConstraint(
                 "CK_Booking_BookingStatus",
-                "[Status] IN ('Pending', 'Confirmed', 'In_Progress', 'Completed', 'Cancelled', 'No_Show')"));
+                "[Status] IN (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)"));
 
             // it should be the default value from tourpackage table //
             //entity.Property(e => e.FlightType)
             //    .HasDefaultValueSql("");
 
             entity.ToTable(t => t.HasCheckConstraint(
-                "CK_Booking_FlightType",
-                "[FlightType] IN ('Economy', 'Premium_Economy', 'Business_Class', 'First_Class')"));
+                "CK_Booking_FlightCabinClass",
+                "[FlightCabinClass] IN (0, 1, 2, 3)"));
 
             entity.HasOne(d => d.Payment).WithOne(p => p.Booking)
                 .HasForeignKey<Booking>(d => d.PaymentId)
@@ -240,7 +238,6 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(e => e.TourPackage).WithMany(d => d.TourPackageFlights)
                 .HasForeignKey(e => e.TourPackageId).OnDelete(DeleteBehavior.Restrict);
-
         });
 
         modelBuilder.Entity<Companion>(entity =>
@@ -264,7 +261,7 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable(e => e.HasCheckConstraint(
                 "CHK_Companion_Relationship",
-                "[Relationship] IN ('Spouse', 'Child', 'Parent', 'Sibling', 'Friend', 'Relative', 'Colleague', 'Guardian', 'Partner', 'Other')"));
+                "[Relationship] IN (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)"));
 
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
@@ -327,7 +324,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(e => e.NatinalityCountry).WithMany()
                 .HasForeignKey(e => e.NationalityCountryId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<CompanyGuide>(entity =>
@@ -642,12 +639,8 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("datetime");
 
             entity.ToTable(e => e.HasCheckConstraint(
-                "CHK_PaymentMethods",
-                "[PaymentMethod] IN ('Credit','Bank_Transfer','Digital_Wallet')"));
-
-            entity.ToTable(e => e.HasCheckConstraint(
                 "CHK_PaymentStatuses",
-                "[PaymentStatus] IN ('Pending','Completed','Failed','Cancelled')"));
+                "[PaymentStatus] IN (0, 1, 2, 3)"));
 
 
             entity.HasOne(d => d.User).WithMany(p => p.Payments)

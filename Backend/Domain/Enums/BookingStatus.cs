@@ -8,38 +8,38 @@ namespace Domain.Enums
 {
     public enum BookingStatus
     {
-        /// <summary> 
-        /// Initial state after user submits booking request but before payment or confirmation 
-        /// </summary>
+
+        // Initial state after user submits booking request
         Pending,
 
-        /// <summary> 
-        /// Payment received or booking officially reserved with supplier (tour operator) 
-        /// </summary>
-        Confirmed,
-        /// <summary> 
-        /// Tour company has rejected user booking
-        /// </summary>
-        Rejected,
+        /* 
+         * if there is any preferences the company should accept these preferences
+         * it will also calculate the new price with preferences
+         */
+        Accepted_By_Company,
 
-        /// <summary> 
-        /// the service is currently being used
-        /// </summary>
+        // after the company calculate the new price, the tourist should accept the deal
+        Accepted_By_Tourist,
+
+        // after both company and tourist accept
+        Confirmed,
+
+        // Tour company has rejected user booking
+        Rejected_By_Company,
+
+        // Tourist has rejected new price
+        Rejected_By_Tourist,
+
+        // the service is currently being used
         In_Progress,
 
-        /// <summary> 
-        /// Service fully delivered (tour ended).
-        /// </summary>
+        // Service fully delivered (tour ended).
         Completed,
 
-        /// <summary> 
-        /// Booking voided before service starts
-        /// </summary>
+        // Booking voided before service starts
         Cancelled,
 
-        /// <summary> 
-        /// User did not use the service without prior cancellation
-        /// </summary>
+        // User did not use the service without prior cancellation
         No_Show
     }
 }

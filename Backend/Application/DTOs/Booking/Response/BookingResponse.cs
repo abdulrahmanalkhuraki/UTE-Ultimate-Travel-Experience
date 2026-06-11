@@ -27,7 +27,7 @@ namespace Application.DTOs.Booking.Response
 
         public BookingStatus Status { get; set; }
 
-        public FlightType FlightType { get; set; }
+        public FlightCabinClass FlightCabinClass { get; set; }
 
         public int UserId { get; set; }
 
