@@ -319,6 +319,8 @@ builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<HotelProfile>();
     cfg.AddProfile<FlightProfile>();
+    cfg.AddProfile<BookingProfile>();
+    cfg.AddProfile<PaymentProfile>();
     cfg.AddProfile<UserProfile>();
     cfg.AddProfile<TourCompanyProfile>();
     cfg.AddProfile<TourPackageProfile>();

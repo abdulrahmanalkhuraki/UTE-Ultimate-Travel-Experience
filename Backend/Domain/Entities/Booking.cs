@@ -32,6 +32,8 @@ public partial class Booking : BaseEntity
 
     public virtual User User { get; set; } = null!;
 
+    public virtual TourPackage TourPackage { get; set; } = null!;
+
     public virtual ICollection<CompanionBooking> CompanionBookings { get; set; } = new List<CompanionBooking>();
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();

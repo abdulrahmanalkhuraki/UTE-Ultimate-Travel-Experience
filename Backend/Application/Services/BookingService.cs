@@ -80,9 +80,10 @@ namespace Application.Services
             {
                 var package = await _unitOfWork.TourPackages
                     .Query()
-                    .Select(p => new { p.Id, p.PackageName, p.CompanyId , p.PricePerPerson })
+                    .Select(p => new { p.Id, p.PackageName, p.CompanyId , p.PricePerPerson, p.StartDate,p.EndDate })
                     .FirstOrDefaultAsync(x => x.Id == request.PackageId, cancellationToken);
 
+                // check if package exists
                 if (package is null)
                 {
                     _logger.LogWarning("Package with ID {PackageId} not found", request.PackageId);
@@ -110,21 +111,48 @@ namespace Application.Services
                 var userId = _currentUser.UserId
                     ?? throw new AuthException("You must be logged in to create a booking");
 
+                // check if this booking conflict with other bookings
+                var UserBookingsPackages = await _unitOfWork.Bookings
+                    .Query()
+                    .Where(b => b.UserId == userId)
+                    .Include(b => b.TourPackage)
+                    .Select(b => b.TourPackage)
+                    .ToListAsync();
+
+                // user bookings packages that conflict with the created booking package
+                var PackageConflicts = UserBookingsPackages.Where(
+                    p => Conflict(
+                    package.StartDate,
+                    package.EndDate,
+                    p.StartDate,
+                    p.EndDate));
+
+                if (PackageConflicts.Any()) 
+                {
+                    var p = PackageConflicts.First();
+
+                    _logger.LogWarning($"User {userId} attempted to book package '{package.PackageName}' " +
+                        $"(from {package.StartDate:d} to {package.EndDate:d})" +
+                        " but it conflicts with their existing booking for package " +
+                        $"'{p.PackageName}' (from {p.StartDate:d} to {p.EndDate:d}).");
+                    throw new ConflictException($"You already have a booking that overlaps with this package's dates.");
+                }
+
                 await _unitOfWork.BeginTransactionAsync(cancellationToken);
                 transactionStarted = true;
 
-                var totalAmount = package.PricePerPerson * (adultCompanions + 1 + childrenCompanions); 
+                var totalAmount = package.PricePerPerson * (adultCompanions + 1 + childrenCompanions);
 
-                //var payment = _mapper.Map<Payment>(request.Payment);
-                //payment.UserId = userId;
-                //payment.Amount = totalAmount;
-                //payment.PaymentDate = DateTime.UtcNow;
-                //payment.PaymentStatus = PaymentStatus.Pending;
-                //await _unitOfWork.Payments.AddAsync(payment, cancellationToken);
+                var payment = new Payment();
+                payment.UserId = userId;
+                payment.Amount = totalAmount;
+                payment.PaymentDate = DateTime.UtcNow;
+                payment.PaymentStatus = PaymentStatus.Pending;
+                await _unitOfWork.Payments.AddAsync(payment, cancellationToken);
 
                 var booking = _mapper.Map<Booking>(request);
                 booking.UserId = userId;
-                //booking.Payment = payment;
+                booking.Payment = payment;
                 booking.BookingDate = DateTime.UtcNow;
                 booking.Status = BookingStatus.Pending;
                 booking.NumberOfAdults = adultCompanions + 1;
@@ -153,7 +181,7 @@ namespace Application.Services
                 // notify user
                 await _notificationService.NotifyAsync(
                     userId,
-                    "Your booking for {package.PackageName} has been created successfully. Awaiting acceptance by the tour company.",
+                    $"Your booking for {package.PackageName} has been created successfully. Awaiting acceptance by the tour company.",
                     NotificationType.NewBooking,
                     cancellationToken);
 
@@ -441,6 +469,16 @@ namespace Application.Services
             var age = today.Year - dateOfBirth.Year;
             if (dateOfBirth > today.AddYears(-age)) age--;
             return age >= 18;
+        }
+
+        private static bool Conflict(
+            DateOnly firstBookingStartDate,
+            DateOnly firstBookingEndDate,
+            DateOnly secondBookingStartDate,
+            DateOnly secondBookingEndDate)
+        {
+            return !(firstBookingEndDate < secondBookingStartDate
+                || firstBookingStartDate > secondBookingEndDate);
         }
 
         private void InvalidateBookingCache(int? specificBookingId = null)
