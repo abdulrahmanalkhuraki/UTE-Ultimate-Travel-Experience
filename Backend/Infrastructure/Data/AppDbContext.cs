@@ -203,6 +203,10 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK_Bookings_payments");
 
+            entity.HasOne(d => d.TourPackage).WithMany(p => p.Bookings)
+                .HasForeignKey(d => d.TourPackageId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             entity.HasOne(d => d.User).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.Restrict)

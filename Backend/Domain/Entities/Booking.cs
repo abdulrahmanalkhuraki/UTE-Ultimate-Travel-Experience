@@ -18,7 +18,7 @@ public partial class Booking : BaseEntity
     // if the company reject the tourist booking it should provide reject reason
     public string? RejectReason { get; set; }
 
-    public int PackageId { get; set; }
+    public int TourPackageId { get; set; }
 
     public BookingStatus Status { get; set; }
 

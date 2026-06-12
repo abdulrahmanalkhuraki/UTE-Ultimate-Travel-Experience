@@ -59,6 +59,7 @@ namespace Application.Services
         /// <exception cref="ValidationException">Thrown when request validation fails.</exception>
         /// <exception cref="NotFoundException">Thrown when the package or a companion ID is not found.</exception>
         /// <exception cref="AuthException">Thrown when the user is not authenticated.</exception>
+        /// <exception cref="ConflictException">Thrown when the user attempts to book a package whose dates overlap with one of their existing bookings.</exception>
         /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
         public async Task<BookingResponse> CreateAsync(BookingCreateRequest request, CancellationToken cancellationToken)
         {
@@ -152,6 +153,7 @@ namespace Application.Services
 
                 var booking = _mapper.Map<Booking>(request);
                 booking.UserId = userId;
+                booking.TourPackageId = package.Id;
                 booking.Payment = payment;
                 booking.BookingDate = DateTime.UtcNow;
                 booking.Status = BookingStatus.Pending;
@@ -159,6 +161,7 @@ namespace Application.Services
                 booking.NumberOfChildren = childrenCompanions;
                 booking.CreatedAtUtc = DateTime.UtcNow;
                 booking.UpdatedAtUtc = DateTime.UtcNow;
+                
 
                 foreach (var companionId in request.CompanionIds)
                 {
@@ -202,6 +205,14 @@ namespace Application.Services
             }
             catch (AuthException)
             {
+                if (transactionStarted)
+                    await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                throw;
+            }
+            catch (ConflictException)
+            {
+                if (transactionStarted)
+                    await _unitOfWork.RollbackTransactionAsync(cancellationToken);
                 throw;
             }
             catch (Exception ex)

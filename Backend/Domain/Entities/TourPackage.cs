@@ -75,7 +75,6 @@ public partial class TourPackage : BaseEntity
     /// <summary>Owning tour company.</summary>
     public int CompanyId { get; set; }
 
-    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
     public virtual TourCompany Company { get; set; } = null!;
 
@@ -95,6 +94,9 @@ public partial class TourPackage : BaseEntity
     public virtual ICollection<TourPackageFlight> TourPackageFlights { get; set; } = new List<TourPackageFlight>();
 
     public virtual ICollection<TourPackageHotel> TourPackageHotels { get; set; } = new List<TourPackageHotel>();
+
+
+    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
     public virtual ICollection<Rate> Rates { get; set; } = new List<Rate>();
 
