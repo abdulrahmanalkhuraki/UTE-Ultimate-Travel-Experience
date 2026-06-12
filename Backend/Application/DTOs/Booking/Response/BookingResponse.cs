@@ -1,17 +1,15 @@
 ﻿using Application.DTOs.Companion.Response;
 using Application.DTOs.Payment.Response;
 using Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Application.DTOs.TourPackage.Response;
+
 
 namespace Application.DTOs.Booking.Response
 {
     public sealed class BookingResponse
     {
         public int Id { get; set; }
+
         public DateTime BookingDate { get; set; }
 
         public int NumberOfAdults { get; set; }
@@ -26,13 +24,15 @@ namespace Application.DTOs.Booking.Response
 
         public int UserId { get; set; }
 
-        public int PackageId { get; set; }
+        public int TourPackageId { get; set; }
 
         public BookingStatus Status { get; set; }
 
         public FlightCabinClass FlightCabinClass { get; set; }
 
         public PaymentResponse Payment { get; set; } = null!;
+
+        public TourPackageResponse TourPackage { get; set; } = null!;
 
         public ICollection<CompanionResponse> Companions { get; set; } = new List<CompanionResponse>();
     }

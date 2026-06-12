@@ -336,6 +336,7 @@ namespace Application.Services
         /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is not positive.</exception>
         /// <exception cref="NotFoundException">Thrown when no booking with the given ID exists.</exception>
         /// <exception cref="ConcurrencyException">Thrown when a concurrency conflict is detected.</exception>
+        /// <exception cref="BusinessRuleException">Thrown when Update Operation Not Allowed.</exception>
         /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
         public async Task<BookingResponse> UpdateAsync(int id, BookingUpdateRequest request, CancellationToken cancellationToken)
         {
@@ -367,6 +368,18 @@ namespace Application.Services
                     throw new NotFoundException($"Booking with ID {id} not found");
                 }
 
+                // prevent editing if the booking status isn't pending
+                if (entity.Status != BookingStatus.Pending)
+                {
+                    _logger.LogWarning("Update attempted on booking {BookingId} with status {CurrentStatus}. " +
+                                       "Only pending bookings can be updated.",
+                                       id, entity.Status);
+
+                    throw new BusinessRuleException(
+                        $"Cannot update booking {id}. Current status is '{entity.Status}'. " +
+                        $"Updates are only allowed when status is '{BookingStatus.Pending}'.");
+                }
+
                 _mapper.Map(request, entity);
                 entity.UpdatedAtUtc = DateTime.UtcNow;
 
@@ -383,9 +396,6 @@ namespace Application.Services
                     }
                 }
 
-                //if (request.FlightType != null)
-                //    entity.FlightType = request.FlightType.Value;
-
                 _unitOfWork.Bookings.Update(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -401,6 +411,10 @@ namespace Application.Services
             {
                 throw;
             }
+            catch (BusinessRuleException)
+            {
+                throw;
+            }
             catch (DbUpdateConcurrencyException ex)
             {
                 _logger.LogError(ex, "Concurrency conflict while updating booking {BookingId}", id);
@@ -413,12 +427,13 @@ namespace Application.Services
             }
         }
 
-        /// <summary>Cancels a booking if it is not already cancelled or completed.</summary>
+
+        /// <summary>Cancels a booking if it's pending.</summary>
         /// <param name="id">The booking ID.</param>
         /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
         /// <returns><see langword="true"/> if the booking was cancelled; <see langword="false"/> if it was already cancelled or not found.</returns>
         /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is not positive.</exception>
-        /// <exception cref="BusinessRuleException">Thrown when attempting to cancel a completed booking.</exception>
+        /// <exception cref="BusinessRuleException">Thrown when attempting to cancel not pending booking.</exception>
         /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
         public async Task<bool> CancelAsync(int id, CancellationToken cancellationToken)
         {
@@ -431,27 +446,25 @@ namespace Application.Services
             {
                 var entity = await _unitOfWork.Bookings
                     .Query()
+                    .Include(e => e.Payment)
                     .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
+                    
 
                 if (entity is null)
                 {
                     _logger.LogWarning("Booking with ID {BookingId} not found for cancellation", id);
-                    return false;
+                    throw new NotFoundException($"Booking with ID {id} not found for cancellation");
                 }
 
-                if (entity.Status == BookingStatus.Cancelled)
+                if (entity.Status != BookingStatus.Pending)
                 {
                     _logger.LogWarning("Booking {BookingId} is already cancelled", id);
-                    return false;
-                }
-
-                if (entity.Status == BookingStatus.Completed)
-                {
-                    _logger.LogWarning("Cannot cancel completed booking {BookingId}", id);
-                    throw new BusinessRuleException("Cannot cancel a completed booking");
+                    throw new BusinessRuleException($"Cannot Cancel booking {id}. Current status is '{entity.Status}'. " +
+                        $"Cancellation are only allowed when status is '{BookingStatus.Pending}'.");
                 }
 
                 entity.Status = BookingStatus.Cancelled;
+                entity.Payment.PaymentStatus = PaymentStatus.Cancelled;
                 entity.UpdatedAtUtc = DateTime.UtcNow;
 
                 _unitOfWork.Bookings.Update(entity);
@@ -467,6 +480,10 @@ namespace Application.Services
             {
                 throw;
             }
+            catch (NotFoundException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error while cancelling booking {BookingId}", id);
@@ -474,6 +491,7 @@ namespace Application.Services
             }
         }
 
+        #region Helpers
         private static bool IsAdult(DateOnly dateOfBirth)
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -502,5 +520,6 @@ namespace Application.Services
 
             _cache.Remove(BookingsListCacheKey);
         }
+        #endregion
     }
 }

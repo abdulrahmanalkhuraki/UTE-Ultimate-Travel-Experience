@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.Booking.Request;
 using Application.DTOs.Booking.Response;
+using Application.DTOs.Hotel.Response;
 using Application.Exceptions;
 using Application.Interfaces.Booking;
 using Microsoft.AspNetCore.Authorization;
@@ -24,10 +25,29 @@ namespace UTE.Controllers
             _logger = logger;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<BookingResponse>> GetById(int id,CancellationToken cancellationToken)
+        [HttpGet("{id:int:min(1)}")]
+        [Authorize]
+        public async Task<ActionResult<BookingResponse>> GetById(int id, CancellationToken cancellationToken = default)
         {
-            return BadRequest();
+            var booking = await _bookingService.GetAsync(id, cancellationToken);
+            return Ok(booking);
+        }
+
+        /// <summary>
+        /// Retrieves all Bookings
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>List of all bookings</returns>
+        /// <response code="200">Returns the list of bookings</response>
+        /// <response code="500">If there was an internal server error</response>
+        [HttpGet]
+        [Authorize]
+        [ProducesResponseType(typeof(IReadOnlyList<BookingResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<IReadOnlyList<BookingResponse>>> GetAll(CancellationToken cancellationToken = default)
+        {
+            var bookings = await _bookingService.GetAllAsync(cancellationToken);
+            return Ok(bookings);
         }
 
         [HttpPost]
@@ -43,7 +63,28 @@ namespace UTE.Controllers
                 nameof(GetById),
                 new { id = createdBooking.Id, version = "1" },
                 createdBooking);
+        }
 
+        [HttpPut]
+        [Authorize]
+        public async Task<ActionResult<BookingResponse>> Update(int id,
+            [FromBody] BookingUpdateRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(CreateValidationProblemDetails());
+
+            var updatedBooking = await _bookingService.UpdateAsync(id, request, cancellationToken);
+            return Ok(updatedBooking);
+        }
+
+
+        [HttpDelete("Cancel/{id}")]
+        [Authorize]
+        public async Task<ActionResult> Cancel(int id, CancellationToken cancellationToken = default)
+        {
+            await _bookingService.CancelAsync(id, cancellationToken);
+            return NoContent();
         }
 
         #region Private Helper Methods
