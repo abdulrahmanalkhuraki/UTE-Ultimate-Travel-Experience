@@ -114,7 +114,9 @@ namespace UTE.Controllers
             catch (ValidationException ex)
             {
                 _logger.LogWarning(ex, "Validation error creating tour company {CompanyName}", request.Name);
-                return BadRequest(CreateProblemDetails("Validation Error", ex.Message, StatusCodes.Status400BadRequest));
+                var problem = CreateProblemDetails("Validation Error", "One or more validation errors occurred", StatusCodes.Status400BadRequest);
+                problem.Extensions["errors"] = ex.Errors;
+                return BadRequest(problem);
             }
             catch (NotFoundException ex)
             {
@@ -242,7 +244,9 @@ namespace UTE.Controllers
             catch (ValidationException ex)
             {
                 _logger.LogWarning(ex, "Validation error updating tour company {CompanyId}", id);
-                return BadRequest(CreateProblemDetails("Validation Error", ex.Message, StatusCodes.Status400BadRequest));
+                var problem = CreateProblemDetails("Validation Error", "One or more validation errors occurred", StatusCodes.Status400BadRequest);
+                problem.Extensions["errors"] = ex.Errors;
+                return BadRequest(problem);
             }
             catch (ForbiddenException ex)
             {

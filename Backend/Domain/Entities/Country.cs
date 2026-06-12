@@ -13,6 +13,10 @@ public partial class Country
 
     public string? Flag { get; set; }
 
+    public decimal Longitude { get; set; }
+
+    public decimal Latitude { get; set; }
+
     public virtual ICollection<City> Cities { get; set; } = new List<City>();
 
     public virtual ICollection<TourPackage> TourPackages { get; set; } = new List<TourPackage>();

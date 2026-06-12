@@ -28,6 +28,9 @@ namespace Application.Interfaces.TourPackage
         /// <summary>Aggregate counts of the company's own programs for the dashboard stats card.</summary>
         Task<CompanyProgramStatsResponse> GetMyStatsAsync(int ownerUserId, CancellationToken cancellationToken = default);
 
+        /// <summary>Counts the company's own published programs (عدد البرامج المنشورة).</summary>
+        Task<int> GetMyPublishedCountAsync(int ownerUserId, CancellationToken cancellationToken = default);
+
         /// <summary>Updates a program; only its owning company may do so.</summary>
         Task<TourPackageResponse> UpdateAsync(int id, int ownerUserId, TourPackageUpdateRequest request, CancellationToken cancellationToken = default);
 
