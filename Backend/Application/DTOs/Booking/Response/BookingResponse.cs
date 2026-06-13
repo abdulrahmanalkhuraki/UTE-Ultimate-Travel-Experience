@@ -1,7 +1,8 @@
 ﻿using Application.DTOs.Companion.Response;
 using Application.DTOs.Payment.Response;
-using Domain.Enums;
 using Application.DTOs.TourPackage.Response;
+using Domain.Enums;
+using System.Text.Json.Serialization;
 
 
 namespace Application.DTOs.Booking.Response
@@ -16,11 +17,17 @@ namespace Application.DTOs.Booking.Response
 
         public int NumberOfChildren { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? RoomTypePreference { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? DietaryRequirements { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? SpecialRequests { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? RejectReason { get; set; }
 
         public int UserId { get; set; }
 

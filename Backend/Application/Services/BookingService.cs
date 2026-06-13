@@ -81,7 +81,6 @@ namespace Application.Services
             {
                 var package = await _unitOfWork.TourPackages
                     .Query()
-                    .Select(p => new { p.Id, p.PackageName, p.CompanyId , p.PricePerPerson, p.StartDate,p.EndDate })
                     .FirstOrDefaultAsync(x => x.Id == request.PackageId, cancellationToken);
 
                 // check if package exists
@@ -116,6 +115,7 @@ namespace Application.Services
                 var UserBookingsPackages = await _unitOfWork.Bookings
                     .Query()
                     .Where(b => b.UserId == userId)
+                    .Where(b => b.Status != BookingStatus.Completed && b.Status != BookingStatus.Cancelled)
                     .Include(b => b.TourPackage)
                     .Select(b => b.TourPackage)
                     .ToListAsync();
@@ -154,6 +154,7 @@ namespace Application.Services
                 var booking = _mapper.Map<Booking>(request);
                 booking.UserId = userId;
                 booking.TourPackageId = package.Id;
+                booking.TourPackage = package;
                 booking.Payment = payment;
                 booking.BookingDate = DateTime.UtcNow;
                 booking.Status = BookingStatus.Pending;
@@ -249,6 +250,7 @@ namespace Application.Services
             {
                 var entity = await _unitOfWork.Bookings
                     .Query()
+                    .Include(b => b.TourPackage)
                     .Include(b => b.Payment)
                     .Include(b => b.CompanionBookings)
                         .ThenInclude(cb => cb.Companion)
@@ -302,6 +304,7 @@ namespace Application.Services
             {
                 var entities = await _unitOfWork.Bookings
                     .Query()
+                    .Include(b => b.TourPackage)
                     .Include(b => b.Payment)
                     .Include(b => b.CompanionBookings)
                         .ThenInclude(cb => cb.Companion)
