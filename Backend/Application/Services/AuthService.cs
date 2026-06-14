@@ -21,6 +21,7 @@ public class AuthService : IAuthService
 
     private readonly IUserRepository _users;
     private readonly IGenericRepository<EmailVerification> _verifications;
+    private readonly IGenericRepository<Role> _roles;
     private readonly IPasswordHasher _hasher;
     private readonly IJwtTokenGenerator _tokens;
     private readonly IEmailSender _email;
@@ -29,6 +30,7 @@ public class AuthService : IAuthService
     public AuthService(
         IUserRepository users,
         IGenericRepository<EmailVerification> verifications,
+        IGenericRepository<Role> roles,
         IPasswordHasher hasher,
         IJwtTokenGenerator tokens,
         IEmailSender email,
@@ -36,6 +38,7 @@ public class AuthService : IAuthService
     {
         _users = users;
         _verifications = verifications;
+        _roles = roles;
         _hasher = hasher;
         _tokens = tokens;
         _email = email;
@@ -49,11 +52,16 @@ public class AuthService : IAuthService
         if (await _users.EmailExistsAsync(email, ct))
             throw new ConflictException("This email is already registered.");
 
+        var role = await _roles.Query()
+            .FirstOrDefaultAsync(r => r.RoleName == request.RoleName, ct)
+            ?? throw new NotFoundException($"Role '{request.RoleName}' does not exist. Contact support.");
+
         var now = DateTime.UtcNow;
         var user = new User
         {
             Email              = email,
             Password           = _hasher.Hash(request.Password),
+            RoleId             = role.Id,
             CreatedAtUtc       = now,
             UpdatedAtUtc       = now,
             IsEmailVerified    = false,

@@ -10,6 +10,10 @@ namespace Domain.Enums
         CompanyRejected,
         PackageAccepted,
         PackageRejected,
-        NewBooking
+        NewBooking,
+        BookingApproved, // booking approved by company
+        BookingRejected, // booking rejected by company
+        BookingConfirmed, // by tourist
+        BookingDeclined, // by tourist
     }
 }

@@ -29,6 +29,9 @@ namespace Application.DTOs.Booking.Response
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? RejectReason { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public decimal? TotalCost { get; set; }
+
         public int UserId { get; set; }
 
         public int TourPackageId { get; set; }

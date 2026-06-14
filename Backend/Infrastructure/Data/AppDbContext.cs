@@ -176,11 +176,11 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
             entity.Property(e => e.DietaryRequirements)
                 .HasMaxLength(200);
 
-            entity.Property(e => e.RejectReason)
-                .HasMaxLength(500);
-
             entity.Property(e => e.SpecialRequests)
                 .HasMaxLength(200);
+
+            entity.Property(e => e.RejectReason)
+                .HasMaxLength(1000);
 
             entity.Property(e => e.Status)
                 .HasConversion<int>()
@@ -189,10 +189,6 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
             entity.ToTable(t => t.HasCheckConstraint(
                 "CK_Booking_BookingStatus",
                 "[Status] IN (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)"));
-
-            // it should be the default value from tourpackage table //
-            //entity.Property(e => e.FlightType)
-            //    .HasDefaultValueSql("");
 
             entity.ToTable(t => t.HasCheckConstraint(
                 "CK_Booking_FlightCabinClass",
@@ -845,6 +841,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Ignore(e => e.Fullname);
             entity.Property(e => e.DateOfBirth).HasColumnName("Date_Of_Birth");
             entity.Property(e => e.Email).HasMaxLength(75);
             entity.Property(e => e.FirstName).HasMaxLength(50);
@@ -864,6 +861,8 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
             entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+
+
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)

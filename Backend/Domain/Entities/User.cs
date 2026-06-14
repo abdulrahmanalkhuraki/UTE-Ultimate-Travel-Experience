@@ -19,6 +19,8 @@ public partial class User : BaseEntity
 
     public string? LastName { get; set; }
 
+    public string Fullname => FirstName + " " + LastName;
+
     public DateOnly? DateOfBirth { get; set; }
 
     public string? Gender { get; set; }

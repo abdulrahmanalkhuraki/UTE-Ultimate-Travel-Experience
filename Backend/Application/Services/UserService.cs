@@ -107,8 +107,8 @@ namespace Application.Services
                 {
                     role = await _unitOfWork.Roles
                         .Query()
-                        .FirstOrDefaultAsync(r => r.RoleName == "User", cancellationToken)
-                        ?? throw new NotFoundException("Default 'User' role does not exist.");
+                        .FirstOrDefaultAsync(r => r.RoleName == "Tourist", cancellationToken)
+                        ?? throw new NotFoundException("Default 'Tourist' role does not exist.");
                 }
 
                 // Ensure national/passport numbers are unique across other users

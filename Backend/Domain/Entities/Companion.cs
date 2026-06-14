@@ -17,8 +17,8 @@ namespace Domain.Entities
         public int ResidentialCountryId { get; set; }
         public bool Gender {  get; set; }
         public DateOnly DateOfBirth { get; set; }
-        public string IdCard { get; set; } = null!;
-        public string PassportScan { get; set; } = null!;
+        public string? IdCard { get; set; } = null!;
+        public string? PassportScan { get; set; } = null!;
         public CompanionRelationship Relationship { get; set; }
         public virtual User User { get; set; } = null!;
         public virtual Country NationalityCountry { get; set; } = null!;
