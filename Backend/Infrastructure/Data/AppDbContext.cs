@@ -164,6 +164,8 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
+            entity.Property(e => e.TotalCost).HasColumnType("decimal(10, 2)");
+
             entity.Property(e => e.NumberOfAdults)
                 .HasDefaultValue(1);
 
@@ -172,6 +174,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
 
             entity.Property(e => e.RoomTypePreference)
                 .HasMaxLength(200);
+
 
             entity.Property(e => e.DietaryRequirements)
                 .HasMaxLength(200);

@@ -405,6 +405,7 @@ namespace Application.Services
                             .Where(b => b.TourPackageId == packageId)
                             .Where(b => b.Status == BookingStatus.Pending)
                             .Include(b => b.TourPackage)
+                            .Include(b => b.User)
                             .Include(b => b.Payment)
                             .Include(b => b.CompanionBookings)
                                 .ThenInclude(cb => cb.Companion)
@@ -418,6 +419,7 @@ namespace Application.Services
                             .Where(b => b.TourPackage.CompanyId == company.Id)
                             .Where(b => b.Status == BookingStatus.Pending)
                             .Include(b => b.TourPackage)
+                            .Include(b => b.User)
                             .Include(b => b.Payment)
                             .Include(b => b.CompanionBookings)
                                 .ThenInclude(cb => cb.Companion)
@@ -465,6 +467,7 @@ namespace Application.Services
                 var booking = await _unitOfWork.Bookings
                             .Query()
                             .Include(b => b.TourPackage)
+                            .Include(b => b.User)
                             .Include(b => b.Payment)
                             .Include(b => b.CompanionBookings)
                                 .ThenInclude(cb => cb.Companion)
@@ -508,7 +511,8 @@ namespace Application.Services
                 {
                     booking.Status = BookingStatus.Confirmed;
                     booking.Payment.PaymentStatus = PaymentStatus.Completed;
-                    userNotificationMessage = $"Booking #{booking.Id} has been approved and confirmed. Thank you for booking with us.";
+                    userNotificationMessage = $"Booking #{booking.Id} has been approved" +
+                        $". Thank you for booking with us.";
                 }
                 else // booking with Preferences
                 {
@@ -531,7 +535,7 @@ namespace Application.Services
 
                 InvalidateBookingCache(id);
 
-                await _notificationService.NotifyAsync(booking.UserId, userNotificationMessage, NotificationType.PackageAccepted, cancellationToken);
+                await _notificationService.NotifyAsync(booking.UserId, userNotificationMessage, NotificationType.BookingApproved, cancellationToken);
 
                 _logger.LogInformation("Booking {BookingId} successfully approved with status {Status}", id, booking.Status);
                 return _mapper.Map<BookingResponse>(booking);

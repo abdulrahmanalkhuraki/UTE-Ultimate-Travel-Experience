@@ -1,6 +1,7 @@
 ﻿using Application.DTOs.Companion.Response;
 using Application.DTOs.Payment.Response;
 using Application.DTOs.TourPackage.Response;
+using Application.DTOs.User.Response;
 using Domain.Enums;
 using System.Text.Json.Serialization;
 
@@ -39,6 +40,8 @@ namespace Application.DTOs.Booking.Response
         public BookingStatus Status { get; set; }
 
         public FlightCabinClass FlightCabinClass { get; set; }
+
+        public UserResponse User {  get; set; } = null!;
 
         public PaymentResponse Payment { get; set; } = null!;
 
