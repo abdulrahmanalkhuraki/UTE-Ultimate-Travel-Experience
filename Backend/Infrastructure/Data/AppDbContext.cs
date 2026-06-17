@@ -17,6 +17,8 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
 
     public virtual DbSet<Booking> Bookings { get; set; }
 
+    public virtual DbSet<Person> Persons { get; set; }
+
     public virtual DbSet<Companion> Companions { get; set; }
 
     public virtual DbSet<TouristGuide> TouristGuides { get; set; }
@@ -43,9 +45,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
 
     public virtual DbSet<TourPackage_City> PackageCities { get; set; }
 
-    public virtual DbSet<Itinerary> PackageItineraries { get; set; }
-
-    public virtual DbSet<Activity> PackageItineraryAttractions { get; set; }
+    public virtual DbSet<Itinerary> Itineraries { get; set; }
 
     public virtual DbSet<Payment> Payments { get; set; }
 
@@ -168,40 +168,6 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .HasConstraintName("FK__Bookings__UserId__0F624AF8");
         });
 
-        modelBuilder.Entity<Companion>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.Firstname).HasMaxLength(100);
-
-            entity.Property(e => e.Lastname).HasMaxLength(100);
-
-            entity.Property(e => e.Phone).HasMaxLength(25);
-
-            entity.Ignore(e => e.Age);
-            
-            entity.HasOne(e => e.NationalityCountry).WithMany(d => d.NatinalityCompanions)
-            .HasForeignKey(e => e.NationalityCountryId).OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(e => e.ResidentialCountry).WithMany(d => d.ResidentialCompanions)
-            .HasForeignKey(e => e.ResidentialCountryId).OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(e => e.User).WithMany(d => d.Companions)
-            .HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Restrict);
-
-            entity.ToTable(e => e.HasCheckConstraint(
-                "CHK_Companion_Relationship",
-                "[Relationship] IN (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)"));
-
-            entity.Property(e => e.CreatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-
-            entity.Property(e => e.UpdatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-        });
-
         modelBuilder.Entity<Companion_Booking>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -211,50 +177,6 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
 
             entity.HasOne(e => e.Booking).WithMany(d => d.CompanionBookings)
             .HasForeignKey(e => e.BookingId);
-        });
-
-        modelBuilder.Entity<TouristGuide>(entity => { 
-            
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.Firstname).HasMaxLength(100);
-
-            entity.Property(e => e.Lastname).HasMaxLength(100);
-
-            entity.Property(e => e.Phone).HasMaxLength(25);
-
-            entity.Property(e => e.Email).HasMaxLength(50);
-
-            entity.Property(e => e.Bio).HasMaxLength(1000);
-
-            entity.Property(e => e.PlaceOfResidence).HasMaxLength(100);
-            entity.Property(e => e.CurrentLocation).HasMaxLength(100);
-            entity.Property(e => e.NationalNumber).HasMaxLength(50);
-            entity.Property(e => e.PassportNumber).HasMaxLength(50);
-            entity.Property(e => e.ProfileImage).HasMaxLength(500);
-            entity.Property(e => e.NationalIdCard).HasMaxLength(500);
-            entity.Property(e => e.PassportScan).HasMaxLength(500);
-            entity.Property(e => e.LicenseScan).HasMaxLength(500);
-            entity.Property(e => e.Languages).HasMaxLength(250);
-
-            entity.Property(e => e.IsAvailable).HasDefaultValue(true);
-
-            entity.ToTable(e => e.HasCheckConstraint(
-                "CHK_Positive_YearsOfExperience",
-                "[YearsOfExperiance] BETWEEN 0 AND 70"
-                ));
-
-            entity.Property(e => e.CreatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-
-            entity.Property(e => e.UpdatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-
-            entity.HasOne(e => e.NatinalityCountry).WithMany()
-                .HasForeignKey(e => e.NationalityCountryId)
-                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Company_TouristGuide>(entity =>
@@ -332,30 +254,14 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
         modelBuilder.Entity<City>(entity =>
         {
             entity.HasKey(c => c.Id);
-
             entity.Property(e => e.CityName).HasMaxLength(100);
-
             entity.Property(e => e.Image).HasMaxLength(500);
-
             entity.Property(e => e.Latitude).HasColumnType("decimal(10, 6)");
             entity.Property(e => e.Longitude).HasColumnType("decimal(10, 6)");
-
             entity.HasOne(d => d.Country).WithMany(p => p.Cities)
                 .HasForeignKey(d => d.CountryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Cities__CountryI__60A75C0F");
-
-            entity.HasMany(d => d.Hotels).WithOne(h => h.City)
-                .HasForeignKey(h => h.CityId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasMany(d => d.ArrivalFlights).WithOne(f => f.ArrivalCity)
-                .HasForeignKey(f => f.ArrivalCityId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasMany(d => d.DepartureFlights).WithOne(f => f.DepartureCity)
-                .HasForeignKey(f => f.DepartureCityId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasData(
                 // Jordan (CountryId = 1)
@@ -736,38 +642,106 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .HasConstraintName("FK_TourPackages_Countries");
         });
 
-        modelBuilder.Entity<User>(entity =>
+        modelBuilder.Entity<Person>(entity =>
         {
+            entity.Ignore(e => e.Age);
+            entity.Ignore(e => e.Fullname);
+
+            entity.HasKey(e => e.Id);
+
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Ignore(e => e.Fullname);
-            entity.Property(e => e.DateOfBirth).HasColumnName("Date_Of_Birth");
-            entity.Property(e => e.Email).HasMaxLength(75);
-            entity.Property(e => e.FirstName).HasMaxLength(50);
-            entity.Property(e => e.ProfileImage).HasMaxLength(500);
-            entity.Property(e => e.LastName).HasMaxLength(50);
-            entity.Property(e => e.Password).HasMaxLength(255);
-            entity.Property(e => e.Phone).HasMaxLength(20);
-            entity.Property(e => e.Gender).HasMaxLength(10);
-            entity.Property(e => e.PlaceOfResidence).HasMaxLength(100);
-            entity.Property(e => e.CurrentLocation).HasMaxLength(100);
-            entity.Property(e => e.NationalNumber).HasMaxLength(50);
-            entity.Property(e => e.NationalIdCard).HasMaxLength(500);
-            entity.Property(e => e.PassportNumber).HasMaxLength(50);
-            entity.Property(e => e.PassportScan).HasMaxLength(500);
-            entity.Property(e => e.BankAccount).HasMaxLength(100);
-            entity.Property(e => e.IsProfileCompleted).HasDefaultValue(false);
+
             entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
+            entity.Property(e => e.ProfileImage).HasMaxLength(500);
+            entity.Property(e => e.Phone).HasMaxLength(20);
+            entity.Property(e => e.FirstName).HasMaxLength(50);
+            entity.Property(e => e.LastName).HasMaxLength(50);
+            entity.Property(e => e.Gender).HasMaxLength(10);
+            entity.Property(e => e.NationalNumber).HasMaxLength(50);
+            entity.Property(e => e.NationalIdCard).HasMaxLength(500);
+            entity.Property(e => e.PassportNumber).HasMaxLength(50);
+            entity.Property(e => e.PassportScan).HasMaxLength(500);
 
+            entity.HasOne(e => e.ResidentialCountry).WithMany(c => c.Persons)
+            .HasForeignKey(e => e.ResidentialCountryId)
+            .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.CreatedAtUtc)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.Property(e => e.UpdatedAtUtc)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.Property(e => e.Email).HasMaxLength(75);
+            entity.Property(e => e.Password).HasMaxLength(255);
+            entity.Property(e => e.CurrentLocation).HasMaxLength(100);
+            entity.Property(e => e.BankAccount).HasMaxLength(100);
+            entity.Property(e => e.RoleId).HasDefaultValue(1);
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK__Users__RoleId__4F7CD00D");
+
+            entity.HasOne(d => d.Person).WithOne(p => p.User)
+                .HasForeignKey<User>(d => d.PersonId)
+                .OnDelete(deleteBehavior: DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Companion>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable(e => e.HasCheckConstraint(
+                "CHK_Companion_Relationship",
+                "[Relationship] IN (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)"));
+
+            entity.HasOne(e => e.NationalityCountry).WithMany(d => d.NatinalityCompanions)
+                .HasForeignKey(e => e.NationalityCountryId).OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.User).WithMany(d => d.Companions)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.Person).WithOne(p => p.Companion)
+                .HasForeignKey<Companion>(d => d.PersonId)
+                .OnDelete(deleteBehavior: DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<TouristGuide>(entity => {
+
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Email).HasMaxLength(50);
+            entity.Property(e => e.Bio).HasMaxLength(1000);
+            entity.Property(e => e.CurrentLocation).HasMaxLength(100);
+            entity.Property(e => e.LicenseScan).HasMaxLength(500);
+            entity.Property(e => e.Languages).HasMaxLength(250);
+            entity.Property(e => e.IsAvailable).HasDefaultValue(true);
+
+            entity.ToTable(e => e.HasCheckConstraint(
+                "CHK_Positive_YearsOfExperience",
+                "[YearsOfExperiance] BETWEEN 0 AND 70"));
+
+            entity.HasOne(e => e.NatinalityCountry).WithMany()
+                .HasForeignKey(e => e.NationalityCountryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.Person).WithOne(p => p.TouristGuide)
+                .HasForeignKey<TouristGuide>(d => d.PersonId)
+                .OnDelete(deleteBehavior: DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Wishlist>(entity =>

@@ -1,10 +1,6 @@
 ﻿using Application.DTOs.Country.Response;
-using Application.DTOs.Hotel.Response;
 using Application.Exceptions;
 using Application.Interfaces.Country;
-using Application.Interfaces.Hotel;
-using Application.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 

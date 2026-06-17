@@ -640,7 +640,7 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PackageItineraries",
+                name: "Itineraries",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -861,7 +861,7 @@ namespace Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK__PackageIt__Itine__2645B050",
                         column: x => x.ItineraryId,
-                        principalTable: "PackageItineraries",
+                        principalTable: "Itineraries",
                         principalColumn: "Id");
                 });
 
@@ -1004,7 +1004,7 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_PackageItineraries_PackageId",
-                table: "PackageItineraries",
+                table: "Itineraries",
                 column: "PackageId");
 
             migrationBuilder.CreateIndex(
@@ -1171,7 +1171,7 @@ namespace Infrastructure.Migrations
                 name: "Bookings");
 
             migrationBuilder.DropTable(
-                name: "PackageItineraries");
+                name: "Itineraries");
 
             migrationBuilder.DropTable(
                 name: "Flights");

@@ -1,15 +1,8 @@
 ﻿using Application.DTOs.Booking.Request;
 using Application.DTOs.Booking.Response;
-using Application.DTOs.Hotel.Request;
-using Application.DTOs.Hotel.Response;
 using AutoMapper;
 using Domain.Entities;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Mappings
 {

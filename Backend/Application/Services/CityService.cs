@@ -1,18 +1,11 @@
 ﻿using Application.DTOs.City.Response;
-using Application.DTOs.Hotel.Response;
 using Application.Exceptions;
 using Application.Interfaces.City;
-using Application.Validators.Hotel;
 using AutoMapper;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Services
 {
@@ -61,7 +54,6 @@ namespace Application.Services
                     .Query()
                     .IgnoreQueryFilters()
                     .Include(c => c.Country)
-                    .Include(c => c.Hotels)
                     .Include(c => c.Attractions)
                     .Where(h => h.Id == id)
                     .FirstOrDefaultAsync(cancellationToken);
@@ -111,7 +103,6 @@ namespace Application.Services
                 var entities = await _unitOfWork.Cities
                     .Query()
                     .Include(c => c.Country)
-                    .Include(c => c.Hotels)
                     .Include(c => c.Attractions)
                     .ToListAsync(cancellationToken);
 

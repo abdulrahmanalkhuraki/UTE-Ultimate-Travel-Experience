@@ -65,7 +65,6 @@ public class AuthService : IAuthService
             CreatedAtUtc       = now,
             UpdatedAtUtc       = now,
             IsEmailVerified    = false,
-            IsProfileCompleted = false
         };
 
         await _users.AddAsync(user, ct);
@@ -128,14 +127,14 @@ public class AuthService : IAuthService
         return new AuthResponse
         {
             UserId             = user.Id,
-            FirstName          = user.FirstName,
-            LastName           = user.LastName,
+            //FirstName          = user.FirstName,
+            //LastName           = user.LastName,
             Email              = user.Email,
-            Image              = user.ProfileImage,
-            DateOfBirth        = user.DateOfBirth,
+            Image              = user.Person.ProfileImage,
+            //DateOfBirth        = user.DateOfBirth,
             Role               = user.Role?.RoleName,
             IsEmailVerified    = true,
-            IsProfileCompleted = user.IsProfileCompleted,
+            //IsProfileCompleted = user.IsProfileCompleted,
             Token              = token,
             ExpiresAt          = expiresAt
         };
@@ -176,14 +175,14 @@ public class AuthService : IAuthService
         return new AuthResponse
         {
             UserId             = user.Id,
-            FirstName          = user.FirstName,
-            LastName           = user.LastName,
+            //FirstName          = user.FirstName,
+            //LastName           = user.LastName,
             Email              = user.Email,
-            Image              = user.ProfileImage,
-            DateOfBirth        = user.DateOfBirth,
+            Image              = user.Person.ProfileImage,
+            //DateOfBirth        = user.DateOfBirth,
             Role               = user.Role?.RoleName,
             IsEmailVerified    = true,
-            IsProfileCompleted = user.IsProfileCompleted,
+            //IsProfileCompleted = user.IsProfileCompleted,
             Token              = token,
             ExpiresAt          = expiresAt
         };
@@ -308,22 +307,22 @@ public class AuthService : IAuthService
 
     private async Task SendOtpEmailAsync(User user, string code, string purpose, CancellationToken ct)
     {
-        var displayName = !string.IsNullOrWhiteSpace(user.FirstName)
-            ? $"{user.FirstName} {user.LastName}".Trim()
-            : user.Email;
-        var greetingName = !string.IsNullOrWhiteSpace(user.FirstName) ? user.FirstName! : "there";
+        //var displayName = !string.IsNullOrWhiteSpace(user.FirstName)
+            //? $"{user.FirstName} {user.LastName}".Trim()
+            //: user.Email;
+        //var greetingName = !string.IsNullOrWhiteSpace(user.FirstName) ? user.FirstName! : "there";
 
         var subject = purpose == PurposePasswordReset
             ? "Your UTE Tourism password reset code"
             : "Your UTE Tourism verification code";
 
-        var html = Infrastructure_EmailTemplate(greetingName, code, OtpExpiryMinutes);
-        await _email.SendAsync(
-            user.Email,
-            displayName,
-            subject,
-            html,
-            ct);
+        //var html = Infrastructure_EmailTemplate(greetingName, code, OtpExpiryMinutes);
+        //await _email.SendAsync(
+        //    user.Email,
+        //    //displayName,
+        //    subject,
+        //    //html,
+        //    ct);
     }
 
     private static string Infrastructure_EmailTemplate(string firstName, string code, int minutes) => $@"

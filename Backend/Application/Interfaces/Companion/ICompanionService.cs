@@ -9,6 +9,6 @@ namespace Application.Interfaces.Companion
         Task<CompanionResponse> GetAsync(int id, CancellationToken cancellationToken);
         Task<IReadOnlyList<CompanionResponse>> GetAllAsync(CancellationToken cancellationToken);
         Task<CompanionResponse> UpdateAsync(int id, CompanionUpdateRequest request, CancellationToken cancellationToken);
-        Task<bool> DeleteAsync(int id, CancellationToken cancellationToken);
+        //Task<bool> DeleteAsync(int id, CancellationToken cancellationToken);
     }
 }

@@ -27,8 +27,9 @@ namespace Application.Mappings
 
             // A program's assigned guide (المرشد المختار) shown on the program.
             CreateMap<TouristGuide, TourPackageGuideResponse>()
-                .ForMember(dest => dest.FullName,
-                    opt => opt.MapFrom(src => (src.Firstname + " " + src.Lastname).Trim()));
+                //.ForMember(dest => dest.FullName,
+                //    opt => opt.MapFrom(src => (src.Firstname + " " + src.Lastname).Trim()))
+                ;
 
             CreateMap<TourPackageCabinClass, TourPackageCabinClassResponse>();
 

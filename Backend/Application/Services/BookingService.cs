@@ -108,7 +108,7 @@ namespace Application.Services
                     throw new NotFoundException($"Companions with IDs [{string.Join(", ", missingIds)}] not found");
                 }
 
-                var adultCompanions = existingCompanions.Count(c => IsAdult(c.DateOfBirth));
+                var adultCompanions = existingCompanions.Count(c => c.Person.Age >= 18);
                 var childrenCompanions = existingCompanions.Count - adultCompanions;
 
                 var userId = _currentUser.UserId
@@ -700,7 +700,7 @@ namespace Application.Services
                 InvalidateBookingCache(id);
 
                 var tourCompanyNotificationMessage = $"✓ Booking #{booking.Id} " +
-                    $"confirmed by {booking.User.Fullname}. " +
+                    $"confirmed by {booking.User.Person.Fullname}. " +
                     $"Tour: {booking.TourPackage.PackageName}. " +
                     $"Total: {booking.TotalCost:C}. Ready to proceed.";
 
@@ -786,7 +786,7 @@ namespace Application.Services
                 InvalidateBookingCache(id);
 
                 var tourCompanyNotificationMessage = $"✗ Booking #{booking.Id} " +
-                    $"declined by {booking.User.Fullname}. Booking cancelled.";
+                    $"declined by {booking.User.Person.Fullname}. Booking cancelled.";
 
                 await _notificationService.NotifyAsync(
                     booking.TourPackage.Company.UserId,
@@ -1010,16 +1010,8 @@ namespace Application.Services
                 ?? throw new AuthException("You must be logged in to perform this action.");
 
             var user = await _unitOfWork.Users.GetByIdAsync(userId, cancellationToken);
-            if (user is null || !user.IsProfileCompleted)
+            if (user is null || !user.PersonId.HasValue)
                 throw new BusinessRuleException("You must complete your profile before performing this action.");
-        }
-
-        private static bool IsAdult(DateOnly dateOfBirth)
-        {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var age = today.Year - dateOfBirth.Year;
-            if (dateOfBirth > today.AddYears(-age)) age--;
-            return age >= 18;
         }
 
         private static bool Conflict(

@@ -229,8 +229,8 @@ namespace Application.Services
                 if (request.Days is not null)
                 {
                     var oldActivities = entity.PackageItineraries.SelectMany(d => d.Activities).ToList();
-                    _unitOfWork.PackageItineraryAttractions.RemoveRange(oldActivities);
-                    _unitOfWork.PackageItineraries.RemoveRange(entity.PackageItineraries);
+                    _unitOfWork.Activities.RemoveRange(oldActivities);
+                    _unitOfWork.Itineraries.RemoveRange(entity.PackageItineraries);
 
                     var newDays = new List<Itinerary>();
                     foreach (var day in request.Days)
@@ -414,8 +414,8 @@ namespace Application.Services
                     throw new BusinessRuleException("Cannot delete a program that already has bookings.");
 
                 var activities = entity.PackageItineraries.SelectMany(d => d.Activities).ToList();
-                _unitOfWork.PackageItineraryAttractions.RemoveRange(activities);
-                _unitOfWork.PackageItineraries.RemoveRange(entity.PackageItineraries);
+                _unitOfWork.Activities.RemoveRange(activities);
+                _unitOfWork.Itineraries.RemoveRange(entity.PackageItineraries);
                 _unitOfWork.PackageCities.RemoveRange(entity.PackageCities);
                 _unitOfWork.TourPackages.Remove(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);

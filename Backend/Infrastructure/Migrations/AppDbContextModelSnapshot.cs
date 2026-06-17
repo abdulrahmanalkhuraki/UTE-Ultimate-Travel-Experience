@@ -33,29 +33,41 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                        .HasDefaultValueSql("(getutcdate())");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("Duration")
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time(0)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ItineraryId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<int>("OrderNumber")
+                        .HasColumnType("int");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(10, 2)");
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time(0)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("UpdatedAtUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                        .HasDefaultValueSql("(getutcdate())");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ItineraryId");
 
                     b.ToTable("Activities");
                 });
@@ -111,39 +123,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("CityId");
 
                     b.ToTable("Attractions");
-                });
-
-            modelBuilder.Entity("Domain.Entities.AttractionActivity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ActivityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AttractionId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getutcdate())");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getutcdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ActivityId");
-
-                    b.HasIndex("AttractionId");
-
-                    b.ToTable("AttractionActivities");
                 });
 
             modelBuilder.Entity("Domain.Entities.AttractionCategory", b =>
@@ -238,7 +217,7 @@ namespace Infrastructure.Migrations
                         .HasDefaultValue(0);
 
                     b.Property<decimal?>("TotalCost")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<int>("TourPackageId")
                         .HasColumnType("int");
@@ -287,7 +266,7 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ProfileImage")
+                    b.Property<string>("Image")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -548,51 +527,17 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<DateOnly>("DateOfBirth")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Firstname")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("Gender")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("NationalIdCard")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Lastname")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<int>("NationalityCountryId")
                         .HasColumnType("int");
 
-                    b.Property<string>("PassportScan")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasMaxLength(25)
-                        .HasColumnType("nvarchar(25)");
+                    b.Property<int>("PersonId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Relationship")
                         .HasColumnType("int");
 
-                    b.Property<int>("ResidentialCountryId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                    b.Property<string>("ResidencyCard")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -601,7 +546,8 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("NationalityCountryId");
 
-                    b.HasIndex("ResidentialCountryId");
+                    b.HasIndex("PersonId")
+                        .IsUnique();
 
                     b.HasIndex("UserId");
 
@@ -887,108 +833,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("Favorites");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Flight", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Airline")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("Arrival")
-                        .HasColumnType("datetime");
-
-                    b.Property<int>("ArrivalCityId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<DateTime>("Departure")
-                        .HasColumnType("datetime");
-
-                    b.Property<int>("DepartureCityId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("FlightNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(10, 2)");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ArrivalCityId");
-
-                    b.HasIndex("DepartureCityId");
-
-                    b.ToTable("Flights");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Hotel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CityId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("HotelName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<decimal>("Latitude")
-                        .HasColumnType("decimal(10, 6)");
-
-                    b.Property<decimal>("Longitude")
-                        .HasColumnType("decimal(10, 6)");
-
-                    b.Property<decimal>("PricePerNight")
-                        .HasColumnType("decimal(10, 2)");
-
-                    b.Property<int>("StarRating")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CityId");
-
-                    b.ToTable("Hotels");
-                });
-
-            modelBuilder.Entity("Domain.Entities.ProfileImage", b =>
+            modelBuilder.Entity("Domain.Entities.Image", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1020,6 +865,46 @@ namespace Infrastructure.Migrations
                     b.HasIndex("AttractionId");
 
                     b.ToTable("Images");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Itinerary", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<string>("DayDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("DayNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DayTitle")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("PackageId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PackageId");
+
+                    b.ToTable("Itineraries");
                 });
 
             modelBuilder.Entity("Domain.Entities.Notification", b =>
@@ -1066,135 +951,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("Domain.Entities.PackageCity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CityId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<int>("PackageId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CityId");
-
-                    b.HasIndex("PackageId", "CityId")
-                        .IsUnique();
-
-                    b.ToTable("PackageCities", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Entities.Itinerary", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<string>("DayDescription")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("DayNumber")
-                        .HasColumnType("int");
-
-                    b.Property<string>("DayTitle")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("PackageId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PackageId");
-
-                    b.ToTable("PackageItineraries");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Activity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("AttractionId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getutcdate())");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<TimeOnly>("EndTime")
-                        .HasColumnType("time(0)");
-
-                    b.Property<string>("ImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("ItineraryId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OrderNumber")
-                        .HasColumnType("int");
-
-                    b.Property<TimeOnly>("StartTime")
-                        .HasColumnType("time(0)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getutcdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AttractionId");
-
-                    b.HasIndex("ItineraryId");
-
-                    b.ToTable("Activities");
-                });
-
             modelBuilder.Entity("Domain.Entities.Payment", b =>
                 {
                     b.Property<int>("Id")
@@ -1233,6 +989,77 @@ namespace Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("CHK_PaymentStatuses", "[PaymentStatus] IN (0, 1, 2, 3)");
                         });
+                });
+
+            modelBuilder.Entity("Domain.Entities.Person", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<DateOnly>("DateOfBirth")
+                        .HasColumnType("date");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("NationalIdCard")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("NationalNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PassportNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PassportScan")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ProfileImage")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ResidentialCountryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ResidentialCountryId");
+
+                    b.ToTable("Persons");
                 });
 
             modelBuilder.Entity("Domain.Entities.Rate", b =>
@@ -1571,7 +1398,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("TourPackageCabinClasses", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.TourPackageFlight", b =>
+            modelBuilder.Entity("Domain.Entities.TourPackage_City", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1579,22 +1406,33 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("FlightId")
+                    b.Property<int>("CityId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TourPackageId")
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int>("PackageId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FlightId");
+                    b.HasIndex("CityId");
 
-                    b.HasIndex("TourPackageId");
+                    b.HasIndex("PackageId", "CityId")
+                        .IsUnique();
 
-                    b.ToTable("TourPackageFlights");
+                    b.ToTable("PackageCities", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.TourPackageGuide", b =>
+            modelBuilder.Entity("Domain.Entities.TourPackage_TouristGuide", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1628,40 +1466,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("TourPackageGuides", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.TourPackageHotel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CheckIn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("CheckOut")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("HotelId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TourPackageId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HotelId");
-
-                    b.HasIndex("TourPackageId");
-
-                    b.ToTable("TourPackageHotels", t =>
-                        {
-                            t.HasCheckConstraint("CHK_CheckIn_CheckOut", "[CheckOut] > [CheckIn]");
-
-                            t.HasCheckConstraint("CHK_Future_CheckIn", "[CheckIn] > GETDATE()");
-                        });
-                });
-
             modelBuilder.Entity("Domain.Entities.TouristGuide", b =>
                 {
                     b.Property<int>("Id")
@@ -1675,34 +1479,14 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
                     b.Property<string>("CurrentLocation")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateOnly>("DateOfBirth")
-                        .HasColumnType("date");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Firstname")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("Gender")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("NationalIdCard")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("IsAvailable")
                         .ValueGeneratedOnAdd()
@@ -1713,48 +1497,15 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
-                    b.Property<string>("Lastname")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<string>("LicenseScan")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("NationalNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<int>("NationalityCountryId")
                         .HasColumnType("int");
 
-                    b.Property<string>("PassportNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("PassportScan")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasMaxLength(25)
-                        .HasColumnType("nvarchar(25)");
-
-                    b.Property<string>("PlaceOfResidence")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("ProfileImage")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                    b.Property<int>("PersonId")
+                        .HasColumnType("int");
 
                     b.Property<int>("YearsOfExperiance")
                         .HasColumnType("int");
@@ -1762,6 +1513,9 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("NationalityCountryId");
+
+                    b.HasIndex("PersonId")
+                        .IsUnique();
 
                     b.ToTable("TouristGuides", t =>
                         {
@@ -1790,70 +1544,26 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateOnly?>("DateOfBirth")
-                        .HasColumnType("date")
-                        .HasColumnName("Date_Of_Birth");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(75)
                         .HasColumnType("nvarchar(75)");
 
-                    b.Property<string>("FirstName")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Gender")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("ProfileImage")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<bool>("IsEmailVerified")
                         .HasColumnType("bit");
-
-                    b.Property<bool>("IsProfileCompleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("LastName")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("NationalIdCard")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("NationalNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("PassportScan")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("PassportNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<string>("Phone")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("PlaceOfResidence")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int?>("RoleId")
+                    b.Property<int?>("PersonId")
                         .HasColumnType("int");
+
+                    b.Property<int>("RoleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<DateTime>("UpdatedAtUtc")
                         .ValueGeneratedOnAdd()
@@ -1861,6 +1571,10 @@ namespace Infrastructure.Migrations
                         .HasDefaultValueSql("(getdate())");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PersonId")
+                        .IsUnique()
+                        .HasFilter("[PersonId] IS NOT NULL");
 
                     b.HasIndex("RoleId");
 
@@ -1900,6 +1614,17 @@ namespace Infrastructure.Migrations
                     b.ToTable("Wishlists");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Activity", b =>
+                {
+                    b.HasOne("Domain.Entities.Itinerary", "Itinerary")
+                        .WithMany("Activities")
+                        .HasForeignKey("ItineraryId")
+                        .IsRequired()
+                        .HasConstraintName("FK__PackageIt__Itine__2645B050");
+
+                    b.Navigation("Itinerary");
+                });
+
             modelBuilder.Entity("Domain.Entities.Attraction", b =>
                 {
                     b.HasOne("Domain.Entities.City", "City")
@@ -1909,25 +1634,6 @@ namespace Infrastructure.Migrations
                         .HasConstraintName("FK__Attractio__CityI__6EF57B66");
 
                     b.Navigation("City");
-                });
-
-            modelBuilder.Entity("Domain.Entities.AttractionActivity", b =>
-                {
-                    b.HasOne("Domain.Entities.Activity", "Activity")
-                        .WithMany("AttractionActivities")
-                        .HasForeignKey("ActivityId")
-                        .IsRequired()
-                        .HasConstraintName("FK__Attractio__Activ__2180FB33");
-
-                    b.HasOne("Domain.Entities.Attraction", "Attraction")
-                        .WithMany("AttractionActivities")
-                        .HasForeignKey("AttractionId")
-                        .IsRequired()
-                        .HasConstraintName("FK__Attractio__Attra__22751F6C");
-
-                    b.Navigation("Activity");
-
-                    b.Navigation("Attraction");
                 });
 
             modelBuilder.Entity("Domain.Entities.AttractionCategory", b =>
@@ -1989,21 +1695,21 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.Country", "ResidentialCountry")
-                        .WithMany("ResidentialCompanions")
-                        .HasForeignKey("ResidentialCountryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("Domain.Entities.Person", "Person")
+                        .WithOne("Companion")
+                        .HasForeignKey("Domain.Entities.Companion", "PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany("Companions")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("NationalityCountry");
 
-                    b.Navigation("ResidentialCountry");
+                    b.Navigation("Person");
 
                     b.Navigation("User");
                 });
@@ -2090,37 +1796,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Flight", b =>
-                {
-                    b.HasOne("Domain.Entities.City", "ArrivalCity")
-                        .WithMany("ArrivalFlights")
-                        .HasForeignKey("ArrivalCityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.City", "DepartureCity")
-                        .WithMany("DepartureFlights")
-                        .HasForeignKey("DepartureCityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ArrivalCity");
-
-                    b.Navigation("DepartureCity");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Hotel", b =>
-                {
-                    b.HasOne("Domain.Entities.City", "City")
-                        .WithMany("Hotels")
-                        .HasForeignKey("CityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("City");
-                });
-
-            modelBuilder.Entity("Domain.Entities.ProfileImage", b =>
+            modelBuilder.Entity("Domain.Entities.Image", b =>
                 {
                     b.HasOne("Domain.Entities.Attraction", "Attraction")
                         .WithMany("Images")
@@ -2129,6 +1805,17 @@ namespace Infrastructure.Migrations
                         .HasConstraintName("FK__Images__Attracti__09A971A2");
 
                     b.Navigation("Attraction");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Itinerary", b =>
+                {
+                    b.HasOne("Domain.Entities.TourPackage", "Package")
+                        .WithMany("PackageItineraries")
+                        .HasForeignKey("PackageId")
+                        .IsRequired()
+                        .HasConstraintName("FK__PackageIt__Packa__6A30C649");
+
+                    b.Navigation("Package");
                 });
 
             modelBuilder.Entity("Domain.Entities.Notification", b =>
@@ -2149,52 +1836,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.PackageCity", b =>
-                {
-                    b.HasOne("Domain.Entities.City", "City")
-                        .WithMany()
-                        .HasForeignKey("CityId")
-                        .IsRequired()
-                        .HasConstraintName("FK_PackageCities_Cities");
-
-                    b.HasOne("Domain.Entities.TourPackage", "Package")
-                        .WithMany("PackageCities")
-                        .HasForeignKey("PackageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_PackageCities_TourPackages");
-
-                    b.Navigation("City");
-
-                    b.Navigation("Package");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Itinerary", b =>
-                {
-                    b.HasOne("Domain.Entities.TourPackage", "Package")
-                        .WithMany("PackageItineraries")
-                        .HasForeignKey("PackageId")
-                        .IsRequired()
-                        .HasConstraintName("FK__PackageIt__Packa__6A30C649");
-
-                    b.Navigation("Package");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Activity", b =>
-                {
-                    b.HasOne("Domain.Entities.Attraction", null)
-                        .WithMany("Activities")
-                        .HasForeignKey("AttractionId");
-
-                    b.HasOne("Domain.Entities.Itinerary", "Itinerary")
-                        .WithMany("Activities")
-                        .HasForeignKey("ItineraryId")
-                        .IsRequired()
-                        .HasConstraintName("FK__PackageIt__Itine__2645B050");
-
-                    b.Navigation("Itinerary");
-                });
-
             modelBuilder.Entity("Domain.Entities.Payment", b =>
                 {
                     b.HasOne("Domain.Entities.User", "User")
@@ -2204,6 +1845,17 @@ namespace Infrastructure.Migrations
                         .HasConstraintName("FK__payments__UserId__756D6ECB");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Person", b =>
+                {
+                    b.HasOne("Domain.Entities.Country", "ResidentialCountry")
+                        .WithMany("Persons")
+                        .HasForeignKey("ResidentialCountryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ResidentialCountry");
                 });
 
             modelBuilder.Entity("Domain.Entities.Rate", b =>
@@ -2292,26 +1944,27 @@ namespace Infrastructure.Migrations
                     b.Navigation("Package");
                 });
 
-            modelBuilder.Entity("Domain.Entities.TourPackageFlight", b =>
+            modelBuilder.Entity("Domain.Entities.TourPackage_City", b =>
                 {
-                    b.HasOne("Domain.Entities.Flight", "Flight")
-                        .WithMany("TourPackageFlights")
-                        .HasForeignKey("FlightId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.HasOne("Domain.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .IsRequired()
+                        .HasConstraintName("FK_PackageCities_Cities");
 
-                    b.HasOne("Domain.Entities.TourPackage", "TourPackage")
-                        .WithMany("TourPackageFlights")
-                        .HasForeignKey("TourPackageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.HasOne("Domain.Entities.TourPackage", "Package")
+                        .WithMany("PackageCities")
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PackageCities_TourPackages");
 
-                    b.Navigation("Flight");
+                    b.Navigation("City");
 
-                    b.Navigation("TourPackage");
+                    b.Navigation("Package");
                 });
 
-            modelBuilder.Entity("Domain.Entities.TourPackageGuide", b =>
+            modelBuilder.Entity("Domain.Entities.TourPackage_TouristGuide", b =>
                 {
                     b.HasOne("Domain.Entities.TourPackage", "Package")
                         .WithMany("TourPackageGuides")
@@ -2331,25 +1984,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("TouristGuide");
                 });
 
-            modelBuilder.Entity("Domain.Entities.TourPackageHotel", b =>
-                {
-                    b.HasOne("Domain.Entities.Hotel", "Hotel")
-                        .WithMany("TourPackageHotels")
-                        .HasForeignKey("HotelId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.TourPackage", "TourPackage")
-                        .WithMany("TourPackageHotels")
-                        .HasForeignKey("TourPackageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Hotel");
-
-                    b.Navigation("TourPackage");
-                });
-
             modelBuilder.Entity("Domain.Entities.TouristGuide", b =>
                 {
                     b.HasOne("Domain.Entities.Country", "NatinalityCountry")
@@ -2358,16 +1992,32 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Domain.Entities.Person", "Person")
+                        .WithOne("TouristGuide")
+                        .HasForeignKey("Domain.Entities.TouristGuide", "PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("NatinalityCountry");
+
+                    b.Navigation("Person");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
+                    b.HasOne("Domain.Entities.Person", "Person")
+                        .WithOne("User")
+                        .HasForeignKey("Domain.Entities.User", "PersonId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("Domain.Entities.Role", "Role")
                         .WithMany("Users")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired()
                         .HasConstraintName("FK__Users__RoleId__4F7CD00D");
+
+                    b.Navigation("Person");
 
                     b.Navigation("Role");
                 });
@@ -2391,20 +2041,11 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Activity", b =>
-                {
-                    b.Navigation("AttractionActivities");
-                });
-
             modelBuilder.Entity("Domain.Entities.Attraction", b =>
                 {
-                    b.Navigation("AttractionActivities");
-
                     b.Navigation("AttractionCategories");
 
                     b.Navigation("Images");
-
-                    b.Navigation("Activities");
 
                     b.Navigation("Reviews");
 
@@ -2420,13 +2061,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.City", b =>
                 {
-                    b.Navigation("ArrivalFlights");
-
                     b.Navigation("Attractions");
-
-                    b.Navigation("DepartureFlights");
-
-                    b.Navigation("Hotels");
                 });
 
             modelBuilder.Entity("Domain.Entities.Companion", b =>
@@ -2440,19 +2075,9 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("NatinalityCompanions");
 
-                    b.Navigation("ResidentialCompanions");
+                    b.Navigation("Persons");
 
                     b.Navigation("TourPackages");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Flight", b =>
-                {
-                    b.Navigation("TourPackageFlights");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Hotel", b =>
-                {
-                    b.Navigation("TourPackageHotels");
                 });
 
             modelBuilder.Entity("Domain.Entities.Itinerary", b =>
@@ -2463,6 +2088,18 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Payment", b =>
                 {
                     b.Navigation("Booking")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.Person", b =>
+                {
+                    b.Navigation("Companion")
+                        .IsRequired();
+
+                    b.Navigation("TouristGuide")
+                        .IsRequired();
+
+                    b.Navigation("User")
                         .IsRequired();
                 });
 
@@ -2494,11 +2131,7 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Reviews");
 
-                    b.Navigation("TourPackageFlights");
-
                     b.Navigation("TourPackageGuides");
-
-                    b.Navigation("TourPackageHotels");
                 });
 
             modelBuilder.Entity("Domain.Entities.TouristGuide", b =>

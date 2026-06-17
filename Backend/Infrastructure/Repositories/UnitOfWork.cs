@@ -3,11 +3,6 @@ using Domain.Entities;
 using Domain.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore.Storage;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
@@ -19,8 +14,6 @@ namespace Infrastructure.Repositories
         public UnitOfWork(AppDbContext context)
         {
             _context = context;
-            Hotels = new GenericRepository<Hotel>(_context);
-            Flights = new GenericRepository<Flight>(_context);
             Bookings = new GenericRepository<Booking>(_context);
             Companions = new GenericRepository<Companion>(_context);
             Payments = new GenericRepository<Payment>(_context);
@@ -28,8 +21,8 @@ namespace Infrastructure.Repositories
             Roles = new GenericRepository<Role>(_context);
             TourCompanies = new GenericRepository<TourCompany>(_context);
             TourPackages = new GenericRepository<TourPackage>(_context);
-            PackageItineraries = new GenericRepository<Itinerary>(_context);
-            PackageItineraryAttractions = new GenericRepository<Activity>(_context);
+            Itineraries = new GenericRepository<Itinerary>(_context);
+            Activities = new GenericRepository<Activity>(_context);
             PackageCities = new GenericRepository<TourPackage_City>(_context);
             TouristGuides = new GenericRepository<TouristGuide>(_context);
             CompanyGuides = new GenericRepository<Company_TouristGuide>(_context);
@@ -41,13 +34,10 @@ namespace Infrastructure.Repositories
             DeviceTokens = new GenericRepository<DeviceToken>(_context);
         }
 
-        public IGenericRepository<Hotel> Hotels { get; }
-
-        public IGenericRepository<Flight> Flights { get; }
-
         public IGenericRepository<Booking> Bookings { get; }
 
         public IGenericRepository<Companion> Companions { get; }
+
         public IGenericRepository<Payment> Payments { get; }
 
         public IGenericRepository<User> Users { get; }
@@ -58,9 +48,9 @@ namespace Infrastructure.Repositories
 
         public IGenericRepository<TourPackage> TourPackages { get; }
 
-        public IGenericRepository<Itinerary> PackageItineraries { get; }
+        public IGenericRepository<Itinerary> Itineraries { get; }
 
-        public IGenericRepository<Activity> PackageItineraryAttractions { get; }
+        public IGenericRepository<Activity> Activities { get; }
 
         public IGenericRepository<TourPackage_City> PackageCities { get; }
 

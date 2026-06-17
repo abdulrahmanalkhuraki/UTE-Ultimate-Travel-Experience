@@ -20,12 +20,6 @@ public partial class City
     public int CountryId { get; set; }
 
     public virtual Country Country { get; set; } = null!;
-    
-    public virtual ICollection<Hotel> Hotels { get; set; } = new List<Hotel>();
-
-    public virtual ICollection<Flight> ArrivalFlights { get; set; } = new List<Flight>();
-
-    public virtual ICollection<Flight> DepartureFlights { get; set; } = new List<Flight>();
-
+   
     public virtual ICollection<Attraction> Attractions { get; set; } = new List<Attraction>();
 }

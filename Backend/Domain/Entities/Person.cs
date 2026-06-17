@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Entities
 {
-    public sealed class Person : BaseEntity
+    public partial class Person : BaseEntity
     {
         public string FirstName { get; set; } = null!;
 
@@ -15,8 +15,6 @@ namespace Domain.Entities
         public string? ProfileImage { get; set; }
 
         public DateOnly DateOfBirth { get; set; }
-
-        public int Age => CalculateAge();
 
         public string Gender { get; set; } = null!;
 
@@ -30,7 +28,19 @@ namespace Domain.Entities
 
         public string? PassportScan { get; set; }
 
+        public int ResidentialCountryId { get; set; }
+
+        public int Age => CalculateAge();
+
         public string Fullname => FirstName + " " + LastName;
+
+        public virtual Country ResidentialCountry { get; set; } = null!;
+
+        public virtual User User { get; set; } = null!;
+
+        public virtual TouristGuide TouristGuide { get; set; } = null!;
+
+        public virtual Companion Companion { get; set; } = null!;
 
         private int CalculateAge()
         {

@@ -77,6 +77,7 @@ namespace Application.Services
                 var entity = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Role)
+                    .Include(u => u.Person)
                     .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
                 if (entity == null)
@@ -88,7 +89,7 @@ namespace Application.Services
                 if (!entity.IsEmailVerified)
                     throw new ForbiddenException("Email must be verified before completing the profile.");
 
-                if (entity.IsProfileCompleted)
+                if (!entity.PersonId.HasValue)
                     throw new ConflictException("Profile has already been completed. Use the update endpoint to change it.");
 
                 // Resolve role: when no RoleId is provided, default to the "User" role.
@@ -117,14 +118,14 @@ namespace Application.Services
 
                 var nationalTaken = await _unitOfWork.Users
                     .Query()
-                    .AnyAsync(u => u.NationalNumber == nationalNumber && u.Id != userId, cancellationToken);
+                    .AnyAsync(u => u.Person.NationalNumber == nationalNumber && u.Id != userId, cancellationToken);
 
                 if (nationalTaken)
                     throw new ConflictException("This national number is already registered.");
 
                 var passportTaken = await _unitOfWork.Users
                     .Query()
-                    .AnyAsync(u => u.PassportNumber == passportNumber && u.Id != userId, cancellationToken);
+                    .AnyAsync(u => u.Person.PassportNumber == passportNumber && u.Id != userId, cancellationToken);
 
                 if (passportTaken)
                     throw new ConflictException("This passport number is already registered.");
@@ -137,21 +138,21 @@ namespace Application.Services
                 var nationalIdImageUrl = await _fileStorage.SaveAsync(request.NationalIdImage, "national-ids", cancellationToken);
                 var passportImageUrl = await _fileStorage.SaveAsync(request.PassportImage, "passports", cancellationToken);
 
-                entity.FirstName          = request.FirstName.Trim();
-                entity.LastName           = request.LastName.Trim();
-                entity.PlaceOfResidence   = request.PlaceOfResidence.Trim();
+                //entity.FirstName          = request.FirstName.Trim();
+                //entity.LastName           = request.LastName.Trim();
+                //entity.ResidentialCountryId   = request.PlaceOfResidence.Trim();
                 entity.CurrentLocation    = request.CurrentLocation.Trim();
-                entity.Gender             = request.Gender;
-                entity.DateOfBirth        = request.DateOfBirth!.Value;
-                entity.NationalNumber     = nationalNumber;
-                entity.PassportNumber     = passportNumber;
+                //entity.Gender             = request.Gender;
+                //entity.DateOfBirth        = request.DateOfBirth!.Value;
+                //entity.NationalNumber     = nationalNumber;
+                //entity.PassportNumber     = passportNumber;
                 entity.BankAccount        = request.BankAccount.Trim();
                 entity.RoleId             = role.Id;
-                entity.Phone              = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
-                if (profileImageUrl != null) entity.ProfileImage = profileImageUrl;
-                entity.NationalIdCard    = nationalIdImageUrl;
-                entity.PassportScan      = passportImageUrl;
-                entity.IsProfileCompleted = true;
+                //entity.Phone              = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
+                if (profileImageUrl != null) entity.Person.ProfileImage = profileImageUrl;
+                //entity.NationalIdCard    = nationalIdImageUrl;
+                //entity.PassportScan      = passportImageUrl;
+                //entity.IsProfileCompleted = true;
                 entity.UpdatedAtUtc       = DateTime.UtcNow;
 
                 _unitOfWork.Users.Update(entity);
@@ -233,7 +234,7 @@ namespace Application.Services
                 if (!entity.IsEmailVerified)
                     throw new ForbiddenException("Email must be verified before completing the profile.");
 
-                if (entity.IsProfileCompleted)
+                if (!entity.PersonId.HasValue)
                     throw new ConflictException("Profile has already been completed. Use the update endpoint to change it.");
 
                 // Role is fixed to "TourCompany" for this flow; it is not chosen by the client.
@@ -247,7 +248,7 @@ namespace Application.Services
 
                 var nationalTaken = await _unitOfWork.Users
                     .Query()
-                    .AnyAsync(u => u.NationalNumber == nationalNumber && u.Id != userId, cancellationToken);
+                    .AnyAsync(u => u.Person.NationalNumber == nationalNumber && u.Id != userId, cancellationToken);
 
                 if (nationalTaken)
                     throw new ConflictException("This national number is already registered.");
@@ -259,18 +260,18 @@ namespace Application.Services
 
                 var nationalIdImageUrl = await _fileStorage.SaveAsync(request.NationalIdImage, "national-ids", cancellationToken);
 
-                entity.FirstName          = request.FirstName.Trim();
-                entity.LastName           = request.LastName.Trim();
-                entity.Phone              = request.Phone.Trim();
-                entity.PlaceOfResidence   = request.PlaceOfResidence.Trim();
-                entity.Gender             = request.Gender;
-                entity.DateOfBirth        = request.DateOfBirth!.Value;
-                entity.NationalNumber     = nationalNumber;
+                //entity.FirstName          = request.FirstName.Trim();
+                //entity.LastName           = request.LastName.Trim();
+                //entity.Phone              = request.Phone.Trim();
+                //entity.ResidentialCountryId   = request.PlaceOfResidence.Trim();
+                //entity.Gender             = request.Gender;
+                //entity.DateOfBirth        = request.DateOfBirth!.Value;
+                //entity.NationalNumber     = nationalNumber;
                 entity.BankAccount        = request.BankAccount.Trim();
                 entity.RoleId             = role.Id;
-                if (profileImageUrl != null) entity.ProfileImage = profileImageUrl;
-                entity.NationalIdCard    = nationalIdImageUrl;
-                entity.IsProfileCompleted = true;
+                if (profileImageUrl != null) entity.Person.ProfileImage = profileImageUrl;
+                //entity.NationalIdCard    = nationalIdImageUrl;
+                //entity.IsProfileCompleted = true;
                 entity.UpdatedAtUtc       = DateTime.UtcNow;
 
                 _unitOfWork.Users.Update(entity);
@@ -364,22 +365,22 @@ namespace Application.Services
 
                 // Update only fields that were provided (partial update)
                 if (!string.IsNullOrWhiteSpace(request.FirstName))
-                    entity.FirstName = request.FirstName.Trim();
+                    //entity.FirstName = request.FirstName.Trim();
 
                 if (!string.IsNullOrWhiteSpace(request.LastName))
-                    entity.LastName = request.LastName.Trim();
+                    //entity.LastName = request.LastName.Trim();
 
                 if (!string.IsNullOrWhiteSpace(request.Phone))
-                    entity.Phone = request.Phone.Trim();
+                    //entity.Phone = request.Phone.Trim();
 
                 if (request.DateOfBirth.HasValue)
-                    entity.DateOfBirth = request.DateOfBirth.Value;
+                    //entity.DateOfBirth = request.DateOfBirth.Value;
 
                 if (!string.IsNullOrWhiteSpace(request.Gender))
-                    entity.Gender = request.Gender;
+                    //entity.Gender = request.Gender;
 
                 if (!string.IsNullOrWhiteSpace(request.PlaceOfResidence))
-                    entity.PlaceOfResidence = request.PlaceOfResidence.Trim();
+                    //entity.ResidentialCountryId = request.PlaceOfResidence.Trim();
 
                 if (!string.IsNullOrWhiteSpace(request.CurrentLocation))
                     entity.CurrentLocation = request.CurrentLocation.Trim();
@@ -391,11 +392,11 @@ namespace Application.Services
                 {
                     var newNationalNumber = request.NationalNumber.Trim();
 
-                    if (!string.Equals(entity.NationalNumber, newNationalNumber, StringComparison.OrdinalIgnoreCase))
+                    if (!string.Equals(entity.Person.NationalNumber, newNationalNumber, StringComparison.OrdinalIgnoreCase))
                     {
                         var nationalTaken = await _unitOfWork.Users
                             .Query()
-                            .AnyAsync(u => u.NationalNumber == newNationalNumber && u.Id != userId, cancellationToken);
+                            .AnyAsync(u => u.Person.NationalNumber == newNationalNumber && u.Id != userId, cancellationToken);
 
                         if (nationalTaken)
                         {
@@ -403,7 +404,7 @@ namespace Application.Services
                             throw new ConflictException("This national number is already registered.");
                         }
 
-                        entity.NationalNumber = newNationalNumber;
+                        entity.Person.NationalNumber = newNationalNumber;
                     }
                 }
 
@@ -411,11 +412,11 @@ namespace Application.Services
                 {
                     var newPassportNumber = request.PassportNumber.Trim();
 
-                    if (!string.Equals(entity.PassportNumber, newPassportNumber, StringComparison.OrdinalIgnoreCase))
+                    if (!string.Equals(entity.Person.PassportNumber, newPassportNumber, StringComparison.OrdinalIgnoreCase))
                     {
                         var passportTaken = await _unitOfWork.Users
                             .Query()
-                            .AnyAsync(u => u.PassportNumber == newPassportNumber && u.Id != userId, cancellationToken);
+                            .AnyAsync(u => u.Person.PassportNumber == newPassportNumber && u.Id != userId, cancellationToken);
 
                         if (passportTaken)
                         {
@@ -423,19 +424,19 @@ namespace Application.Services
                             throw new ConflictException("This passport number is already registered.");
                         }
 
-                        entity.PassportNumber = newPassportNumber;
+                        entity.Person.PassportNumber = newPassportNumber;
                     }
                 }
 
                 // Upload new images if provided
                 if (request.Image is { Length: > 0 })
-                    entity.ProfileImage = await _fileStorage.SaveAsync(request.Image, "profiles", cancellationToken);
+                    entity.Person.ProfileImage = await _fileStorage.SaveAsync(request.Image, "profiles", cancellationToken);
 
                 if (request.NationalIdImage is { Length: > 0 })
-                    entity.NationalIdCard = await _fileStorage.SaveAsync(request.NationalIdImage, "national-ids", cancellationToken);
+                    entity.Person.NationalIdCard = await _fileStorage.SaveAsync(request.NationalIdImage, "national-ids", cancellationToken);
 
                 if (request.PassportImage is { Length: > 0 })
-                    entity.PassportScan = await _fileStorage.SaveAsync(request.PassportImage, "passports", cancellationToken);
+                    entity.Person.PassportScan = await _fileStorage.SaveAsync(request.PassportImage, "passports", cancellationToken);
 
                 entity.UpdatedAtUtc = DateTime.UtcNow;
 
@@ -641,8 +642,9 @@ namespace Application.Services
                 var entities = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Role)
-                    .OrderBy(u => u.FirstName)
-                    .ThenBy(u => u.LastName)
+                    .Include(u => u.Person)
+                    .OrderBy(u => u.Person.FirstName)
+                    .ThenBy(u => u.Person.LastName)
                     .ToListAsync(cancellationToken);
 
                 var response = _mapper.Map<IReadOnlyList<UserResponse>>(entities);
@@ -703,14 +705,14 @@ namespace Application.Services
                 if (!string.IsNullOrWhiteSpace(firstName))
                 {
                     var search = firstName.ToLower();
-                    query = query.Where(u => u.FirstName != null && u.FirstName.ToLower().Contains(search));
+                    query = query.Where(u => u.Person.FirstName != null && u.Person.FirstName.ToLower().Contains(search));
                     _logger.LogDebug("Applied first name filter: {FirstName}", firstName);
                 }
 
                 if (!string.IsNullOrWhiteSpace(lastName))
                 {
                     var search = lastName.ToLower();
-                    query = query.Where(u => u.LastName != null && u.LastName.ToLower().Contains(search));
+                    query = query.Where(u => u.Person.LastName != null && u.Person.LastName.ToLower().Contains(search));
                     _logger.LogDebug("Applied last name filter: {LastName}", lastName);
                 }
 
@@ -735,8 +737,8 @@ namespace Application.Services
 
                 var entities = await query
                     .AsNoTracking()
-                    .OrderBy(u => u.FirstName)
-                    .ThenBy(u => u.LastName)
+                    .OrderBy(u => u.Person.FirstName)
+                    .ThenBy(u => u.Person.LastName)
                     .Take(100)
                     .ToListAsync(cancellationToken);
 

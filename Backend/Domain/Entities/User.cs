@@ -9,39 +9,19 @@ public partial class User : BaseEntity
 
     public string Password { get; set; } = null!;
 
-    public string? ProfileImage { get; set; }
-
-    public string? Phone { get; set; }
-
-    public int? RoleId { get; set; }
-
-    public string? FirstName { get; set; }
-
-    public string? LastName { get; set; }
-
-    public string Fullname => FirstName + " " + LastName;
-
-    public DateOnly? DateOfBirth { get; set; }
-
-    public string? Gender { get; set; }
-
-    public string? PlaceOfResidence { get; set; }
+    public int RoleId { get; set; }
 
     public string? CurrentLocation { get; set; }
 
-    public string? NationalNumber { get; set; }
-
-    public string? NationalIdCard { get; set; }
-
-    public string? PassportNumber { get; set; }
-
-    public string? PassportScan { get; set; }
-
     public string? BankAccount { get; set; }
 
-    public bool IsProfileCompleted { get; set; }
-
     public bool IsEmailVerified { get; set; }
+
+    public int? PersonId { get; set; }
+
+    public virtual Person? Person { get; set; } = null!;
+
+    public virtual Role Role { get; set; } = null!;
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
@@ -56,8 +36,6 @@ public partial class User : BaseEntity
     public virtual ICollection<Rate> Rates { get; set; } = new List<Rate>();
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
-
-    public virtual Role? Role { get; set; }
 
     public virtual ICollection<TourCompany> TourCompanies { get; set; } = new List<TourCompany>();
 

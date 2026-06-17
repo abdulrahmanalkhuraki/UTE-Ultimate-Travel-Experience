@@ -1,8 +1,5 @@
-using Application.Common;
 using Application.Interfaces;
 using Application.Interfaces.Booking;
-using Application.Interfaces.Flight;
-using Application.Interfaces.Hotel;
 using Application.Interfaces.Notifications;
 using Application.Interfaces.TourCompany;
 using Application.Interfaces.TourPackage;
@@ -11,7 +8,6 @@ using Application.Interfaces.User;
 using Application.Mappings;
 using Application.Services;
 using Application.Validators.Booking;
-using Application.Validators.Hotel;
 using Application.Validators.TourCompany;
 using Application.Validators.TouristGuide;
 using Application.Validators.User;
@@ -266,16 +262,6 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-// Hotel
-builder.Services.AddScoped<HotelCreateValidator>();
-builder.Services.AddScoped<HotelUpdateValidator>();
-builder.Services.AddScoped<IHotelService, HotelService>();
-
-// Flight
-builder.Services.AddScoped<FlightCreateValidator>();
-builder.Services.AddScoped<FlightUpdateValidator>();
-builder.Services.AddScoped<IFlightService, FlightService>();
-
 // Country / City
 builder.Services.AddScoped<Application.Interfaces.Country.ICountryService, CountryService>();
 builder.Services.AddScoped<Application.Interfaces.City.ICityService, CityService>();
@@ -321,8 +307,6 @@ builder.Services.AddMemoryCache();
 // ==========================================
 builder.Services.AddAutoMapper(cfg =>
 {
-    cfg.AddProfile<HotelProfile>();
-    cfg.AddProfile<FlightProfile>();
     cfg.AddProfile<BookingProfile>();
     cfg.AddProfile<PaymentProfile>();
     cfg.AddProfile<UserProfile>();

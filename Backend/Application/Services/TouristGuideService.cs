@@ -60,31 +60,31 @@ namespace Application.Services
             {
                 var entity = new TouristGuide
                 {
-                    Firstname = request.Firstname.Trim(),
-                    Lastname = request.Lastname.Trim(),
-                    Phone = request.Phone.Trim(),
-                    Email = request.Email.Trim(),
-                    NationalityCountryId = request.NationalityCountryId,
-                    Gender = request.Gender,
-                    DateOfBirth = request.DateOfBirth,
-                    YearsOfExperiance = request.YearsOfExperiance,
-                    Bio = request.Bio.Trim(),
-                    PlaceOfResidence = request.PlaceOfResidence.Trim(),
-                    CurrentLocation = request.CurrentLocation?.Trim(),
-                    NationalNumber = request.NationalNumber.Trim(),
-                    PassportNumber = request.PassportNumber?.Trim(),
-                    Languages = request.Languages?.Trim(),
-                    IsAvailable = true,
-                    CreatedAtUtc = DateTime.UtcNow,
-                    UpdatedAtUtc = DateTime.UtcNow,
+                    //Firstname = request.Firstname.Trim(),
+                    //Lastname = request.Lastname.Trim(),
+                    //Phone = request.Phone.Trim(),
+                    //Email = request.Email.Trim(),
+                    //NationalityCountryId = request.NationalityCountryId,
+                    //Gender = request.Gender,
+                    //DateOfBirth = request.DateOfBirth,
+                    //YearsOfExperiance = request.YearsOfExperiance,
+                    //Bio = request.Bio.Trim(),
+                    //ResidentialCountryId = request.PlaceOfResidence.Trim(),
+                    //CurrentLocation = request.CurrentLocation?.Trim(),
+                    //NationalNumber = request.NationalNumber.Trim(),
+                    //PassportNumber = request.PassportNumber?.Trim(),
+                    //Languages = request.Languages?.Trim(),
+                    //IsAvailable = true,
+                    //CreatedAtUtc = DateTime.UtcNow,
+                    //UpdatedAtUtc = DateTime.UtcNow,
                 };
 
                 if (request.ProfileImage is not null)
-                    entity.ProfileImage = await _fileStorage.SaveAsync(request.ProfileImage, GuideImageFolder, cancellationToken);
+                    //entity.ProfileImage = await _fileStorage.SaveAsync(request.ProfileImage, GuideImageFolder, cancellationToken);
                 if (request.IdCardImage is not null)
-                    entity.NationalIdCard = await _fileStorage.SaveAsync(request.IdCardImage, GuideImageFolder, cancellationToken);
+                    //entity.NationalIdCard = await _fileStorage.SaveAsync(request.IdCardImage, GuideImageFolder, cancellationToken);
                 if (request.PassportImage is not null)
-                    entity.PassportScan = await _fileStorage.SaveAsync(request.PassportImage, GuideImageFolder, cancellationToken);
+                    //entity.PassportScan = await _fileStorage.SaveAsync(request.PassportImage, GuideImageFolder, cancellationToken);
 
                 // Link the new guide to the creating company.
                 entity.CompanyGuides.Add(new Company_TouristGuide { CompanyId = companyId });
@@ -132,32 +132,32 @@ namespace Application.Services
 
                 // Partial update: apply only the fields that were actually sent (non-null).
                 // Anything omitted keeps its current value.
-                if (request.Firstname is not null) entity.Firstname = request.Firstname.Trim();
-                if (request.Lastname is not null) entity.Lastname = request.Lastname.Trim();
-                if (request.Phone is not null) entity.Phone = request.Phone.Trim();
-                if (request.Email is not null) entity.Email = request.Email.Trim();
+                //if (request.Firstname is not null) entity.Firstname = request.Firstname.Trim();
+                //if (request.Lastname is not null) entity.Lastname = request.Lastname.Trim();
+                //if (request.Phone is not null) entity.Phone = request.Phone.Trim();
+                //if (request.Email is not null) entity.Email = request.Email.Trim();
                 if (request.NationalityCountryId.HasValue) entity.NationalityCountryId = request.NationalityCountryId.Value;
-                if (request.Gender.HasValue) entity.Gender = request.Gender.Value;
-                if (request.DateOfBirth.HasValue) entity.DateOfBirth = request.DateOfBirth.Value;
+                //if (request.Gender.HasValue) entity.Gender = request.Gender.Value;
+                //if (request.DateOfBirth.HasValue) entity.DateOfBirth = request.DateOfBirth.Value;
                 if (request.YearsOfExperiance.HasValue) entity.YearsOfExperiance = request.YearsOfExperiance.Value;
                 if (request.Bio is not null) entity.Bio = request.Bio.Trim();
-                if (request.PlaceOfResidence is not null) entity.PlaceOfResidence = request.PlaceOfResidence.Trim();
+                //if (request.PlaceOfResidence is not null) entity.ResidentialCountryId = request.PlaceOfResidence.Trim();
                 if (request.CurrentLocation is not null) entity.CurrentLocation = request.CurrentLocation.Trim();
-                if (request.NationalNumber is not null) entity.NationalNumber = request.NationalNumber.Trim();
-                if (request.PassportNumber is not null) entity.PassportNumber = request.PassportNumber.Trim();
+                //if (request.NationalNumber is not null) entity.NationalNumber = request.NationalNumber.Trim();
+                //if (request.PassportNumber is not null) entity.PassportNumber = request.PassportNumber.Trim();
                 if (request.Languages is not null) entity.Languages = request.Languages.Trim();
                 if (request.IsAvailable.HasValue) entity.IsAvailable = request.IsAvailable.Value;
-                entity.UpdatedAtUtc = DateTime.UtcNow;
+                //entity.UpdatedAtUtc = DateTime.UtcNow;
 
-                entity.ProfileImage = request.ProfileImage is not null
-                    ? await _fileStorage.SaveAsync(request.ProfileImage, GuideImageFolder, cancellationToken)
-                    : request.ProfileImageUrl ?? entity.ProfileImage;
-                entity.NationalIdCard = request.IdCardImage is not null
-                    ? await _fileStorage.SaveAsync(request.IdCardImage, GuideImageFolder, cancellationToken)
-                    : request.IdCardUrl ?? entity.NationalIdCard;
-                entity.PassportScan = request.PassportImage is not null
-                    ? await _fileStorage.SaveAsync(request.PassportImage, GuideImageFolder, cancellationToken)
-                    : request.PassportScanUrl ?? entity.PassportScan;
+                //entity.ProfileImage = request.ProfileImage is not null
+                    //? await _fileStorage.SaveAsync(request.ProfileImage, GuideImageFolder, cancellationToken)
+                    //: request.ProfileImageUrl ?? entity.ProfileImage;
+                //entity.NationalIdCard = request.IdCardImage is not null
+                    //? await _fileStorage.SaveAsync(request.IdCardImage, GuideImageFolder, cancellationToken)
+                    //: request.IdCardUrl ?? entity.NationalIdCard;
+                //entity.PassportScan = request.PassportImage is not null
+                    //? await _fileStorage.SaveAsync(request.PassportImage, GuideImageFolder, cancellationToken)
+                    //: request.PassportScanUrl ?? entity.PassportScan;
 
                 _unitOfWork.TouristGuides.Update(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -238,7 +238,7 @@ namespace Application.Services
 
             var entities = await QueryWithGraph()
                 .Where(g => g.CompanyGuides.Any(cg => cg.CompanyId == companyId))
-                .OrderBy(g => g.Firstname).ThenBy(g => g.Lastname)
+                //.OrderBy(g => g.Firstname).ThenBy(g => g.Lastname)
                 .ToListAsync(cancellationToken);
 
             return _mapper.Map<IReadOnlyList<TouristGuideResponse>>(entities);

@@ -833,7 +833,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("PackageId");
 
-                    b.ToTable("PackageItineraries");
+                    b.ToTable("Itineraries");
                 });
 
             modelBuilder.Entity("Domain.Entities.Activity", b =>
@@ -1437,7 +1437,7 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(25)
                         .HasColumnType("nvarchar(25)");
 
-                    b.Property<string>("PlaceOfResidence")
+                    b.Property<string>("ResidentialCountryId")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -1543,7 +1543,7 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("PlaceOfResidence")
+                    b.Property<string>("ResidentialCountryId")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -1861,7 +1861,7 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Itinerary", b =>
                 {
                     b.HasOne("Domain.Entities.TourPackage", "Package")
-                        .WithMany("PackageItineraries")
+                        .WithMany("Itineraries")
                         .HasForeignKey("PackageId")
                         .IsRequired()
                         .HasConstraintName("FK__PackageIt__Packa__6A30C649");
@@ -2175,7 +2175,7 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("PackageCities");
 
-                    b.Navigation("PackageItineraries");
+                    b.Navigation("Itineraries");
 
                     b.Navigation("Rates");
 

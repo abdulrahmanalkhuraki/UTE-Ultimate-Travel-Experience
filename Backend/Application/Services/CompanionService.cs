@@ -47,20 +47,20 @@ namespace Application.Services
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
-            _logger.LogInformation("Attempting to create new companion for user {UserId}", request.UserId);
+            //_logger.LogInformation("Attempting to create new companion for user {UserId}", request.UserId);
 
             try
             {
                 // Verify user exists
-                var userExists = await _unitOfWork.Users
-                    .Query()
-                    .AnyAsync(u => u.Id == request.UserId, cancellationToken);
+                //var userExists = await _unitOfWork.Users
+                    //.Query()
+                    //.AnyAsync(u => u.Id == request.UserId, cancellationToken);
 
-                if (!userExists)
-                {
-                    _logger.LogWarning("User with ID {UserId} not found", request.UserId);
-                    throw new NotFoundException($"User with ID {request.UserId} not found");
-                }
+                //if (!userExists)
+                //{
+                    //_logger.LogWarning("User with ID {UserId} not found", request.UserId);
+                    //throw new NotFoundException($"User with ID {request.UserId} not found");
+                //}
 
                 // Verify nationality country exists
                 var nationalityCountryExists = await _unitOfWork.Countries
@@ -139,7 +139,7 @@ namespace Application.Services
                 var entity = await _unitOfWork.Companions
                     .Query()
                     .Include(c => c.NationalityCountry)
-                    .Include(c => c.ResidentialCountry)
+                    //.Include(c => c.ResidentialCountry)
                     .Include(c => c.CompanionBookings)
                         .ThenInclude(cb => cb.Booking)
                             .ThenInclude(b => b.TourPackage)
@@ -198,7 +198,7 @@ namespace Application.Services
                 var entities = await _unitOfWork.Companions
                     .Query()
                     .Include(c => c.NationalityCountry)
-                    .Include(c => c.ResidentialCountry)
+                    //.Include(c => c.ResidentialCountry)
                     .Include(c => c.CompanionBookings)
                         .ThenInclude(cb => cb.Booking)
                             .ThenInclude(b => b.TourPackage)
@@ -254,7 +254,7 @@ namespace Application.Services
                 var entity = await _unitOfWork.Companions
                     .Query()
                     .Include(c => c.NationalityCountry)
-                    .Include(c => c.ResidentialCountry)
+                    //.Include(c => c.ResidentialCountry)
                     .Include(c => c.CompanionBookings)
                         .ThenInclude(cb => cb.Booking)
                             .ThenInclude(b => b.TourPackage)
@@ -326,14 +326,14 @@ namespace Application.Services
         /// <returns>True if deletion was successful; false if companion was not found.</returns>
         /// <exception cref="ArgumentException">Thrown when id is invalid.</exception>
         /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
-        public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
-        {
-            if (id <= 0)
-                throw new ArgumentException("Invalid companion ID", nameof(id));
+        //public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
+        //{
+        //    if (id <= 0)
+        //        throw new ArgumentException("Invalid companion ID", nameof(id));
 
-            _logger.LogInformation("Attempting to delete companion {CompanionId}", id);
-
-        }
+        //    _logger.LogInformation("Attempting to delete companion {CompanionId}", id);
+        //    return 1;
+        //}
 
         /// <summary>Builds a CompanionResponse with computed fields from a Companion entity.</summary>
         /// <param name="companion">The companion entity.</param>
@@ -345,7 +345,7 @@ namespace Application.Services
             var response = _mapper.Map<CompanionResponse>(companion);
 
             // Calculate RegistrationDate from CreatedAtUtc
-            response.RegistrationDate = DateOnly.FromDateTime(companion.CreatedAtUtc);
+            //response.RegistrationDate = DateOnly.FromDateTime(companion.CreatedAtUtc);
 
             // Calculate JoinedPackagesCount and related trip data
             if (companion.CompanionBookings != null && companion.CompanionBookings.Any())

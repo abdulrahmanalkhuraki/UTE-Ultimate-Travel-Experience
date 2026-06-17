@@ -10,8 +10,6 @@ namespace Domain.Interfaces
 {
     public interface IUnitOfWork : IDisposable
     {
-        IGenericRepository<Hotel> Hotels { get; }
-        IGenericRepository<Flight> Flights { get; }
         IGenericRepository<Booking> Bookings { get; }
         IGenericRepository<Companion> Companions { get; }
         IGenericRepository<Payment> Payments { get; }
@@ -19,8 +17,8 @@ namespace Domain.Interfaces
         IGenericRepository<Role> Roles { get; }
         IGenericRepository<TourCompany> TourCompanies { get; }
         IGenericRepository<TourPackage> TourPackages { get; }
-        IGenericRepository<Itinerary> PackageItineraries { get; }
-        IGenericRepository<Activity> PackageItineraryAttractions { get; }
+        IGenericRepository<Itinerary> Itineraries { get; }
+        IGenericRepository<Activity> Activities { get; }
         IGenericRepository<TourPackage_City> PackageCities { get; }
         IGenericRepository<TouristGuide> TouristGuides { get; }
         IGenericRepository<Company_TouristGuide> CompanyGuides { get; }
