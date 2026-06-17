@@ -80,9 +80,9 @@ namespace Application.Services
                 };
 
                 if (request.ProfileImage is not null)
-                    entity.ProfileImageUrl = await _fileStorage.SaveAsync(request.ProfileImage, GuideImageFolder, cancellationToken);
+                    entity.ProfileImage = await _fileStorage.SaveAsync(request.ProfileImage, GuideImageFolder, cancellationToken);
                 if (request.IdCardImage is not null)
-                    entity.IdCard = await _fileStorage.SaveAsync(request.IdCardImage, GuideImageFolder, cancellationToken);
+                    entity.NationalIdCard = await _fileStorage.SaveAsync(request.IdCardImage, GuideImageFolder, cancellationToken);
                 if (request.PassportImage is not null)
                     entity.PassportScan = await _fileStorage.SaveAsync(request.PassportImage, GuideImageFolder, cancellationToken);
 
@@ -149,12 +149,12 @@ namespace Application.Services
                 if (request.IsAvailable.HasValue) entity.IsAvailable = request.IsAvailable.Value;
                 entity.UpdatedAtUtc = DateTime.UtcNow;
 
-                entity.ProfileImageUrl = request.ProfileImage is not null
+                entity.ProfileImage = request.ProfileImage is not null
                     ? await _fileStorage.SaveAsync(request.ProfileImage, GuideImageFolder, cancellationToken)
-                    : request.ProfileImageUrl ?? entity.ProfileImageUrl;
-                entity.IdCard = request.IdCardImage is not null
+                    : request.ProfileImageUrl ?? entity.ProfileImage;
+                entity.NationalIdCard = request.IdCardImage is not null
                     ? await _fileStorage.SaveAsync(request.IdCardImage, GuideImageFolder, cancellationToken)
-                    : request.IdCardUrl ?? entity.IdCard;
+                    : request.IdCardUrl ?? entity.NationalIdCard;
                 entity.PassportScan = request.PassportImage is not null
                     ? await _fileStorage.SaveAsync(request.PassportImage, GuideImageFolder, cancellationToken)
                     : request.PassportScanUrl ?? entity.PassportScan;

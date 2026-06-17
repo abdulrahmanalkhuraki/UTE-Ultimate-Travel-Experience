@@ -9,7 +9,7 @@ public partial class User : BaseEntity
 
     public string Password { get; set; } = null!;
 
-    public string? Image { get; set; }
+    public string? ProfileImage { get; set; }
 
     public string? Phone { get; set; }
 
@@ -31,11 +31,11 @@ public partial class User : BaseEntity
 
     public string? NationalNumber { get; set; }
 
-    public string? NationalIdImage { get; set; }
+    public string? NationalIdCard { get; set; }
 
     public string? PassportNumber { get; set; }
 
-    public string? PassportImage { get; set; }
+    public string? PassportScan { get; set; }
 
     public string? BankAccount { get; set; }
 

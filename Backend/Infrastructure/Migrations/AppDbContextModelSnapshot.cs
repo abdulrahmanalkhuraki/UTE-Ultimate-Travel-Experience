@@ -287,7 +287,7 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Image")
+                    b.Property<string>("ProfileImage")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -564,7 +564,7 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("Gender")
                         .HasColumnType("bit");
 
-                    b.Property<string>("IdCard")
+                    b.Property<string>("NationalIdCard")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Lastname")
@@ -988,7 +988,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("Hotels");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Image", b =>
+            modelBuilder.Entity("Domain.Entities.ProfileImage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1700,7 +1700,7 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("Gender")
                         .HasColumnType("bit");
 
-                    b.Property<string>("IdCard")
+                    b.Property<string>("NationalIdCard")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -1747,7 +1747,7 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("ProfileImageUrl")
+                    b.Property<string>("ProfileImage")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -1807,7 +1807,7 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<string>("Image")
+                    b.Property<string>("ProfileImage")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -1823,7 +1823,7 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("NationalIdImage")
+                    b.Property<string>("NationalIdCard")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -1831,7 +1831,7 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("PassportImage")
+                    b.Property<string>("PassportScan")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -2120,7 +2120,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("City");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Image", b =>
+            modelBuilder.Entity("Domain.Entities.ProfileImage", b =>
                 {
                     b.HasOne("Domain.Entities.Attraction", "Attraction")
                         .WithMany("Images")

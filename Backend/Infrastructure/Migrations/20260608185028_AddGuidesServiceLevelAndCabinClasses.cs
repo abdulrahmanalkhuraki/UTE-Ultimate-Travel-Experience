@@ -87,7 +87,7 @@ namespace Infrastructure.Migrations
                 oldType: "bit");
 
             migrationBuilder.AlterColumn<string>(
-                name: "IdCard",
+                name: "NationalIdCard",
                 table: "TouristGuides",
                 type: "nvarchar(500)",
                 maxLength: 500,
@@ -127,7 +127,7 @@ namespace Infrastructure.Migrations
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
-                name: "ProfileImageUrl",
+                name: "ProfileImage",
                 table: "TouristGuides",
                 type: "nvarchar(500)",
                 maxLength: 500,
@@ -299,7 +299,7 @@ namespace Infrastructure.Migrations
                 table: "TouristGuides");
 
             migrationBuilder.DropColumn(
-                name: "ProfileImageUrl",
+                name: "ProfileImage",
                 table: "TouristGuides");
 
             migrationBuilder.AddColumn<string>(
@@ -359,7 +359,7 @@ namespace Infrastructure.Migrations
                 oldDefaultValue: true);
 
             migrationBuilder.AlterColumn<string>(
-                name: "IdCard",
+                name: "NationalIdCard",
                 table: "TouristGuides",
                 type: "nvarchar(max)",
                 nullable: false,

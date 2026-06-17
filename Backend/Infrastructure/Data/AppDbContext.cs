@@ -231,8 +231,8 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
             entity.Property(e => e.CurrentLocation).HasMaxLength(100);
             entity.Property(e => e.NationalNumber).HasMaxLength(50);
             entity.Property(e => e.PassportNumber).HasMaxLength(50);
-            entity.Property(e => e.ProfileImageUrl).HasMaxLength(500);
-            entity.Property(e => e.IdCard).HasMaxLength(500);
+            entity.Property(e => e.ProfileImage).HasMaxLength(500);
+            entity.Property(e => e.NationalIdCard).HasMaxLength(500);
             entity.Property(e => e.PassportScan).HasMaxLength(500);
             entity.Property(e => e.LicenseScan).HasMaxLength(500);
             entity.Property(e => e.Languages).HasMaxLength(250);
@@ -745,7 +745,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
             entity.Property(e => e.DateOfBirth).HasColumnName("Date_Of_Birth");
             entity.Property(e => e.Email).HasMaxLength(75);
             entity.Property(e => e.FirstName).HasMaxLength(50);
-            entity.Property(e => e.Image).HasMaxLength(500);
+            entity.Property(e => e.ProfileImage).HasMaxLength(500);
             entity.Property(e => e.LastName).HasMaxLength(50);
             entity.Property(e => e.Password).HasMaxLength(255);
             entity.Property(e => e.Phone).HasMaxLength(20);
@@ -753,9 +753,9 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
             entity.Property(e => e.PlaceOfResidence).HasMaxLength(100);
             entity.Property(e => e.CurrentLocation).HasMaxLength(100);
             entity.Property(e => e.NationalNumber).HasMaxLength(50);
-            entity.Property(e => e.NationalIdImage).HasMaxLength(500);
+            entity.Property(e => e.NationalIdCard).HasMaxLength(500);
             entity.Property(e => e.PassportNumber).HasMaxLength(50);
-            entity.Property(e => e.PassportImage).HasMaxLength(500);
+            entity.Property(e => e.PassportScan).HasMaxLength(500);
             entity.Property(e => e.BankAccount).HasMaxLength(100);
             entity.Property(e => e.IsProfileCompleted).HasDefaultValue(false);
             entity.Property(e => e.UpdatedAtUtc)

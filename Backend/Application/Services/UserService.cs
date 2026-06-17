@@ -148,9 +148,9 @@ namespace Application.Services
                 entity.BankAccount        = request.BankAccount.Trim();
                 entity.RoleId             = role.Id;
                 entity.Phone              = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
-                if (profileImageUrl != null) entity.Image = profileImageUrl;
-                entity.NationalIdImage    = nationalIdImageUrl;
-                entity.PassportImage      = passportImageUrl;
+                if (profileImageUrl != null) entity.ProfileImage = profileImageUrl;
+                entity.NationalIdCard    = nationalIdImageUrl;
+                entity.PassportScan      = passportImageUrl;
                 entity.IsProfileCompleted = true;
                 entity.UpdatedAtUtc       = DateTime.UtcNow;
 
@@ -268,8 +268,8 @@ namespace Application.Services
                 entity.NationalNumber     = nationalNumber;
                 entity.BankAccount        = request.BankAccount.Trim();
                 entity.RoleId             = role.Id;
-                if (profileImageUrl != null) entity.Image = profileImageUrl;
-                entity.NationalIdImage    = nationalIdImageUrl;
+                if (profileImageUrl != null) entity.ProfileImage = profileImageUrl;
+                entity.NationalIdCard    = nationalIdImageUrl;
                 entity.IsProfileCompleted = true;
                 entity.UpdatedAtUtc       = DateTime.UtcNow;
 
@@ -429,13 +429,13 @@ namespace Application.Services
 
                 // Upload new images if provided
                 if (request.Image is { Length: > 0 })
-                    entity.Image = await _fileStorage.SaveAsync(request.Image, "profiles", cancellationToken);
+                    entity.ProfileImage = await _fileStorage.SaveAsync(request.Image, "profiles", cancellationToken);
 
                 if (request.NationalIdImage is { Length: > 0 })
-                    entity.NationalIdImage = await _fileStorage.SaveAsync(request.NationalIdImage, "national-ids", cancellationToken);
+                    entity.NationalIdCard = await _fileStorage.SaveAsync(request.NationalIdImage, "national-ids", cancellationToken);
 
                 if (request.PassportImage is { Length: > 0 })
-                    entity.PassportImage = await _fileStorage.SaveAsync(request.PassportImage, "passports", cancellationToken);
+                    entity.PassportScan = await _fileStorage.SaveAsync(request.PassportImage, "passports", cancellationToken);
 
                 entity.UpdatedAtUtc = DateTime.UtcNow;
 

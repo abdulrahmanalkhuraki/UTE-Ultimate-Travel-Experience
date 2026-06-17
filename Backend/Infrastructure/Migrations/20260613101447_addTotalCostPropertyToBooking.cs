@@ -19,7 +19,7 @@ namespace Infrastructure.Migrations
                 oldType: "nvarchar(max)");
 
             migrationBuilder.AlterColumn<string>(
-                name: "IdCard",
+                name: "NationalIdCard",
                 table: "Companions",
                 type: "nvarchar(max)",
                 nullable: true,
@@ -62,7 +62,7 @@ namespace Infrastructure.Migrations
                 oldNullable: true);
 
             migrationBuilder.AlterColumn<string>(
-                name: "IdCard",
+                name: "NationalIdCard",
                 table: "Companions",
                 type: "nvarchar(max)",
                 nullable: false,

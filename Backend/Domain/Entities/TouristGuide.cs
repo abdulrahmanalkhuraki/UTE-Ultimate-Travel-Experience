@@ -50,10 +50,10 @@ namespace Domain.Entities
         public string? PassportNumber { get; set; }
 
         /// <summary>صورة شخصية للمرشد (رابط الصورة).</summary>
-        public string? ProfileImageUrl { get; set; }
+        public string? ProfileImage { get; set; }
 
         /// <summary>صورة الهوية الشخصية (رابط الصورة).</summary>
-        public string? IdCard { get; set; }
+        public string? NationalIdCard { get; set; }
 
         /// <summary>صورة جواز السفر (رابط الصورة).</summary>
         public string? PassportScan { get; set; }

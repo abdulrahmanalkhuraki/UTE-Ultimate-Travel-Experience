@@ -43,7 +43,7 @@ public class CompleteProfileRequest
     [StringLength(100, MinimumLength = 4, ErrorMessage = "Bank account must be between 4 and 100 characters.")]
     public string BankAccount { get; set; } = null!;
 
-    // Optional: defaults to the "User" role when not provided.
+    // Optional: defaults to the "Tourist" role when not provided.
     [Range(1, int.MaxValue, ErrorMessage = "Role must be a positive number.")]
     public int? RoleId { get; set; }
 

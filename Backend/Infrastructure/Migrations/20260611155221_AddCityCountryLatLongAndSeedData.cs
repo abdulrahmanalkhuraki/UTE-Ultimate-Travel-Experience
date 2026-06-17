@@ -56,7 +56,7 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.InsertData(
                 table: "Cities",
-                columns: new[] { "Id", "CityName", "CountryId", "Description", "Image", "Latitude", "Longitude" },
+                columns: new[] { "Id", "CityName", "CountryId", "Description", "ProfileImage", "Latitude", "Longitude" },
                 values: new object[,]
                 {
                     { 2, "Amman", 1, "The capital of Jordan.", null, 31.945400m, 35.928400m },
