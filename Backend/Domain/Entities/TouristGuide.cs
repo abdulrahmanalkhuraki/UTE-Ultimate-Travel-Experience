@@ -70,9 +70,9 @@ namespace Domain.Entities
         public virtual Country NatinalityCountry { get; set; } = null!;
 
         /// <summary>Companies this guide works for (الشركات).</summary>
-        public virtual ICollection<CompanyGuide> CompanyGuides { get; set; } = new List<CompanyGuide>();
+        public virtual ICollection<Company_TouristGuide> CompanyGuides { get; set; } = new List<Company_TouristGuide>();
 
         /// <summary>Programs this guide is assigned to (البرامج).</summary>
-        public virtual ICollection<TourPackageGuide> TourPackageGuides { get; set; } = new List<TourPackageGuide>();
+        public virtual ICollection<TourPackage_TouristGuide> TourPackageGuides { get; set; } = new List<TourPackage_TouristGuide>();
     }
 }

@@ -3,7 +3,6 @@ using Application.DTOs.Booking.Response;
 using Application.Exceptions;
 using Application.Interfaces.Booking;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 

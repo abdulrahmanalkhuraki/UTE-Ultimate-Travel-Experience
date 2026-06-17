@@ -6,7 +6,7 @@ namespace Domain.Entities;
 /// Join entity linking a <see cref="TourPackage"/> to a <see cref="City"/> it
 /// visits (المناطق اللي رح تنزار). Many-to-many between programs and cities.
 /// </summary>
-public partial class PackageCity : BaseEntity
+public partial class TourPackage_City : BaseEntity
 {
     public int PackageId { get; set; }
 

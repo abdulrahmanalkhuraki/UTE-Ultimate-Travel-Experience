@@ -99,10 +99,10 @@ namespace Application.Services
                     entity.MainImageUrl = await _fileStorage.SaveAsync(request.MainImage, MainImageFolder, cancellationToken);
 
                 foreach (var cityId in request.CityIds.Distinct())
-                    entity.PackageCities.Add(new PackageCity { CityId = cityId });
+                    entity.PackageCities.Add(new TourPackage_City { CityId = cityId });
 
                 foreach (var guideId in request.TouristGuideIds.Distinct())
-                    entity.TourPackageGuides.Add(new TourPackageGuide { TouristGuideId = guideId });
+                    entity.TourPackageGuides.Add(new TourPackage_TouristGuide { TouristGuideId = guideId });
 
                 foreach (var cabin in ResolveCabinClasses(request.AvailableCabinClasses))
                     entity.CabinClasses.Add(new TourPackageCabinClass { CabinClass = cabin });
@@ -153,7 +153,7 @@ namespace Application.Services
                     .Include(p => p.TourPackageGuides)
                     .Include(p => p.CabinClasses)
                     .Include(p => p.PackageItineraries)
-                        .ThenInclude(d => d.PackageItineraryAttractions)
+                        .ThenInclude(d => d.Activities)
                     .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
                 if (entity is null)
@@ -203,7 +203,7 @@ namespace Application.Services
                 {
                     _unitOfWork.PackageCities.RemoveRange(entity.PackageCities);
                     entity.PackageCities = request.CityIds.Distinct()
-                        .Select(cityId => new PackageCity { CityId = cityId })
+                        .Select(cityId => new TourPackage_City { CityId = cityId })
                         .ToList();
                 }
 
@@ -212,7 +212,7 @@ namespace Application.Services
                 {
                     _unitOfWork.TourPackageGuides.RemoveRange(entity.TourPackageGuides);
                     entity.TourPackageGuides = request.TouristGuideIds.Distinct()
-                        .Select(guideId => new TourPackageGuide { TouristGuideId = guideId })
+                        .Select(guideId => new TourPackage_TouristGuide { TouristGuideId = guideId })
                         .ToList();
                 }
 
@@ -228,11 +228,11 @@ namespace Application.Services
                 // Replace the whole itinerary (days + activities) only when sent.
                 if (request.Days is not null)
                 {
-                    var oldActivities = entity.PackageItineraries.SelectMany(d => d.PackageItineraryAttractions).ToList();
+                    var oldActivities = entity.PackageItineraries.SelectMany(d => d.Activities).ToList();
                     _unitOfWork.PackageItineraryAttractions.RemoveRange(oldActivities);
                     _unitOfWork.PackageItineraries.RemoveRange(entity.PackageItineraries);
 
-                    var newDays = new List<PackageItinerary>();
+                    var newDays = new List<Itinerary>();
                     foreach (var day in request.Days)
                         newDays.Add(await BuildDayAsync(day, cancellationToken));
                     entity.PackageItineraries = newDays;
@@ -294,7 +294,7 @@ namespace Application.Services
         public async Task<IReadOnlyList<TourPackageResponse>> GetPendingAsync(CancellationToken cancellationToken = default)
         {
             var entities = await QueryWithGraph()
-                .Where(p => p.ApprovalStatus == ProgramApprovalStatus.Pending)
+                .Where(p => p.ApprovalStatus == PackageApprovalStatus.Pending)
                 .OrderBy(p => p.CreatedAtUtc) // longest-waiting first
                 .ToListAsync(cancellationToken);
 
@@ -302,18 +302,18 @@ namespace Application.Services
         }
 
         public Task<ProgramStatusResponse> AcceptAsync(int id, CancellationToken cancellationToken = default)
-            => SetApprovalAsync(id, ProgramApprovalStatus.Accepted, null, cancellationToken);
+            => SetApprovalAsync(id, PackageApprovalStatus.Accepted, null, cancellationToken);
 
         public Task<ProgramStatusResponse> RejectAsync(int id, string reason, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(reason))
                 throw new ArgumentException("Rejection reason is required", nameof(reason));
 
-            return SetApprovalAsync(id, ProgramApprovalStatus.Rejected, reason, cancellationToken);
+            return SetApprovalAsync(id, PackageApprovalStatus.Rejected, reason, cancellationToken);
         }
 
         /// <summary>Shared admin-moderation path for accept/reject: updates the status, then best-effort notifies the owning company.</summary>
-        private async Task<ProgramStatusResponse> SetApprovalAsync(int id, ProgramApprovalStatus approval, string? reason, CancellationToken cancellationToken)
+        private async Task<ProgramStatusResponse> SetApprovalAsync(int id, PackageApprovalStatus approval, string? reason, CancellationToken cancellationToken)
         {
             if (id <= 0)
                 throw new ArgumentException("Invalid tour package ID", nameof(id));
@@ -329,7 +329,7 @@ namespace Application.Services
                     throw new NotFoundException($"Tour package with ID {id} not found");
 
                 // Reason is kept only for rejections; cleared on accept.
-                var rejectionReason = approval == ProgramApprovalStatus.Rejected ? reason : null;
+                var rejectionReason = approval == PackageApprovalStatus.Rejected ? reason : null;
 
                 entity.ApprovalStatus = approval;
                 entity.RejectionReason = rejectionReason;
@@ -344,8 +344,8 @@ namespace Application.Services
                 // decision, so it is best-effort here (mirrors the TourCompany approve/reject flow).
                 var (message, notificationType) = approval switch
                 {
-                    ProgramApprovalStatus.Accepted => (ProgramApprovalMessages.Accepted, NotificationType.PackageAccepted),
-                    ProgramApprovalStatus.Rejected => ($"{ProgramApprovalMessages.Rejected} السبب: {reason}", NotificationType.PackageRejected),
+                    PackageApprovalStatus.Accepted => (PackageApprovalMessages.Accepted, NotificationType.PackageAccepted),
+                    PackageApprovalStatus.Rejected => ($"{PackageApprovalMessages.Rejected} السبب: {reason}", NotificationType.PackageRejected),
                     _ => (string.Empty, NotificationType.General)
                 };
 
@@ -396,7 +396,7 @@ namespace Application.Services
                     .Query()
                     .Include(p => p.PackageCities)
                     .Include(p => p.PackageItineraries)
-                        .ThenInclude(d => d.PackageItineraryAttractions)
+                        .ThenInclude(d => d.Activities)
                     .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
                 if (entity is null)
@@ -413,7 +413,7 @@ namespace Application.Services
                 if (hasBookings)
                     throw new BusinessRuleException("Cannot delete a program that already has bookings.");
 
-                var activities = entity.PackageItineraries.SelectMany(d => d.PackageItineraryAttractions).ToList();
+                var activities = entity.PackageItineraries.SelectMany(d => d.Activities).ToList();
                 _unitOfWork.PackageItineraryAttractions.RemoveRange(activities);
                 _unitOfWork.PackageItineraries.RemoveRange(entity.PackageItineraries);
                 _unitOfWork.PackageCities.RemoveRange(entity.PackageCities);
@@ -510,9 +510,9 @@ namespace Application.Services
             {
                 Total = rows.Count,
                 Current = rows.Count(r => r.Status == TourPackageStatus.Active && r.EndDate >= today),
-                Accepted = rows.Count(r => r.ApprovalStatus == ProgramApprovalStatus.Accepted),
+                Accepted = rows.Count(r => r.ApprovalStatus == PackageApprovalStatus.Accepted),
                 Cancelled = rows.Count(r => r.Status == TourPackageStatus.Cancelled),
-                Rejected = rows.Count(r => r.ApprovalStatus == ProgramApprovalStatus.Rejected),
+                Rejected = rows.Count(r => r.ApprovalStatus == PackageApprovalStatus.Rejected),
             };
         }
 
@@ -583,7 +583,7 @@ namespace Application.Services
                 .Include(p => p.PackageCities).ThenInclude(pc => pc.City)
                 .Include(p => p.TourPackageGuides).ThenInclude(g => g.TouristGuide)
                 .Include(p => p.CabinClasses)
-                .Include(p => p.PackageItineraries).ThenInclude(d => d.PackageItineraryAttractions);
+                .Include(p => p.PackageItineraries).ThenInclude(d => d.Activities);
 
         /// <summary>
         /// Restricts a query to programs that should be visible to the public/tourists:
@@ -592,7 +592,7 @@ namespace Application.Services
         /// </summary>
         private static IQueryable<TourPackage> WherePubliclyVisible(IQueryable<TourPackage> query) =>
             query.Where(p => p.IsPublished
-                          && p.ApprovalStatus == ProgramApprovalStatus.Accepted
+                          && p.ApprovalStatus == PackageApprovalStatus.Accepted
                           && p.Status == TourPackageStatus.Active);
 
         private async Task<TourPackageResponse> BuildResponseAsync(int id, CancellationToken cancellationToken)
@@ -603,9 +603,9 @@ namespace Application.Services
             return _mapper.Map<TourPackageResponse>(entity);
         }
 
-        private async Task<PackageItinerary> BuildDayAsync(TourPackageDayRequest day, CancellationToken cancellationToken)
+        private async Task<Itinerary> BuildDayAsync(TourPackageDayRequest day, CancellationToken cancellationToken)
         {
-            var itinerary = new PackageItinerary
+            var itinerary = new Itinerary
             {
                 DayNumber = day.DayNumber,
                 DayTitle = day.DayTitle.Trim(),
@@ -620,7 +620,7 @@ namespace Application.Services
                     ? await _fileStorage.SaveAsync(activity.Image, ActivityImageFolder, cancellationToken)
                     : activity.ImageUrl;
 
-                itinerary.PackageItineraryAttractions.Add(new PackageItineraryAttraction
+                itinerary.Activities.Add(new Activity
                 {
                     OrderNumber = activity.OrderNumber,
                     Title = activity.Title.Trim(),

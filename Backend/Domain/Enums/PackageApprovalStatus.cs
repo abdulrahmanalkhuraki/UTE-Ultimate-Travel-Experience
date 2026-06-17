@@ -5,7 +5,7 @@ namespace Domain.Enums
     /// <see cref="TourPackageStatus"/>. A new program starts <see cref="Pending"/>
     /// and an admin then <see cref="Accepted"/> (المقبولة) or <see cref="Rejected"/> (المرفوضة) it.
     /// </summary>
-    public enum ProgramApprovalStatus
+    public enum PackageApprovalStatus
     {
         Pending = 0,
         Accepted = 1,

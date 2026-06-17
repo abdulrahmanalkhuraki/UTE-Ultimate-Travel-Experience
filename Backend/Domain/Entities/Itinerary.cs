@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-
 namespace Domain.Entities;
 
 /// <summary>One day of a tour program (اليوم الأول / الثاني ...).</summary>
-public partial class PackageItinerary : BaseEntity
+public partial class Itinerary : BaseEntity
 {
     /// <summary>Sequential day number within the program (1-based).</summary>
     public int DayNumber { get; set; }
@@ -20,5 +17,5 @@ public partial class PackageItinerary : BaseEntity
     public virtual TourPackage Package { get; set; } = null!;
 
     /// <summary>Activities planned for the day (الأنشطة).</summary>
-    public virtual ICollection<PackageItineraryAttraction> PackageItineraryAttractions { get; set; } = new List<PackageItineraryAttraction>();
+    public virtual ICollection<Activity> Activities { get; set; } = new List<Activity>();
 }

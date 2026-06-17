@@ -61,7 +61,7 @@ public partial class TourPackage : BaseEntity
     public TourPackageStatus Status { get; set; } = TourPackageStatus.Active;
 
     /// <summary>Admin moderation state (حالة الموافقة). New programs start pending until an admin accepts (مقبول) or rejects (مرفوض) them.</summary>
-    public ProgramApprovalStatus ApprovalStatus { get; set; } = ProgramApprovalStatus.Pending;
+    public PackageApprovalStatus ApprovalStatus { get; set; } = PackageApprovalStatus.Pending;
 
     /// <summary>Reason shown to the company when an admin rejects the program (سبب الرفض). Set on reject, cleared on accept.</summary>
     public string? RejectionReason { get; set; }
@@ -81,20 +81,15 @@ public partial class TourPackage : BaseEntity
     public virtual Country Country { get; set; } = null!;
 
     /// <summary>Regions/cities visited by this program (المناطق اللي رح تنزار).</summary>
-    public virtual ICollection<PackageCity> PackageCities { get; set; } = new List<PackageCity>();
+    public virtual ICollection<TourPackage_City> PackageCities { get; set; } = new List<TourPackage_City>();
 
     /// <summary>Guides assigned to this program (المرشدون المختارون).</summary>
-    public virtual ICollection<TourPackageGuide> TourPackageGuides { get; set; } = new List<TourPackageGuide>();
+    public virtual ICollection<TourPackage_TouristGuide> TourPackageGuides { get; set; } = new List<TourPackage_TouristGuide>();
 
     /// <summary>Flight cabin classes made available (تذاكر الطيران المتاحة). Optional.</summary>
     public virtual ICollection<TourPackageCabinClass> CabinClasses { get; set; } = new List<TourPackageCabinClass>();
 
-    public virtual ICollection<PackageItinerary> PackageItineraries { get; set; } = new List<PackageItinerary>();
-
-    public virtual ICollection<TourPackageFlight> TourPackageFlights { get; set; } = new List<TourPackageFlight>();
-
-    public virtual ICollection<TourPackageHotel> TourPackageHotels { get; set; } = new List<TourPackageHotel>();
-
+    public virtual ICollection<Itinerary> PackageItineraries { get; set; } = new List<Itinerary>();
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 

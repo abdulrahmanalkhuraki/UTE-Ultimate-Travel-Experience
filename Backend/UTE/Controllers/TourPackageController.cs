@@ -231,7 +231,7 @@ namespace UTE.Controllers
         /// image and each activity image). The owning company comes from the JWT.
         /// </summary>
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "TourCompany")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(TourPackageResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]

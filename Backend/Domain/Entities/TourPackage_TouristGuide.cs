@@ -5,7 +5,7 @@ namespace Domain.Entities;
 /// assigned to it (المرشدون المختارون للبرنامج). Many-to-many: a program may have
 /// several guides, and a guide may lead several programs.
 /// </summary>
-public partial class TourPackageGuide : BaseEntity
+public partial class TourPackage_TouristGuide : BaseEntity
 {
     public int PackageId { get; set; }
 

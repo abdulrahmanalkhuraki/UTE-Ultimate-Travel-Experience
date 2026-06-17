@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Domain.Entities;
+﻿namespace Domain.Entities;
 
 public partial class Attraction : BaseEntity
 {
@@ -21,15 +18,11 @@ public partial class Attraction : BaseEntity
 
     public int CityId { get; set; }
 
-    public virtual ICollection<AttractionActivity> AttractionActivities { get; set; } = new List<AttractionActivity>();
+    public virtual City City { get; set; } = null!;
 
     public virtual ICollection<AttractionCategory> AttractionCategories { get; set; } = new List<AttractionCategory>();
 
-    public virtual City City { get; set; } = null!;
-
     public virtual ICollection<Image> Images { get; set; } = new List<Image>();
-
-    public virtual ICollection<PackageItineraryAttraction> PackageItineraryAttractions { get; set; } = new List<PackageItineraryAttraction>();
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 

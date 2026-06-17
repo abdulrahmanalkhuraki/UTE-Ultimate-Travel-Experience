@@ -5,7 +5,7 @@ namespace Domain.Entities;
 /// that works for it (مرشدي الشركة). Many-to-many: a guide may work for several
 /// companies, and a company has many guides.
 /// </summary>
-public partial class CompanyGuide : BaseEntity
+public partial class Company_TouristGuide : BaseEntity
 {
     public int CompanyId { get; set; }
 

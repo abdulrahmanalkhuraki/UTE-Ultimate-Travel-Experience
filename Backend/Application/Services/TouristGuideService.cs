@@ -15,7 +15,7 @@ namespace Application.Services
 {
     /// <summary>
     /// CRUD for tour guides, scoped to the signed-in company. A guide is linked to
-    /// the company through <see cref="CompanyGuide"/> (many-to-many), so a company
+    /// the company through <see cref="Company_TouristGuide"/> (many-to-many), so a company
     /// only ever sees and manages its own guides.
     /// </summary>
     public class TouristGuideService : ITouristGuideService
@@ -87,7 +87,7 @@ namespace Application.Services
                     entity.PassportScan = await _fileStorage.SaveAsync(request.PassportImage, GuideImageFolder, cancellationToken);
 
                 // Link the new guide to the creating company.
-                entity.CompanyGuides.Add(new CompanyGuide { CompanyId = companyId });
+                entity.CompanyGuides.Add(new Company_TouristGuide { CompanyId = companyId });
 
                 await _unitOfWork.TouristGuides.AddAsync(entity, cancellationToken);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);

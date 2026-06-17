@@ -14,14 +14,14 @@ namespace Application.Mappings
     {
         public TourPackageProfile()
         {
-            CreateMap<PackageItineraryAttraction, TourPackageActivityResponse>();
+            CreateMap<Activity, TourPackageActivityResponse>();
 
-            CreateMap<PackageItinerary, TourPackageDayResponse>()
+            CreateMap<Itinerary, TourPackageDayResponse>()
                 .ForMember(dest => dest.Activities,
-                    opt => opt.MapFrom(src => src.PackageItineraryAttractions
+                    opt => opt.MapFrom(src => src.Activities
                         .OrderBy(a => a.OrderNumber)));
 
-            CreateMap<PackageCity, PackageCityResponse>()
+            CreateMap<TourPackage_City, PackageCityResponse>()
                 .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.CityId))
                 .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City.CityName));
 

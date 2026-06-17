@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Entities
 {
-    public partial class CompanionBooking
+    public partial class Companion_Booking
     {
         public int Id { get; set; }
         public int CompanionId { get; set; }

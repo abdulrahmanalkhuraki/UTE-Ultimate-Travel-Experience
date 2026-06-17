@@ -374,7 +374,7 @@ namespace Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Domain.Entities.CompanionBooking", b =>
+            modelBuilder.Entity("Domain.Entities.Companion_Booking", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -397,7 +397,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("CompanionBookings");
                 });
 
-            modelBuilder.Entity("Domain.Entities.CompanyGuide", b =>
+            modelBuilder.Entity("Domain.Entities.Company_TouristGuide", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -799,7 +799,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("PackageCities", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.PackageItinerary", b =>
+            modelBuilder.Entity("Domain.Entities.Itinerary", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -839,7 +839,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("PackageItineraries");
                 });
 
-            modelBuilder.Entity("Domain.Entities.PackageItineraryAttraction", b =>
+            modelBuilder.Entity("Domain.Entities.Activity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -891,7 +891,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ItineraryId");
 
-                    b.ToTable("PackageItineraryAttractions");
+                    b.ToTable("Activities");
                 });
 
             modelBuilder.Entity("Domain.Entities.Payment", b =>
@@ -1698,7 +1698,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.CompanionBooking", b =>
+            modelBuilder.Entity("Domain.Entities.Companion_Booking", b =>
                 {
                     b.HasOne("Domain.Entities.Booking", "Booking")
                         .WithMany("CompanionBookings")
@@ -1717,7 +1717,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("Companion");
                 });
 
-            modelBuilder.Entity("Domain.Entities.CompanyGuide", b =>
+            modelBuilder.Entity("Domain.Entities.Company_TouristGuide", b =>
                 {
                     b.HasOne("Domain.Entities.TourCompany", "Company")
                         .WithMany("CompanyGuides")
@@ -1859,7 +1859,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("Package");
                 });
 
-            modelBuilder.Entity("Domain.Entities.PackageItinerary", b =>
+            modelBuilder.Entity("Domain.Entities.Itinerary", b =>
                 {
                     b.HasOne("Domain.Entities.TourPackage", "Package")
                         .WithMany("PackageItineraries")
@@ -1870,14 +1870,14 @@ namespace Infrastructure.Migrations
                     b.Navigation("Package");
                 });
 
-            modelBuilder.Entity("Domain.Entities.PackageItineraryAttraction", b =>
+            modelBuilder.Entity("Domain.Entities.Activity", b =>
                 {
                     b.HasOne("Domain.Entities.Attraction", null)
-                        .WithMany("PackageItineraryAttractions")
+                        .WithMany("Activities")
                         .HasForeignKey("AttractionId");
 
-                    b.HasOne("Domain.Entities.PackageItinerary", "Itinerary")
-                        .WithMany("PackageItineraryAttractions")
+                    b.HasOne("Domain.Entities.Itinerary", "Itinerary")
+                        .WithMany("Activities")
                         .HasForeignKey("ItineraryId")
                         .IsRequired()
                         .HasConstraintName("FK__PackageIt__Itine__2645B050");
@@ -2094,7 +2094,7 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Images");
 
-                    b.Navigation("PackageItineraryAttractions");
+                    b.Navigation("Activities");
 
                     b.Navigation("Reviews");
 
@@ -2145,9 +2145,9 @@ namespace Infrastructure.Migrations
                     b.Navigation("TourPackageHotels");
                 });
 
-            modelBuilder.Entity("Domain.Entities.PackageItinerary", b =>
+            modelBuilder.Entity("Domain.Entities.Itinerary", b =>
                 {
-                    b.Navigation("PackageItineraryAttractions");
+                    b.Navigation("Activities");
                 });
 
             modelBuilder.Entity("Domain.Entities.Payment", b =>

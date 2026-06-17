@@ -19,12 +19,12 @@ namespace Domain.Interfaces
         IGenericRepository<Role> Roles { get; }
         IGenericRepository<TourCompany> TourCompanies { get; }
         IGenericRepository<TourPackage> TourPackages { get; }
-        IGenericRepository<PackageItinerary> PackageItineraries { get; }
-        IGenericRepository<PackageItineraryAttraction> PackageItineraryAttractions { get; }
-        IGenericRepository<PackageCity> PackageCities { get; }
+        IGenericRepository<Itinerary> PackageItineraries { get; }
+        IGenericRepository<Activity> PackageItineraryAttractions { get; }
+        IGenericRepository<TourPackage_City> PackageCities { get; }
         IGenericRepository<TouristGuide> TouristGuides { get; }
-        IGenericRepository<CompanyGuide> CompanyGuides { get; }
-        IGenericRepository<TourPackageGuide> TourPackageGuides { get; }
+        IGenericRepository<Company_TouristGuide> CompanyGuides { get; }
+        IGenericRepository<TourPackage_TouristGuide> TourPackageGuides { get; }
         IGenericRepository<TourPackageCabinClass> TourPackageCabinClasses { get; }
         IGenericRepository<Country> Countries { get; }
         IGenericRepository<City> Cities { get; }

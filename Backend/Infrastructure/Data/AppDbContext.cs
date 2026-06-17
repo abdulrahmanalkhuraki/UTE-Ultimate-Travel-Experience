@@ -13,27 +13,21 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
 
     public virtual DbSet<Attraction> Attractions { get; set; }
 
-    public virtual DbSet<AttractionActivity> AttractionActivities { get; set; }
-
     public virtual DbSet<AttractionCategory> AttractionCategories { get; set; }
 
     public virtual DbSet<Booking> Bookings { get; set; }
-
-    public virtual DbSet<TourPackageHotel> TourPackageHotels { get; set; }
-
-    public virtual DbSet<TourPackageFlight> TourPackageFlights { get; set; }
 
     public virtual DbSet<Companion> Companions { get; set; }
 
     public virtual DbSet<TouristGuide> TouristGuides { get; set; }
 
-    public virtual DbSet<CompanyGuide> CompanyGuides { get; set; }
+    public virtual DbSet<Company_TouristGuide> CompanyGuides { get; set; }
 
-    public virtual DbSet<TourPackageGuide> TourPackageGuides { get; set; }
+    public virtual DbSet<TourPackage_TouristGuide> TourPackageGuides { get; set; }
 
     public virtual DbSet<TourPackageCabinClass> TourPackageCabinClasses { get; set; }
 
-    public virtual DbSet<CompanionBooking> CompanionBookings { get; set; }
+    public virtual DbSet<Companion_Booking> CompanionBookings { get; set; }
 
     public virtual DbSet<City> Cities { get; set; }
 
@@ -43,19 +37,15 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
 
     public virtual DbSet<Favorite> Favorites { get; set; }
 
-    public virtual DbSet<Flight> Flights { get; set; }
-
-    public virtual DbSet<Hotel> Hotels { get; set; }
-
     public virtual DbSet<Image> Images { get; set; }
 
     public virtual DbSet<Notification> Notifications { get; set; }
 
-    public virtual DbSet<PackageCity> PackageCities { get; set; }
+    public virtual DbSet<TourPackage_City> PackageCities { get; set; }
 
-    public virtual DbSet<PackageItinerary> PackageItineraries { get; set; }
+    public virtual DbSet<Itinerary> PackageItineraries { get; set; }
 
-    public virtual DbSet<PackageItineraryAttraction> PackageItineraryAttractions { get; set; }
+    public virtual DbSet<Activity> PackageItineraryAttractions { get; set; }
 
     public virtual DbSet<Payment> Payments { get; set; }
 
@@ -77,19 +67,6 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Activity>(entity =>
-        {
-            entity.Property(e => e.CreatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Description).HasMaxLength(200);
-            entity.Property(e => e.Name).HasMaxLength(50);
-            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.UpdatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-        });
-
         modelBuilder.Entity<Attraction>(entity =>
         {
             entity.Property(e => e.AttractionName).HasMaxLength(100);
@@ -110,26 +87,6 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .HasForeignKey(d => d.CityId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Attractio__CityI__6EF57B66");
-        });
-
-        modelBuilder.Entity<AttractionActivity>(entity =>
-        {
-            entity.Property(e => e.CreatedAtUtc)
-                .HasDefaultValueSql("(getutcdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.UpdatedAtUtc)
-                .HasDefaultValueSql("(getutcdate())")
-                .HasColumnType("datetime");
-
-            entity.HasOne(d => d.Activity).WithMany(p => p.AttractionActivities)
-                .HasForeignKey(d => d.ActivityId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Attractio__Activ__2180FB33");
-
-            entity.HasOne(d => d.Attraction).WithMany(p => p.AttractionActivities)
-                .HasForeignKey(d => d.AttractionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Attractio__Attra__22751F6C");
         });
 
         modelBuilder.Entity<AttractionCategory>(entity =>
@@ -175,7 +132,6 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
             entity.Property(e => e.RoomTypePreference)
                 .HasMaxLength(200);
 
-
             entity.Property(e => e.DietaryRequirements)
                 .HasMaxLength(200);
 
@@ -212,37 +168,6 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .HasConstraintName("FK__Bookings__UserId__0F624AF8");
         });
 
-        modelBuilder.Entity<TourPackageHotel>(entity =>
-        {
-            entity.HasKey(e => e.Id); 
-
-            entity.ToTable(e => e.HasCheckConstraint(
-                "CHK_Future_CheckIn",
-                "[CheckIn] > GETDATE()"));
-
-            entity.ToTable(e => e.HasCheckConstraint(
-                "CHK_CheckIn_CheckOut",
-                "[CheckOut] > [CheckIn]"));
-
-            entity.HasOne(e => e.Hotel).WithMany(d => d.TourPackageHotels)
-                .HasForeignKey(e => e.HotelId).OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(e => e.TourPackage).WithMany(d => d.TourPackageHotels)
-                .HasForeignKey(e => e.TourPackageId).OnDelete(DeleteBehavior.Restrict);
-
-        });
-
-        modelBuilder.Entity<TourPackageFlight>(entity =>
-        {
-            entity.HasKey(e => e.Id); 
-
-            entity.HasOne(e => e.Flight).WithMany(d => d.TourPackageFlights)
-                .HasForeignKey(e => e.FlightId).OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(e => e.TourPackage).WithMany(d => d.TourPackageFlights)
-                .HasForeignKey(e => e.TourPackageId).OnDelete(DeleteBehavior.Restrict);
-        });
-
         modelBuilder.Entity<Companion>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -252,6 +177,8 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
             entity.Property(e => e.Lastname).HasMaxLength(100);
 
             entity.Property(e => e.Phone).HasMaxLength(25);
+
+            entity.Ignore(e => e.Age);
             
             entity.HasOne(e => e.NationalityCountry).WithMany(d => d.NatinalityCompanions)
             .HasForeignKey(e => e.NationalityCountryId).OnDelete(DeleteBehavior.Restrict);
@@ -275,7 +202,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .HasColumnType("datetime");
         });
 
-        modelBuilder.Entity<CompanionBooking>(entity =>
+        modelBuilder.Entity<Companion_Booking>(entity =>
         {
             entity.HasKey(e => e.Id);
 
@@ -330,7 +257,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<CompanyGuide>(entity =>
+        modelBuilder.Entity<Company_TouristGuide>(entity =>
         {
             entity.ToTable("CompanyGuides");
 
@@ -355,7 +282,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .HasConstraintName("FK_CompanyGuides_TouristGuides");
         });
 
-        modelBuilder.Entity<TourPackageGuide>(entity =>
+        modelBuilder.Entity<TourPackage_TouristGuide>(entity =>
         {
             entity.ToTable("TourPackageGuides");
 
@@ -533,36 +460,6 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .HasConstraintName("FK__Favorites__UserI__3B40CD36");
         });
 
-        modelBuilder.Entity<Flight>(entity =>
-        {
-            entity.Property(e => e.Airline).HasMaxLength(100);
-            entity.Property(e => e.Arrival).HasColumnType("datetime");
-            entity.Property(e => e.CreatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Departure).HasColumnType("datetime");
-            entity.Property(e => e.FlightNumber).HasMaxLength(20);
-            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.UpdatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-        });
-
-        modelBuilder.Entity<Hotel>(entity =>
-        {
-            entity.Property(e => e.CreatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Description).HasMaxLength(500);
-            entity.Property(e => e.HotelName).HasMaxLength(100);
-            entity.Property(e => e.Latitude).HasColumnType("decimal(10, 6)");
-            entity.Property(e => e.Longitude).HasColumnType("decimal(10, 6)");
-            entity.Property(e => e.PricePerNight).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.UpdatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-        });
-
         modelBuilder.Entity<Image>(entity =>
         {
             entity.Property(e => e.CreatedAtUtc)
@@ -619,7 +516,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<PackageCity>(entity =>
+        modelBuilder.Entity<TourPackage_City>(entity =>
         {
             entity.ToTable("PackageCities");
 
@@ -643,7 +540,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .HasConstraintName("FK_PackageCities_Cities");
         });
 
-        modelBuilder.Entity<PackageItinerary>(entity =>
+        modelBuilder.Entity<Itinerary>(entity =>
         {
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
@@ -660,7 +557,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .HasConstraintName("FK__PackageIt__Packa__6A30C649");
         });
 
-        modelBuilder.Entity<PackageItineraryAttraction>(entity =>
+        modelBuilder.Entity<Activity>(entity =>
         {
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getutcdate())")
@@ -674,7 +571,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
             entity.Property(e => e.StartTime).HasColumnType("time(0)");
             entity.Property(e => e.EndTime).HasColumnType("time(0)");
 
-            entity.HasOne(d => d.Itinerary).WithMany(p => p.PackageItineraryAttractions)
+            entity.HasOne(d => d.Itinerary).WithMany(p => p.Activities)
                 .HasForeignKey(d => d.ItineraryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__PackageIt__Itine__2645B050");
@@ -813,7 +710,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
 
             entity.Property(e => e.ApprovalStatus)
                 .HasConversion<int>()
-                .HasDefaultValue(ProgramApprovalStatus.Pending);
+                .HasDefaultValue(PackageApprovalStatus.Pending);
             entity.Property(e => e.RejectionReason).HasMaxLength(1000);
 
             entity.Property(e => e.ServiceLevel)

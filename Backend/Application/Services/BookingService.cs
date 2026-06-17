@@ -174,7 +174,7 @@ namespace Application.Services
 
                 foreach (var companionId in request.CompanionIds)
                 {
-                    booking.CompanionBookings.Add(new CompanionBooking
+                    booking.CompanionBookings.Add(new Companion_Booking
                     {
                         CompanionId = companionId
                     });
@@ -882,7 +882,7 @@ namespace Application.Services
                     entity.CompanionBookings.Clear();
                     foreach (var companionId in request.CompanionIds)
                     {
-                        entity.CompanionBookings.Add(new CompanionBooking
+                        entity.CompanionBookings.Add(new Companion_Booking
                         {
                             BookingId = id,
                             CompanionId = companionId

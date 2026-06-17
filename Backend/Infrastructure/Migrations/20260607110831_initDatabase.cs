@@ -834,7 +834,7 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PackageItineraryAttractions",
+                name: "Activities",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -1009,12 +1009,12 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_PackageItineraryAttractions_AttractionId",
-                table: "PackageItineraryAttractions",
+                table: "Activities",
                 column: "AttractionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PackageItineraryAttractions_ItineraryId",
-                table: "PackageItineraryAttractions",
+                table: "Activities",
                 column: "ItineraryId");
 
             migrationBuilder.CreateIndex(
@@ -1144,7 +1144,7 @@ namespace Infrastructure.Migrations
                 name: "PackageCities");
 
             migrationBuilder.DropTable(
-                name: "PackageItineraryAttractions");
+                name: "Activities");
 
             migrationBuilder.DropTable(
                 name: "Rates");
