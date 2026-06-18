@@ -1,8 +1,10 @@
+using Application.DTOs.Person.Request;
 using Application.DTOs.User.Request;
 using Application.DTOs.User.Response;
 using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Auth;
+using Application.Interfaces.Person;
 using Application.Interfaces.User;
 using Application.Validators.User;
 using AutoMapper;
@@ -21,11 +23,12 @@ namespace Application.Services
         private readonly IMapper _mapper;
         private readonly ILogger<UserService> _logger;
         private readonly IMemoryCache _cache;
-        private readonly Interfaces.Auth.IPasswordHasher _passwordHasher;
+        private readonly IPasswordHasher _passwordHasher;
         private readonly IFileStorage _fileStorage;
-        private readonly UserUpdateValidator _updateMeValidator;
+        private readonly UserUpdateValidator _userUpdateValidator;
         private readonly CompleteProfileValidator _completeProfileValidator;
-        private readonly CompleteCompanyProfileValidator _completeCompanyProfileValidator;
+        private readonly UpdateLocationValidator _updateLocationValidator;
+        private readonly ChangePasswordValidator _changePasswordValidator;
 
         // Cache constants
         private const string UserCacheKeyPrefix = "user_";
@@ -42,7 +45,8 @@ namespace Application.Services
             IFileStorage fileStorage,
             UserUpdateValidator updateMeValidator,
             CompleteProfileValidator completeProfileValidator,
-            CompleteCompanyProfileValidator completeCompanyProfileValidator)
+            UpdateLocationValidator updateLocationValidator,
+            ChangePasswordValidator changePasswordValidator)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -50,9 +54,10 @@ namespace Application.Services
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
             _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
-            _updateMeValidator = updateMeValidator ?? throw new ArgumentNullException(nameof(updateMeValidator));
+            _userUpdateValidator = updateMeValidator ?? throw new ArgumentNullException(nameof(updateMeValidator));
             _completeProfileValidator = completeProfileValidator ?? throw new ArgumentNullException(nameof(completeProfileValidator));
-            _completeCompanyProfileValidator = completeCompanyProfileValidator ?? throw new ArgumentNullException(nameof(completeCompanyProfileValidator));
+            _updateLocationValidator = updateLocationValidator ?? throw new ArgumentNullException(nameof(updateLocationValidator));
+            _changePasswordValidator = changePasswordValidator ?? throw new ArgumentNullException(nameof(changePasswordValidator));
         }
 
         public async Task<UserResponse> CompleteProfileAsync(int userId, CompleteProfileRequest request, CancellationToken cancellationToken = default)
@@ -74,25 +79,25 @@ namespace Application.Services
 
             try
             {
-                var entity = await _unitOfWork.Users
+                var user = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Role)
                     .Include(u => u.Person)
                     .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
-                if (entity == null)
+                if (user == null)
                 {
                     _logger.LogWarning("User {UserId} not found for profile completion", userId);
                     throw new NotFoundException($"User with ID '{userId}' not found");
                 }
 
-                if (!entity.IsEmailVerified)
+                if (!user.IsEmailVerified)
                     throw new ForbiddenException("Email must be verified before completing the profile.");
 
-                if (entity.PersonId.HasValue)
+                if (user.PersonId.HasValue)
                     throw new ConflictException("Profile has already been completed. Use the update endpoint to change it.");
 
-                if(entity.Role.RoleName != "Tourist")
+                if (user.Role.RoleName != "Tourist")
                     throw new ForbiddenException("Email must be verified before completing the profile.");
 
                 // Ensure national/passport numbers are unique across other users
@@ -103,7 +108,7 @@ namespace Application.Services
                     .Query()
                     .Include(u => u.Person)
                     .AnyAsync(u => u.Person != null &&
-                    u.Person.NationalNumber == nationalNumber && 
+                    u.Person.NationalNumber == nationalNumber &&
                     u.Id != userId, cancellationToken);
 
                 if (nationalTaken)
@@ -112,20 +117,25 @@ namespace Application.Services
                 var passportTaken = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Person)
-                    .AnyAsync(u => u.Person != null && 
-                    u.Person.PassportNumber == passportNumber && 
+                    .AnyAsync(u => u.Person != null &&
+                    u.Person.PassportNumber == passportNumber &&
                     u.Id != userId, cancellationToken);
 
                 if (passportTaken)
                     throw new ConflictException("This passport number is already registered.");
 
-                // Save uploaded images
+                // Save uploaded image
                 string? profileImageUrl = null;
                 if (request.Image is { Length: > 0 })
                     profileImageUrl = await _fileStorage.SaveAsync(request.Image, "profiles", cancellationToken);
 
+                // Save uploaded Passport scan
+                string? passportImageUrl = null;
+                if (request.PassportImage is { Length: > 0 })
+                    passportImageUrl = await _fileStorage.SaveAsync(request.PassportImage, "passports", cancellationToken);
+
                 var nationalIdImageUrl = await _fileStorage.SaveAsync(request.NationalIdImage, "national-ids", cancellationToken);
-                var passportImageUrl = await _fileStorage.SaveAsync(request.PassportImage, "passports", cancellationToken);
+
 
                 var person = _mapper.Map<Person>(request);
                 person.NationalNumber = nationalNumber;
@@ -133,19 +143,17 @@ namespace Application.Services
                 person.NationalIdCard = nationalIdImageUrl;
                 person.ProfileImage = profileImageUrl;
                 person.PassportScan = passportImageUrl;
-                person.CreatedAtUtc = DateTime.UtcNow;
-                person.UpdatedAtUtc = DateTime.UtcNow;
 
-                entity.Person = person;
-                entity.BankAccount = request.BankAccount.Trim();
-                entity.UpdatedAtUtc = DateTime.UtcNow;
+                user.Person = person;
+                user.BankAccount = request.BankAccount.Trim();
+                user.UpdatedAtUtc = DateTime.UtcNow;
 
-                _unitOfWork.Users.Update(entity);
+                _unitOfWork.Users.Update(user);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 InvalidateUserCache(userId);
 
-                var response = _mapper.Map<UserResponse>(entity);
+                var response = _mapper.Map<UserResponse>(user);
 
                 _logger.LogInformation("User {UserId} successfully completed their profile", userId);
 
@@ -180,7 +188,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<UserResponse> UpdateMeAsync(int userId, UserUpdateRequest request, CancellationToken cancellationToken = default)
+        public async Task<UserResponse> UpdateAsync(int userId, UserUpdateRequest request, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
@@ -190,7 +198,7 @@ namespace Application.Services
             _logger.LogInformation("User {UserId} attempting to update their profile", userId);
 
             // Validate request
-            var validationResult = await _updateMeValidator.ValidateAsync(request, cancellationToken);
+            var validationResult = await _userUpdateValidator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
                 _logger.LogWarning("Profile update validation failed for user {UserId}: {Errors}",
@@ -200,58 +208,40 @@ namespace Application.Services
 
             try
             {
-                var entity = await _unitOfWork.Users
+                var user = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Role)
                     .Include(u => u.Person)
                     .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
-                if (entity == null)
+                if (user == null)
                 {
                     _logger.LogWarning("User with ID {UserId} not found for self-update", userId);
                     throw new NotFoundException($"User with ID '{userId}' not found");
                 }
 
-                // Handle password change: verify CurrentPassword before applying NewPassword
-                if (!string.IsNullOrWhiteSpace(request.NewPassword))
+                if(user.Person == null)
                 {
-                    if (!_passwordHasher.Verify(request.CurrentPassword!, entity.Password))
-                    {
-                        _logger.LogWarning("Incorrect current password for user {UserId} during password change", userId);
-                        throw new AuthException("Current password is incorrect");
-                    }
-
-                    entity.Password = _passwordHasher.Hash(request.NewPassword);
+                    _logger.LogWarning("User with ID {UserId} did not complete his profile", userId);
+                    throw new ForbiddenException($"User with ID '{userId}' did not complete his profile");
                 }
 
-                // Update only Person fields that were provided (partial update)
-                if (!string.IsNullOrWhiteSpace(request.FirstName))
-                    entity.Person.FirstName = request.FirstName.Trim();
 
-                if (!string.IsNullOrWhiteSpace(request.LastName))
-                    entity.Person.LastName = request.LastName.Trim();
+                var person = new Person();
 
-                if (!string.IsNullOrWhiteSpace(request.Phone))
-                    entity.Person.Phone = request.Phone.Trim();
-
-                if (request.DateOfBirth.HasValue)
-                    entity.Person.DateOfBirth = request.DateOfBirth.Value;
-
-                if (!string.IsNullOrWhiteSpace(request.Gender))
-                    entity.Person.Gender = request.Gender;
-
-                if (!string.IsNullOrWhiteSpace(request.BankAccount))
-                    entity.BankAccount = request.BankAccount.Trim();
-
+                // check if nationalNumber exists in the system
                 if (!string.IsNullOrWhiteSpace(request.NationalNumber))
                 {
                     var newNationalNumber = request.NationalNumber.Trim();
 
-                    if (!string.Equals(entity.Person.NationalNumber, newNationalNumber, StringComparison.OrdinalIgnoreCase))
+                    if (!string.Equals(user.Person.NationalNumber, newNationalNumber, StringComparison.OrdinalIgnoreCase))
                     {
                         var nationalTaken = await _unitOfWork.Users
                             .Query()
-                            .AnyAsync(u => u.Person.NationalNumber == newNationalNumber && u.Id != userId, cancellationToken);
+                            .Include(u => u.Person)
+                            .AnyAsync(u => u.Person != null &&
+                            u.Person.NationalNumber == newNationalNumber &&
+                            u.Id != userId, cancellationToken);
 
                         if (nationalTaken)
                         {
@@ -259,19 +249,22 @@ namespace Application.Services
                             throw new ConflictException("This national number is already registered.");
                         }
 
-                        entity.Person.NationalNumber = newNationalNumber;
+                        user.Person.NationalNumber = newNationalNumber;
                     }
                 }
-
+                // check if PassportNumber exists in the system
                 if (!string.IsNullOrWhiteSpace(request.PassportNumber))
                 {
                     var newPassportNumber = request.PassportNumber.Trim();
 
-                    if (!string.Equals(entity.Person.PassportNumber, newPassportNumber, StringComparison.OrdinalIgnoreCase))
+                    if (!string.Equals(user.Person.PassportNumber, newPassportNumber, StringComparison.OrdinalIgnoreCase))
                     {
                         var passportTaken = await _unitOfWork.Users
                             .Query()
-                            .AnyAsync(u => u.Person.PassportNumber == newPassportNumber && u.Id != userId, cancellationToken);
+                            .Include(u => u.Person)
+                            .AnyAsync(u => u.Person != null &&
+                            u.Person.PassportNumber == newPassportNumber &&
+                            u.Id != userId, cancellationToken);
 
                         if (passportTaken)
                         {
@@ -279,29 +272,37 @@ namespace Application.Services
                             throw new ConflictException("This passport number is already registered.");
                         }
 
-                        entity.Person.PassportNumber = newPassportNumber;
+                        user.Person.PassportNumber = newPassportNumber;
                     }
                 }
 
+
+                _mapper.Map(request, person);
+                person.UpdatedAtUtc = DateTime.UtcNow;
+
+                user.Person = person;
+                user.UpdatedAtUtc = DateTime.UtcNow;
+
+
                 // Upload new images if provided
                 if (request.Image is { Length: > 0 })
-                    entity.Person.ProfileImage = await _fileStorage.SaveAsync(request.Image, "profiles", cancellationToken);
+                    user.Person.ProfileImage = await _fileStorage.SaveAsync(request.Image, "profiles", cancellationToken);
 
                 if (request.NationalIdImage is { Length: > 0 })
-                    entity.Person.NationalIdCard = await _fileStorage.SaveAsync(request.NationalIdImage, "national-ids", cancellationToken);
+                    user.Person.NationalIdCard = await _fileStorage.SaveAsync(request.NationalIdImage, "national-ids", cancellationToken);
 
                 if (request.PassportImage is { Length: > 0 })
-                    entity.Person.PassportScan = await _fileStorage.SaveAsync(request.PassportImage, "passports", cancellationToken);
+                    user.Person.PassportScan = await _fileStorage.SaveAsync(request.PassportImage, "passports", cancellationToken);
 
-                entity.UpdatedAtUtc = DateTime.UtcNow;
+                user.UpdatedAtUtc = DateTime.UtcNow;
 
-                _unitOfWork.Users.Update(entity);
+                _unitOfWork.Users.Update(user);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 // Invalidate cache
                 InvalidateUserCache(userId);
 
-                var response = _mapper.Map<UserResponse>(entity);
+                var response = _mapper.Map<UserResponse>(user);
 
                 _logger.LogInformation("User {UserId} successfully updated their profile", userId);
 

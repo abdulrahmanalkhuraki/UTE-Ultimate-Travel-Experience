@@ -268,7 +268,6 @@ builder.Services.AddScoped<Application.Interfaces.City.ICityService, CityService
 // User
 builder.Services.AddScoped<UserUpdateValidator>();
 builder.Services.AddScoped<CompleteProfileValidator>();
-builder.Services.AddScoped<CompleteCompanyProfileValidator>();
 builder.Services.AddScoped<IUserService, UserService>();
 
 // Booking

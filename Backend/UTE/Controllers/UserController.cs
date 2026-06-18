@@ -194,76 +194,76 @@ namespace UTE.Controllers
         /// <response code="404">If the user or the TourCompany role is not found</response>
         /// <response code="409">If the profile has already been completed, or a unique field is taken</response>
         /// <response code="500">If there was an internal server error</response>
-        [HttpPost("complete-company-profile")]
-        [Authorize]
-        [Consumes("multipart/form-data")]
-        [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<UserResponse>> CompleteCompanyProfile(
-            [FromForm] CompleteCompanyProfileRequest request,
-            CancellationToken cancellationToken = default)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(CreateValidationProblemDetails());
-            }
+        //[HttpPost("complete-company-profile")]
+        //[Authorize]
+        //[Consumes("multipart/form-data")]
+        //[ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        //[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        //[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        //[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        //[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        //public async Task<ActionResult<UserResponse>> CompleteCompanyProfile(
+        //    [FromForm] CompleteCompanyProfileRequest request,
+        //    CancellationToken cancellationToken = default)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(CreateValidationProblemDetails());
+        //    }
 
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid or missing authentication token", StatusCodes.Status401Unauthorized));
-            }
+        //    var userId = GetCurrentUserId();
+        //    if (userId is null)
+        //    {
+        //        return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid or missing authentication token", StatusCodes.Status401Unauthorized));
+        //    }
 
-            try
-            {
-                var profile = await _userService.CompleteCompanyProfileAsync(userId.Value, request, cancellationToken);
-                return Ok(profile);
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning(ex, "Invalid argument completing company profile for user {UserId}", userId);
-                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
-            }
-            catch (ValidationException ex)
-            {
-                _logger.LogWarning(ex, "Validation error completing company profile for user {UserId}", userId);
-                var problem = CreateProblemDetails("Validation Error", "One or more validation errors occurred", StatusCodes.Status400BadRequest);
-                problem.Extensions["errors"] = ex.Errors;
-                return BadRequest(problem);
-            }
-            catch (ForbiddenException ex)
-            {
-                _logger.LogWarning(ex, "Forbidden while completing company profile for user {UserId}", userId);
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
-            }
-            catch (NotFoundException ex)
-            {
-                _logger.LogWarning(ex, "Not found while completing company profile for user {UserId}", userId);
-                return NotFound(CreateProblemDetails("Not Found", ex.Message, StatusCodes.Status404NotFound));
-            }
-            catch (ConflictException ex)
-            {
-                _logger.LogWarning(ex, "Conflict completing company profile for user {UserId}", userId);
-                return Conflict(CreateProblemDetails("Conflict", ex.Message, StatusCodes.Status409Conflict));
-            }
-            catch (ConcurrencyException ex)
-            {
-                _logger.LogWarning(ex, "Concurrency conflict completing company profile for user {UserId}", userId);
-                return Conflict(CreateProblemDetails("Concurrency Conflict", ex.Message, StatusCodes.Status409Conflict));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error completing company profile for user {UserId}", userId);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
-        }
+        //    try
+        //    {
+        //        var profile = await _userService.CompleteCompanyProfileAsync(userId.Value, request, cancellationToken);
+        //        return Ok(profile);
+        //    }
+        //    catch (ArgumentException ex)
+        //    {
+        //        _logger.LogWarning(ex, "Invalid argument completing company profile for user {UserId}", userId);
+        //        return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
+        //    }
+        //    catch (ValidationException ex)
+        //    {
+        //        _logger.LogWarning(ex, "Validation error completing company profile for user {UserId}", userId);
+        //        var problem = CreateProblemDetails("Validation Error", "One or more validation errors occurred", StatusCodes.Status400BadRequest);
+        //        problem.Extensions["errors"] = ex.Errors;
+        //        return BadRequest(problem);
+        //    }
+        //    catch (ForbiddenException ex)
+        //    {
+        //        _logger.LogWarning(ex, "Forbidden while completing company profile for user {UserId}", userId);
+        //        return StatusCode(StatusCodes.Status403Forbidden,
+        //            CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
+        //    }
+        //    catch (NotFoundException ex)
+        //    {
+        //        _logger.LogWarning(ex, "Not found while completing company profile for user {UserId}", userId);
+        //        return NotFound(CreateProblemDetails("Not Found", ex.Message, StatusCodes.Status404NotFound));
+        //    }
+        //    catch (ConflictException ex)
+        //    {
+        //        _logger.LogWarning(ex, "Conflict completing company profile for user {UserId}", userId);
+        //        return Conflict(CreateProblemDetails("Conflict", ex.Message, StatusCodes.Status409Conflict));
+        //    }
+        //    catch (ConcurrencyException ex)
+        //    {
+        //        _logger.LogWarning(ex, "Concurrency conflict completing company profile for user {UserId}", userId);
+        //        return Conflict(CreateProblemDetails("Concurrency Conflict", ex.Message, StatusCodes.Status409Conflict));
+        //    }
+        //    catch (ServiceException ex)
+        //    {
+        //        _logger.LogError(ex, "Error completing company profile for user {UserId}", userId);
+        //        return StatusCode(StatusCodes.Status500InternalServerError,
+        //            CreateProblemDetails("Internal Server Error", ex.Message));
+        //    }
+        //}
 
         /// <summary>
         /// Updates the authenticated user's own profile (partial update). Password change requires the current password.
@@ -303,7 +303,7 @@ namespace UTE.Controllers
 
             try
             {
-                var updatedUser = await _userService.UpdateMeAsync(userId.Value, request, cancellationToken);
+                var updatedUser = await _userService.UpdateAsync(userId.Value, request, cancellationToken);
                 return Ok(updatedUser);
             }
             catch (ArgumentException ex)
