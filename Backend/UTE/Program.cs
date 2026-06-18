@@ -25,7 +25,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using System.ComponentModel.DataAnnotations;
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using UTE.Middleware;
@@ -267,7 +266,7 @@ builder.Services.AddScoped<Application.Interfaces.Country.ICountryService, Count
 builder.Services.AddScoped<Application.Interfaces.City.ICityService, CityService>();
 
 // User
-builder.Services.AddScoped<UpdateMeValidator>();
+builder.Services.AddScoped<UserUpdateValidator>();
 builder.Services.AddScoped<CompleteProfileValidator>();
 builder.Services.AddScoped<CompleteCompanyProfileValidator>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -316,6 +315,7 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<NotificationProfile>();
     cfg.AddProfile<CountryProfile>();
     cfg.AddProfile<CityProfile>();
+    cfg.AddProfile<PersonProfile>();
 });
 
 // ==========================================

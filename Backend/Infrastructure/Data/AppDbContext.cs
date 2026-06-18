@@ -190,7 +190,7 @@ namespace Infrastructure.Data;
 
         modelBuilder.Entity<Company_TouristGuide>(entity =>
         {
-            entity.ToTable("CompanyGuides");
+            entity.ToTable("Company_TouristGuide");
 
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
@@ -215,7 +215,7 @@ namespace Infrastructure.Data;
 
         modelBuilder.Entity<TourPackage_TouristGuide>(entity =>
         {
-            entity.ToTable("TourPackageGuides");
+            entity.ToTable("TourPackage_TouristGuide");
 
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")

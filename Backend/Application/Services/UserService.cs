@@ -23,7 +23,7 @@ namespace Application.Services
         private readonly IMemoryCache _cache;
         private readonly Interfaces.Auth.IPasswordHasher _passwordHasher;
         private readonly IFileStorage _fileStorage;
-        private readonly UpdateMeValidator _updateMeValidator;
+        private readonly UserUpdateValidator _updateMeValidator;
         private readonly CompleteProfileValidator _completeProfileValidator;
         private readonly CompleteCompanyProfileValidator _completeCompanyProfileValidator;
 
@@ -38,9 +38,9 @@ namespace Application.Services
             IMapper mapper,
             ILogger<UserService> logger,
             IMemoryCache cache,
-            Interfaces.Auth.IPasswordHasher passwordHasher,
+            IPasswordHasher passwordHasher,
             IFileStorage fileStorage,
-            UpdateMeValidator updateMeValidator,
+            UserUpdateValidator updateMeValidator,
             CompleteProfileValidator completeProfileValidator,
             CompleteCompanyProfileValidator completeCompanyProfileValidator)
         {
@@ -89,28 +89,11 @@ namespace Application.Services
                 if (!entity.IsEmailVerified)
                     throw new ForbiddenException("Email must be verified before completing the profile.");
 
-                if (!entity.PersonId.HasValue)
+                if (entity.PersonId.HasValue)
                     throw new ConflictException("Profile has already been completed. Use the update endpoint to change it.");
 
-                // Resolve role: when no RoleId is provided, default to the "User" role.
-                Role role;
-                if (request.RoleId is > 0)
-                {
-                    role = await _unitOfWork.Roles
-                        .Query()
-                        .FirstOrDefaultAsync(r => r.Id == request.RoleId.Value, cancellationToken)
-                        ?? throw new NotFoundException($"Role with id {request.RoleId.Value} does not exist.");
-
-                    if (role.RoleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
-                        throw new ForbiddenException("Selecting Admin role is not allowed from this endpoint.");
-                }
-                else
-                {
-                    role = await _unitOfWork.Roles
-                        .Query()
-                        .FirstOrDefaultAsync(r => r.RoleName == "Tourist", cancellationToken)
-                        ?? throw new NotFoundException("Default 'Tourist' role does not exist.");
-                }
+                if(entity.Role.RoleName != "Tourist")
+                    throw new ForbiddenException("Email must be verified before completing the profile.");
 
                 // Ensure national/passport numbers are unique across other users
                 var nationalNumber = request.NationalNumber.Trim();
@@ -118,14 +101,20 @@ namespace Application.Services
 
                 var nationalTaken = await _unitOfWork.Users
                     .Query()
-                    .AnyAsync(u => u.Person.NationalNumber == nationalNumber && u.Id != userId, cancellationToken);
+                    .Include(u => u.Person)
+                    .AnyAsync(u => u.Person != null &&
+                    u.Person.NationalNumber == nationalNumber && 
+                    u.Id != userId, cancellationToken);
 
                 if (nationalTaken)
                     throw new ConflictException("This national number is already registered.");
 
                 var passportTaken = await _unitOfWork.Users
                     .Query()
-                    .AnyAsync(u => u.Person.PassportNumber == passportNumber && u.Id != userId, cancellationToken);
+                    .Include(u => u.Person)
+                    .AnyAsync(u => u.Person != null && 
+                    u.Person.PassportNumber == passportNumber && 
+                    u.Id != userId, cancellationToken);
 
                 if (passportTaken)
                     throw new ConflictException("This passport number is already registered.");
@@ -138,35 +127,25 @@ namespace Application.Services
                 var nationalIdImageUrl = await _fileStorage.SaveAsync(request.NationalIdImage, "national-ids", cancellationToken);
                 var passportImageUrl = await _fileStorage.SaveAsync(request.PassportImage, "passports", cancellationToken);
 
-                //entity.FirstName          = request.FirstName.Trim();
-                //entity.LastName           = request.LastName.Trim();
-                //entity.ResidentialCityId   = request.PlaceOfResidence.Trim();
-                //entity.CurrentLocation    = request.CurrentLocation.Trim();
-                //entity.Gender             = request.Gender;
-                //entity.DateOfBirth        = request.DateOfBirth!.Value;
-                //entity.NationalNumber     = nationalNumber;
-                //entity.PassportNumber     = passportNumber;
-                entity.BankAccount        = request.BankAccount.Trim();
-                entity.RoleId             = role.Id;
-                //entity.Phone              = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
-                if (profileImageUrl != null) entity.Person.ProfileImage = profileImageUrl;
-                //entity.NationalIdCard    = nationalIdImageUrl;
-                //entity.PassportScan      = passportImageUrl;
-                //entity.IsProfileCompleted = true;
-                entity.UpdatedAtUtc       = DateTime.UtcNow;
+                var person = _mapper.Map<Person>(request);
+                person.NationalNumber = nationalNumber;
+                person.PassportNumber = passportNumber;
+                person.NationalIdCard = nationalIdImageUrl;
+                person.ProfileImage = profileImageUrl;
+                person.PassportScan = passportImageUrl;
+                person.CreatedAtUtc = DateTime.UtcNow;
+                person.UpdatedAtUtc = DateTime.UtcNow;
+
+                entity.Person = person;
+                entity.BankAccount = request.BankAccount.Trim();
+                entity.UpdatedAtUtc = DateTime.UtcNow;
 
                 _unitOfWork.Users.Update(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                // Reload with role for the response
-                var refreshed = await _unitOfWork.Users
-                    .Query()
-                    .Include(u => u.Role)
-                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
                 InvalidateUserCache(userId);
 
-                var response = _mapper.Map<UserResponse>(refreshed ?? entity);
+                var response = _mapper.Map<UserResponse>(entity);
 
                 _logger.LogInformation("User {UserId} successfully completed their profile", userId);
 
@@ -201,126 +180,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<UserResponse> CompleteCompanyProfileAsync(int userId, CompleteCompanyProfileRequest request, CancellationToken cancellationToken = default)
-        {
-            ArgumentNullException.ThrowIfNull(request, nameof(request));
-
-            if (userId <= 0)
-                throw new ArgumentException("Invalid user ID", nameof(userId));
-
-            _logger.LogInformation("User {UserId} attempting to complete company profile", userId);
-
-            var validationResult = await _completeCompanyProfileValidator.ValidateAsync(request, cancellationToken);
-            if (!validationResult.IsValid)
-            {
-                _logger.LogWarning("Company profile completion validation failed for user {UserId}: {Errors}",
-                    userId, string.Join(", ", validationResult.Errors));
-                throw new ValidationException(validationResult.Errors);
-            }
-
-            try
-            {
-                var entity = await _unitOfWork.Users
-                    .Query()
-                    .Include(u => u.Role)
-                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
-                if (entity == null)
-                {
-                    _logger.LogWarning("User {UserId} not found for company profile completion", userId);
-                    throw new NotFoundException($"User with ID '{userId}' not found");
-                }
-
-                if (!entity.IsEmailVerified)
-                    throw new ForbiddenException("Email must be verified before completing the profile.");
-
-                if (!entity.PersonId.HasValue)
-                    throw new ConflictException("Profile has already been completed. Use the update endpoint to change it.");
-
-                // Role is fixed to "TourCompany" for this flow; it is not chosen by the client.
-                var role = await _unitOfWork.Roles
-                    .Query()
-                    .FirstOrDefaultAsync(r => r.RoleName == "TourCompany", cancellationToken)
-                    ?? throw new NotFoundException("Default 'TourCompany' role does not exist.");
-
-                // Ensure national number is unique across other users
-                var nationalNumber = request.NationalNumber.Trim();
-
-                var nationalTaken = await _unitOfWork.Users
-                    .Query()
-                    .AnyAsync(u => u.Person.NationalNumber == nationalNumber && u.Id != userId, cancellationToken);
-
-                if (nationalTaken)
-                    throw new ConflictException("This national number is already registered.");
-
-                // Save uploaded images
-                string? profileImageUrl = null;
-                if (request.Image is { Length: > 0 })
-                    profileImageUrl = await _fileStorage.SaveAsync(request.Image, "profiles", cancellationToken);
-
-                var nationalIdImageUrl = await _fileStorage.SaveAsync(request.NationalIdImage, "national-ids", cancellationToken);
-
-                //entity.FirstName          = request.FirstName.Trim();
-                //entity.LastName           = request.LastName.Trim();
-                //entity.Phone              = request.Phone.Trim();
-                //entity.ResidentialCityId   = request.PlaceOfResidence.Trim();
-                //entity.Gender             = request.Gender;
-                //entity.DateOfBirth        = request.DateOfBirth!.Value;
-                //entity.NationalNumber     = nationalNumber;
-                entity.BankAccount        = request.BankAccount.Trim();
-                entity.RoleId             = role.Id;
-                if (profileImageUrl != null) entity.Person.ProfileImage = profileImageUrl;
-                //entity.NationalIdCard    = nationalIdImageUrl;
-                //entity.IsProfileCompleted = true;
-                entity.UpdatedAtUtc       = DateTime.UtcNow;
-
-                _unitOfWork.Users.Update(entity);
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                // Reload with role for the response
-                var refreshed = await _unitOfWork.Users
-                    .Query()
-                    .Include(u => u.Role)
-                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
-                InvalidateUserCache(userId);
-
-                var response = _mapper.Map<UserResponse>(refreshed ?? entity);
-
-                _logger.LogInformation("User {UserId} successfully completed their company profile", userId);
-
-                return response;
-            }
-            catch (NotFoundException)
-            {
-                throw;
-            }
-            catch (ConflictException)
-            {
-                throw;
-            }
-            catch (ForbiddenException)
-            {
-                throw;
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                _logger.LogError(ex, "Concurrency conflict while completing company profile for user {UserId}", userId);
-                throw new ConcurrencyException("The user was modified by another user. Please refresh and try again.", ex);
-            }
-            catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE") == true)
-            {
-                _logger.LogError(ex, "Unique constraint violation while completing company profile for user {UserId}", userId);
-                throw new ConflictException("A unique field value is already taken.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error while completing company profile for user {UserId}", userId);
-                throw new ServiceException($"Failed to complete company profile: {ex.Message}", ex);
-            }
-        }
-
-        public async Task<UserResponse> UpdateMeAsync(int userId, UpdateMeRequest request, CancellationToken cancellationToken = default)
+        public async Task<UserResponse> UpdateMeAsync(int userId, UserUpdateRequest request, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
@@ -343,6 +203,7 @@ namespace Application.Services
                 var entity = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Role)
+                    .Include(u => u.Person)
                     .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
                 if (entity == null)
@@ -363,27 +224,21 @@ namespace Application.Services
                     entity.Password = _passwordHasher.Hash(request.NewPassword);
                 }
 
-                // Update only fields that were provided (partial update)
+                // Update only Person fields that were provided (partial update)
                 if (!string.IsNullOrWhiteSpace(request.FirstName))
-                    //entity.FirstName = request.FirstName.Trim();
+                    entity.Person.FirstName = request.FirstName.Trim();
 
                 if (!string.IsNullOrWhiteSpace(request.LastName))
-                    //entity.LastName = request.LastName.Trim();
+                    entity.Person.LastName = request.LastName.Trim();
 
                 if (!string.IsNullOrWhiteSpace(request.Phone))
-                    //entity.Phone = request.Phone.Trim();
+                    entity.Person.Phone = request.Phone.Trim();
 
                 if (request.DateOfBirth.HasValue)
-                    //entity.DateOfBirth = request.DateOfBirth.Value;
+                    entity.Person.DateOfBirth = request.DateOfBirth.Value;
 
                 if (!string.IsNullOrWhiteSpace(request.Gender))
-                    //entity.Gender = request.Gender;
-
-                if (!string.IsNullOrWhiteSpace(request.PlaceOfResidence))
-                    //entity.ResidentialCityId = request.PlaceOfResidence.Trim();
-
-                if (!string.IsNullOrWhiteSpace(request.CurrentLocation))
-                    //entity.CurrentLocation = request.CurrentLocation.Trim();
+                    entity.Person.Gender = request.Gender;
 
                 if (!string.IsNullOrWhiteSpace(request.BankAccount))
                     entity.BankAccount = request.BankAccount.Trim();
@@ -490,7 +345,10 @@ namespace Application.Services
 
             try
             {
-                var entity = await _unitOfWork.Users.GetByIdAsync(userId, cancellationToken);
+                var entity = await _unitOfWork.Users
+                    .Query()
+                    .Include(u => u.Person)
+                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
                 if (entity == null)
                 {
                     _logger.LogWarning("User with ID {UserId} not found for self-deletion", userId);
@@ -503,6 +361,8 @@ namespace Application.Services
                     throw new AuthException("Incorrect password");
                 }
 
+                if (entity.Person != null)
+                    _unitOfWork.Persons.Remove(entity.Person);
                 _unitOfWork.Users.Remove(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -535,6 +395,7 @@ namespace Application.Services
                 var entity = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Role)
+                    .Include(u => u.Person)
                     .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
                 if (entity == null)
@@ -550,6 +411,8 @@ namespace Application.Services
                     throw new ForbiddenException("Admin accounts cannot be deleted from this endpoint.");
                 }
 
+                if (entity.Person != null)
+                    _unitOfWork.Persons.Remove(entity.Person);
                 _unitOfWork.Users.Remove(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 

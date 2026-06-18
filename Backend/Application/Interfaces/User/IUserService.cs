@@ -12,9 +12,8 @@ namespace Application.Interfaces.User
     {
         Task<UserResponse> GetAsync(int id, CancellationToken cancellationToken);
         Task<IReadOnlyList<UserResponse>> GetAllAsync(CancellationToken cancellationToken);
-        Task<UserResponse> UpdateMeAsync(int userId, UpdateMeRequest request, CancellationToken cancellationToken);
+        Task<UserResponse> UpdateMeAsync(int userId, UserUpdateRequest request, CancellationToken cancellationToken);
         Task<UserResponse> CompleteProfileAsync(int userId, CompleteProfileRequest request, CancellationToken cancellationToken);
-        Task<UserResponse> CompleteCompanyProfileAsync(int userId, CompleteCompanyProfileRequest request, CancellationToken cancellationToken);
         Task<bool> DeleteMyAccountAsync(int userId, DeleteAccountRequest request, CancellationToken cancellationToken);
         Task<bool> AdminDeleteUserAsync(int userId, CancellationToken cancellationToken);
 

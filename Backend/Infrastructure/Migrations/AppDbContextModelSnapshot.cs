@@ -616,7 +616,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("CompanyId", "TouristGuideId")
                         .IsUnique();
 
-                    b.ToTable("CompanyGuides", (string)null);
+                    b.ToTable("Company_TouristGuide", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Country", b =>
@@ -1543,7 +1543,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("PackageId", "TouristGuideId")
                         .IsUnique();
 
-                    b.ToTable("TourPackageGuides", (string)null);
+                    b.ToTable("TourPackage_TouristGuide", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.TouristGuide", b =>
@@ -1817,14 +1817,14 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Company_TouristGuide", b =>
                 {
                     b.HasOne("Domain.Entities.TourCompany", "Company")
-                        .WithMany("CompanyGuides")
+                        .WithMany("Company_TouristGuide")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_CompanyGuides_TourCompanies");
 
                     b.HasOne("Domain.Entities.TouristGuide", "TouristGuide")
-                        .WithMany("CompanyGuides")
+                        .WithMany("Company_TouristGuide")
                         .HasForeignKey("TouristGuideId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
@@ -2077,14 +2077,14 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.TourPackage_TouristGuide", b =>
                 {
                     b.HasOne("Domain.Entities.TourPackage", "Package")
-                        .WithMany("TourPackageGuides")
+                        .WithMany("TourPackage_TouristGuide")
                         .HasForeignKey("PackageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_TourPackageGuides_TourPackages");
 
                     b.HasOne("Domain.Entities.TouristGuide", "TouristGuide")
-                        .WithMany("TourPackageGuides")
+                        .WithMany("TourPackage_TouristGuide")
                         .HasForeignKey("TouristGuideId")
                         .IsRequired()
                         .HasConstraintName("FK_TourPackageGuides_TouristGuides");
@@ -2221,7 +2221,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.TourCompany", b =>
                 {
-                    b.Navigation("CompanyGuides");
+                    b.Navigation("Company_TouristGuide");
 
                     b.Navigation("Favorites");
 
@@ -2244,16 +2244,16 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Reviews");
 
-                    b.Navigation("TourPackageGuides");
+                    b.Navigation("TourPackage_TouristGuide");
 
                     b.Navigation("Wishlists");
                 });
 
             modelBuilder.Entity("Domain.Entities.TouristGuide", b =>
                 {
-                    b.Navigation("CompanyGuides");
+                    b.Navigation("Company_TouristGuide");
 
-                    b.Navigation("TourPackageGuides");
+                    b.Navigation("TourPackage_TouristGuide");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>

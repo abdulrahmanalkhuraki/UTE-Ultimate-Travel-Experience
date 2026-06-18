@@ -13,16 +13,17 @@ namespace Domain.Interfaces
         IGenericRepository<Booking> Bookings { get; }
         IGenericRepository<Companion> Companions { get; }
         IGenericRepository<Payment> Payments { get; }
+        IGenericRepository<Person> Persons { get; }
         IGenericRepository<User> Users { get; }
         IGenericRepository<Role> Roles { get; }
         IGenericRepository<TourCompany> TourCompanies { get; }
         IGenericRepository<TourPackage> TourPackages { get; }
         IGenericRepository<Itinerary> Itineraries { get; }
         IGenericRepository<Activity> Activities { get; }
-        IGenericRepository<TourPackage_Attraction> PackageCities { get; }
+        IGenericRepository<TourPackage_Attraction> TourPackage_Attraction { get; }
         IGenericRepository<TouristGuide> TouristGuides { get; }
-        IGenericRepository<Company_TouristGuide> CompanyGuides { get; }
-        IGenericRepository<TourPackage_TouristGuide> TourPackageGuides { get; }
+        IGenericRepository<Company_TouristGuide> Company_TouristGuide { get; }
+        IGenericRepository<TourPackage_TouristGuide> TourPackage_TouristGuide { get; }
         IGenericRepository<TourPackageCabinClass> TourPackageCabinClasses { get; }
         IGenericRepository<Country> Countries { get; }
         IGenericRepository<City> Cities { get; }

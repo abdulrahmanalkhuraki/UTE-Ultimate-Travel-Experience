@@ -287,7 +287,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<UserResponse>> UpdateMe(
-            [FromForm] UpdateMeRequest request,
+            [FromForm] UserUpdateRequest request,
             CancellationToken cancellationToken = default)
         {
             if (!ModelState.IsValid)

@@ -172,14 +172,14 @@ public class AuthService : IAuthService
         return new AuthResponse
         {
             UserId             = user.Id,
-            //FirstName          = user.FirstName,
-            //LastName           = user.LastName,
+            FirstName          = user.Person?.FirstName,
+            LastName           = user.Person?.LastName,
             Email              = user.Email,
-            Image              = user.Person.ProfileImage,
-            //DateOfBirth        = user.DateOfBirth,
+            Image              = user.Person?.ProfileImage,
+            DateOfBirth        = user.Person?.DateOfBirth,
             Role               = user.Role?.RoleName,
             IsEmailVerified    = true,
-            //IsProfileCompleted = user.IsProfileCompleted,
+            IsProfileCompleted = user.PersonId.HasValue,
             Token              = token,
             ExpiresAt          = expiresAt
         };
@@ -304,22 +304,22 @@ public class AuthService : IAuthService
 
     private async Task SendOtpEmailAsync(User user, string code, string purpose, CancellationToken ct)
     {
-        //var displayName = !string.IsNullOrWhiteSpace(user.FirstName)
-            //? $"{user.FirstName} {user.LastName}".Trim()
-            //: user.Email;
-        //var greetingName = !string.IsNullOrWhiteSpace(user.FirstName) ? user.FirstName! : "there";
+        var displayName = !string.IsNullOrWhiteSpace(user.Person?.FirstName)
+            ? $"{user.Person?.FirstName} {user.Person?.LastName}".Trim()
+            : user.Email;
+        var greetingName = !string.IsNullOrWhiteSpace(user.Person?.FirstName) ? user.Person?.FirstName! : "there";
 
         var subject = purpose == PurposePasswordReset
             ? "Your UTE Tourism password reset code"
             : "Your UTE Tourism verification code";
 
-        //var html = Infrastructure_EmailTemplate(greetingName, code, OtpExpiryMinutes);
-        //await _email.SendAsync(
-        //    user.Email,
-        //    //displayName,
-        //    subject,
-        //    //html,
-        //    ct);
+        var html = Infrastructure_EmailTemplate(greetingName, code, OtpExpiryMinutes);
+        await _email.SendAsync(
+            user.Email,
+            displayName,
+            subject,
+            html,
+            ct);
     }
 
     private static string Infrastructure_EmailTemplate(string firstName, string code, int minutes) => $@"

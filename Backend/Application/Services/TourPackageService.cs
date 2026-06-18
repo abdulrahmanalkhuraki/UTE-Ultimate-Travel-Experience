@@ -201,7 +201,7 @@ namespace Application.Services
                 // Replace visited cities (only when sent).
                 if (request.CityIds is not null)
                 {
-                    //_unitOfWork.PackageCities.RemoveRange(entity.PackageAttractions);
+                    //_unitOfWork.TourPackage_Attraction.RemoveRange(entity.PackageAttractions);
                     //entity.PackageAttractions = request.CityIds.Distinct()
                     //    .Select(cityId => new TourPackage_Attraction { CityId = cityId })
                     //    .ToList();
@@ -210,7 +210,7 @@ namespace Application.Services
                 // Replace assigned guides (only when sent).
                 if (request.TouristGuideIds is not null)
                 {
-                    _unitOfWork.TourPackageGuides.RemoveRange(entity.TourPackageGuides);
+                    _unitOfWork.TourPackage_TouristGuide.RemoveRange(entity.TourPackageGuides);
                     entity.TourPackageGuides = request.TouristGuideIds.Distinct()
                         .Select(guideId => new TourPackage_TouristGuide { TouristGuideId = guideId })
                         .ToList();
@@ -416,7 +416,7 @@ namespace Application.Services
                 var activities = entity.PackageItineraries.SelectMany(d => d.Activities).ToList();
                 _unitOfWork.Activities.RemoveRange(activities);
                 _unitOfWork.Itineraries.RemoveRange(entity.PackageItineraries);
-                _unitOfWork.PackageCities.RemoveRange(entity.PackageAttractions);
+                _unitOfWork.TourPackage_Attraction.RemoveRange(entity.PackageAttractions);
                 _unitOfWork.TourPackages.Remove(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -691,7 +691,7 @@ namespace Application.Services
             if (distinctIds.Count == 0)
                 return; // a non-empty list is enforced by the validator
 
-            var ownedCount = await _unitOfWork.CompanyGuides
+            var ownedCount = await _unitOfWork.Company_TouristGuide
                 .Query().AsNoTracking()
                 .CountAsync(cg => cg.CompanyId == companyId && distinctIds.Contains(cg.TouristGuideId), cancellationToken);
 

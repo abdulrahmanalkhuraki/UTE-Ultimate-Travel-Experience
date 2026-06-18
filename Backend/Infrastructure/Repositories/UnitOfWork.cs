@@ -17,16 +17,17 @@ namespace Infrastructure.Repositories
             Bookings = new GenericRepository<Booking>(_context);
             Companions = new GenericRepository<Companion>(_context);
             Payments = new GenericRepository<Payment>(_context);
+            Persons = new GenericRepository<Person>(_context);
             Users = new GenericRepository<User>(_context);
             Roles = new GenericRepository<Role>(_context);
             TourCompanies = new GenericRepository<TourCompany>(_context);
             TourPackages = new GenericRepository<TourPackage>(_context);
             Itineraries = new GenericRepository<Itinerary>(_context);
             Activities = new GenericRepository<Activity>(_context);
-            PackageCities = new GenericRepository<TourPackage_Attraction>(_context);
+            TourPackage_Attraction = new GenericRepository<TourPackage_Attraction>(_context);
             TouristGuides = new GenericRepository<TouristGuide>(_context);
-            CompanyGuides = new GenericRepository<Company_TouristGuide>(_context);
-            TourPackageGuides = new GenericRepository<TourPackage_TouristGuide>(_context);
+            Company_TouristGuide = new GenericRepository<Company_TouristGuide>(_context);
+            TourPackage_TouristGuide = new GenericRepository<TourPackage_TouristGuide>(_context);
             TourPackageCabinClasses = new GenericRepository<TourPackageCabinClass>(_context);
             Countries = new GenericRepository<Country>(_context);
             Cities = new GenericRepository<City>(_context);
@@ -40,6 +41,8 @@ namespace Infrastructure.Repositories
 
         public IGenericRepository<Payment> Payments { get; }
 
+        public IGenericRepository<Person> Persons { get; }
+
         public IGenericRepository<User> Users { get; }
 
         public IGenericRepository<Role> Roles { get; }
@@ -52,13 +55,13 @@ namespace Infrastructure.Repositories
 
         public IGenericRepository<Activity> Activities { get; }
 
-        public IGenericRepository<TourPackage_Attraction> PackageCities { get; }
+        public IGenericRepository<TourPackage_Attraction> TourPackage_Attraction { get; }
 
         public IGenericRepository<TouristGuide> TouristGuides { get; }
 
-        public IGenericRepository<Company_TouristGuide> CompanyGuides { get; }
+        public IGenericRepository<Company_TouristGuide> Company_TouristGuide { get; }
 
-        public IGenericRepository<TourPackage_TouristGuide> TourPackageGuides { get; }
+        public IGenericRepository<TourPackage_TouristGuide> TourPackage_TouristGuide { get; }
 
         public IGenericRepository<TourPackageCabinClass> TourPackageCabinClasses { get; }
 

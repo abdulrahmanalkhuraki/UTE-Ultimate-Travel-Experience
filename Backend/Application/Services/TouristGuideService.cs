@@ -195,14 +195,14 @@ namespace Application.Services
                     throw new ForbiddenException("You can only delete guides that belong to your company.");
 
                 // Block deletion while the guide is assigned to any of this company's programs.
-                var isAssigned = await _unitOfWork.TourPackageGuides
+                var isAssigned = await _unitOfWork.TourPackage_TouristGuide
                     .Query()
                     .AnyAsync(pg => pg.TouristGuideId == id && pg.Package.CompanyId == companyId, cancellationToken);
                 if (isAssigned)
                     throw new BusinessRuleException("Cannot delete a guide assigned to one of your programs.");
 
                 // Unlink from this company.
-                _unitOfWork.CompanyGuides.Remove(link);
+                _unitOfWork.Company_TouristGuide.Remove(link);
 
                 // If no other company keeps this guide, hard-delete the guide record.
                 var otherLinks = entity.CompanyGuides.Any(cg => cg.CompanyId != companyId);
@@ -263,7 +263,7 @@ namespace Application.Services
 
         private async Task EnsureGuideBelongsToCompanyAsync(int guideId, int companyId, CancellationToken cancellationToken)
         {
-            var linked = await _unitOfWork.CompanyGuides
+            var linked = await _unitOfWork.Company_TouristGuide
                 .Query().AsNoTracking()
                 .AnyAsync(cg => cg.TouristGuideId == guideId && cg.CompanyId == companyId, cancellationToken);
             if (!linked)
