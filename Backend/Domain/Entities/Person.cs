@@ -28,13 +28,13 @@ namespace Domain.Entities
 
         public string? PassportScan { get; set; }
 
-        public int ResidentialCountryId { get; set; }
+        public int ResidentialCityId { get; set; }
 
         public int Age => CalculateAge();
 
         public string Fullname => FirstName + " " + LastName;
 
-        public virtual Country ResidentialCountry { get; set; } = null!;
+        public virtual City ResidentialCity { get; set; } = null!;
 
         public virtual User User { get; set; } = null!;
 

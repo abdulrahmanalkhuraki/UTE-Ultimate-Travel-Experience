@@ -124,17 +124,14 @@ public class AuthService : IAuthService
         await _users.SaveChangesAsync(ct);
 
         var (token, expiresAt) = _tokens.GenerateToken(user);
+
         return new AuthResponse
         {
             UserId             = user.Id,
-            //FirstName          = user.FirstName,
-            //LastName           = user.LastName,
             Email              = user.Email,
-            Image              = user.Person.ProfileImage,
-            //DateOfBirth        = user.DateOfBirth,
             Role               = user.Role?.RoleName,
             IsEmailVerified    = true,
-            //IsProfileCompleted = user.IsProfileCompleted,
+            IsProfileCompleted = user.PersonId.HasValue,
             Token              = token,
             ExpiresAt          = expiresAt
         };

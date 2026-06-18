@@ -19,8 +19,8 @@ public class JwtTokenGenerator : IJwtTokenGenerator
     {
         var expiresAt = DateTime.UtcNow.AddMinutes(_settings.ExpiresInMinutes);
 
-        var firstName = user.Person.FirstName ?? string.Empty;
-        var lastName  = user.Person.LastName ?? string.Empty;
+        var firstName = user.Person?.FirstName ?? string.Empty;
+        var lastName  = user.Person?.LastName ?? string.Empty;
         var fullName  = $"{firstName} {lastName}".Trim();
         var roleName  = user.Role?.RoleName ?? string.Empty;
 

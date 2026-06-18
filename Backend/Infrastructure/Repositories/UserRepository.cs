@@ -12,6 +12,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
     public Task<User?> GetByEmailAsync(string email, CancellationToken ct = default) =>
         Db.Users
           .Include(u => u.Role)
+          .Include(u => u.Person)
           .FirstOrDefaultAsync(u => u.Email == email, ct);
 
     public Task<User?> GetByIdWithRoleAsync(int userId, CancellationToken ct = default) =>

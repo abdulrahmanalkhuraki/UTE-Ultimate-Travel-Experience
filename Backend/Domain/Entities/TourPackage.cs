@@ -4,8 +4,8 @@ using Domain.Enums;
 
 namespace Domain.Entities;
 
-public partial class TourPackage : BaseEntity
-{
+    public partial class TourPackage : BaseEntity
+    {
     /// <summary>Program name (اسم البرنامج).</summary>
     public string PackageName { get; set; } = null!;
 
@@ -39,9 +39,6 @@ public partial class TourPackage : BaseEntity
     /// <summary>Destination country (البلد / الوجهة).</summary>
     public int CountryId { get; set; }
 
-    /// <summary>Main cover image of the program (صورة البرنامج الرئيسية).</summary>
-    public string? MainImageUrl { get; set; }
-
     /// <summary>Trip start date (تاريخ بداية الرحلة).</summary>
     public DateOnly StartDate { get; set; }
 
@@ -72,28 +69,29 @@ public partial class TourPackage : BaseEntity
     /// <summary>When the program was most recently published (تاريخ آخر نشر), used to show how long it has been published (اديش صرلو منشور). Null if never published.</summary>
     public DateTime? PublishedAtUtc { get; set; }
 
-    /// <summary>Owning tour company.</summary>
-    public int CompanyId { get; set; }
+    public bool IsDeleted { get; set; }
 
+    public int CompanyId { get; set; }
 
     public virtual TourCompany Company { get; set; } = null!;
 
     public virtual Country Country { get; set; } = null!;
 
-    /// <summary>Regions/cities visited by this program (المناطق اللي رح تنزار).</summary>
-    public virtual ICollection<TourPackage_City> PackageCities { get; set; } = new List<TourPackage_City>();
+    public virtual ICollection<TourPackage_Attraction> PackageAttractions { get; set; } = new List<TourPackage_Attraction>();
 
-    /// <summary>Guides assigned to this program (المرشدون المختارون).</summary>
     public virtual ICollection<TourPackage_TouristGuide> TourPackageGuides { get; set; } = new List<TourPackage_TouristGuide>();
 
-    /// <summary>Flight cabin classes made available (تذاكر الطيران المتاحة). Optional.</summary>
     public virtual ICollection<TourPackageCabinClass> CabinClasses { get; set; } = new List<TourPackageCabinClass>();
 
     public virtual ICollection<Itinerary> PackageItineraries { get; set; } = new List<Itinerary>();
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
+    public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
+
     public virtual ICollection<Rate> Rates { get; set; } = new List<Rate>();
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+
+    public virtual ICollection<TourPackageMedia> Media { get; set; } = new List<TourPackageMedia>();
 }

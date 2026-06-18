@@ -10,9 +10,10 @@ public partial class Attraction : BaseEntity
 
     public decimal Latitude { get; set; }
 
-    public TimeOnly OpenAt { get; set; }
+    // when both are null, attraction opens 24 hours
+    public TimeOnly? OpenAt { get; set; }
 
-    public TimeOnly ClosedAt { get; set; }
+    public TimeOnly? ClosedAt { get; set; }
 
     public decimal EntryFee { get; set; }
 
@@ -21,10 +22,4 @@ public partial class Attraction : BaseEntity
     public virtual City City { get; set; } = null!;
 
     public virtual ICollection<AttractionCategory> AttractionCategories { get; set; } = new List<AttractionCategory>();
-
-    public virtual ICollection<Image> Images { get; set; } = new List<Image>();
-
-    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
-
-    public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
 }

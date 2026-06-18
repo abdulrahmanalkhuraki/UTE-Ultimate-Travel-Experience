@@ -140,8 +140,8 @@ namespace Application.Services
 
                 //entity.FirstName          = request.FirstName.Trim();
                 //entity.LastName           = request.LastName.Trim();
-                //entity.ResidentialCountryId   = request.PlaceOfResidence.Trim();
-                entity.CurrentLocation    = request.CurrentLocation.Trim();
+                //entity.ResidentialCityId   = request.PlaceOfResidence.Trim();
+                //entity.CurrentLocation    = request.CurrentLocation.Trim();
                 //entity.Gender             = request.Gender;
                 //entity.DateOfBirth        = request.DateOfBirth!.Value;
                 //entity.NationalNumber     = nationalNumber;
@@ -263,7 +263,7 @@ namespace Application.Services
                 //entity.FirstName          = request.FirstName.Trim();
                 //entity.LastName           = request.LastName.Trim();
                 //entity.Phone              = request.Phone.Trim();
-                //entity.ResidentialCountryId   = request.PlaceOfResidence.Trim();
+                //entity.ResidentialCityId   = request.PlaceOfResidence.Trim();
                 //entity.Gender             = request.Gender;
                 //entity.DateOfBirth        = request.DateOfBirth!.Value;
                 //entity.NationalNumber     = nationalNumber;
@@ -380,10 +380,10 @@ namespace Application.Services
                     //entity.Gender = request.Gender;
 
                 if (!string.IsNullOrWhiteSpace(request.PlaceOfResidence))
-                    //entity.ResidentialCountryId = request.PlaceOfResidence.Trim();
+                    //entity.ResidentialCityId = request.PlaceOfResidence.Trim();
 
                 if (!string.IsNullOrWhiteSpace(request.CurrentLocation))
-                    entity.CurrentLocation = request.CurrentLocation.Trim();
+                    //entity.CurrentLocation = request.CurrentLocation.Trim();
 
                 if (!string.IsNullOrWhiteSpace(request.BankAccount))
                     entity.BankAccount = request.BankAccount.Trim();

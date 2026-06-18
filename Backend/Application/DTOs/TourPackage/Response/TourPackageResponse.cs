@@ -51,13 +51,12 @@ namespace Application.DTOs.TourPackage.Response
         /// <summary>Service level (مستوى الخدمة).</summary>
         public ServiceLevel ServiceLevel { get; set; }
 
-        /// <summary>Arabic label for the service level (اسم مستوى الخدمة).</summary>
         public string ServiceLevelLabel => ServiceLevel switch
         {
-            ServiceLevel.Economy => "خدمة اقتصادية",
-            ServiceLevel.Standard => "خدمة عادية",
-            ServiceLevel.Premium => "خدمة مميزة",
-            ServiceLevel.FirstClass => "خدمة من الدرجة الأولى",
+            ServiceLevel.Economy => "Economy Service",
+            ServiceLevel.Standard => "Standerd Service",
+            ServiceLevel.Premium => "Premium Service",
+            ServiceLevel.FirstClass => "First class Service",
             _ => ServiceLevel.ToString()
         };
 

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace Domain.Entities
 {
     public partial class TouristGuide
@@ -14,8 +11,6 @@ namespace Domain.Entities
         public int YearsOfExperiance { get; set; }
 
         public string Bio { get; set; } = null!;
-
-        public string? CurrentLocation { get; set; }
 
         public string? Languages { get; set; }
 

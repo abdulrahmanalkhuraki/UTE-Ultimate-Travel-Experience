@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Application.DTOs.TourPackage;
 using Application.DTOs.TourPackage.Request;
 using Application.DTOs.TourPackage.Response;
+using Domain.Enums;
 
 namespace Application.Interfaces.TourPackage
 {
@@ -23,7 +24,7 @@ namespace Application.Interfaces.TourPackage
         /// Lists the company's own programs filtered to one dashboard tab:
         /// current (الحالية), previous (السابقة), or cancelled (الملغاة).
         /// </summary>
-        Task<IReadOnlyList<TourPackageResponse>> GetMineByTimelineAsync(int ownerUserId, ProgramTimeline timeline, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<TourPackageResponse>> GetMineByTimelineAsync(int ownerUserId, TimeLine timeline, CancellationToken cancellationToken = default);
 
         /// <summary>Aggregate counts of the company's own programs for the dashboard stats card.</summary>
         Task<CompanyProgramStatsResponse> GetMyStatsAsync(int ownerUserId, CancellationToken cancellationToken = default);

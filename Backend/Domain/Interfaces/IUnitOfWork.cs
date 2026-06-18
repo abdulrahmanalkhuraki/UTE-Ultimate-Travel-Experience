@@ -19,7 +19,7 @@ namespace Domain.Interfaces
         IGenericRepository<TourPackage> TourPackages { get; }
         IGenericRepository<Itinerary> Itineraries { get; }
         IGenericRepository<Activity> Activities { get; }
-        IGenericRepository<TourPackage_City> PackageCities { get; }
+        IGenericRepository<TourPackage_Attraction> PackageCities { get; }
         IGenericRepository<TouristGuide> TouristGuides { get; }
         IGenericRepository<Company_TouristGuide> CompanyGuides { get; }
         IGenericRepository<TourPackage_TouristGuide> TourPackageGuides { get; }

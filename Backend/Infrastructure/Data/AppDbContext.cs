@@ -7,8 +7,8 @@ using System.Collections.Generic;
 
 namespace Infrastructure.Data;
 
-public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
-{
+    public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+    {
     public virtual DbSet<Activity> Activities { get; set; }
 
     public virtual DbSet<Attraction> Attractions { get; set; }
@@ -39,11 +39,10 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
 
     public virtual DbSet<Favorite> Favorites { get; set; }
 
-    public virtual DbSet<Image> Images { get; set; }
 
     public virtual DbSet<Notification> Notifications { get; set; }
 
-    public virtual DbSet<TourPackage_City> PackageCities { get; set; }
+    public virtual DbSet<TourPackage_Attraction> PackageCities { get; set; }
 
     public virtual DbSet<Itinerary> Itineraries { get; set; }
 
@@ -60,10 +59,15 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
     public virtual DbSet<DeviceToken> DeviceTokens { get; set; }
 
     public virtual DbSet<TourPackage> TourPackages { get; set; }
+    public virtual DbSet<TourPackageMedia> TourPackageMedias { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<Wishlist> Wishlists { get; set; }
+    
+    public virtual DbSet<Ticket> Tickets { get; set; }
+
+    public virtual DbSet<SupportReply> SupportReplies { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -120,6 +124,11 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
             entity.Property(e => e.BookingDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+
+            // BookingNumber computed as YYYYMMDD + zero-padded Id (e.g. 20260618000001)
+            entity.Property<string>("BookingNumber")
+                .HasColumnType("varchar(20)")
+                .HasComputedColumnSql("CONVERT(varchar(8), [BookingDate], 112) + RIGHT('000000' + CAST([Id] AS varchar(6)), 6)", stored: true);
 
             entity.Property(e => e.TotalCost).HasColumnType("decimal(10, 2)");
 
@@ -366,24 +375,6 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .HasConstraintName("FK__Favorites__UserI__3B40CD36");
         });
 
-        modelBuilder.Entity<Image>(entity =>
-        {
-            entity.Property(e => e.CreatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.ImageUrl)
-                .HasMaxLength(500)
-                .HasColumnName("ImageURL");
-            entity.Property(e => e.UpdatedAtUtc)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-
-            entity.HasOne(d => d.Attraction).WithMany(p => p.Images)
-                .HasForeignKey(d => d.AttractionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Images__Attracti__09A971A2");
-        });
-
         modelBuilder.Entity<Notification>(entity =>
         {
             entity.Property(e => e.CreatedAtUtc)
@@ -422,9 +413,9 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<TourPackage_City>(entity =>
+        modelBuilder.Entity<TourPackage_Attraction>(entity =>
         {
-            entity.ToTable("PackageCities");
+            entity.ToTable("PackageAttractions");
 
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
@@ -433,17 +424,18 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
-            entity.HasIndex(e => new { e.PackageId, e.CityId }).IsUnique();
+            entity.HasIndex(e => new { e.PackageId, e.AttractionId }).IsUnique();
 
-            entity.HasOne(d => d.Package).WithMany(p => p.PackageCities)
+            entity.HasOne(d => d.Package).WithMany(p => p.PackageAttractions)
                 .HasForeignKey(d => d.PackageId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_PackageCities_TourPackages");
 
-            entity.HasOne(d => d.City).WithMany()
-                .HasForeignKey(d => d.CityId)
+            entity.HasOne(d => d.Attraction)
+                .WithMany()
+                .HasForeignKey(d => d.AttractionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PackageCities_Cities");
+                .HasConstraintName("FK_PackageCities_Attractions");
         });
 
         modelBuilder.Entity<Itinerary>(entity =>
@@ -528,17 +520,17 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
 
         modelBuilder.Entity<Review>(entity =>
         {
+            entity.HasKey(e => e.Id);
+
             entity.Property(e => e.Comment).HasMaxLength(500);
+
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+
             entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-
-            entity.HasOne(d => d.Attraction).WithMany(p => p.Reviews)
-                .HasForeignKey(d => d.AttractionId)
-                .HasConstraintName("FK__Reviews__Attract__1DB06A4F");
 
             entity.HasOne(d => d.Package).WithMany(p => p.Reviews)
                 .HasForeignKey(d => d.PackageId)
@@ -586,9 +578,9 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
-            entity.HasOne(d => d.User).WithMany(p => p.TourCompanies)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+            entity.HasOne(d => d.User).WithOne(p => p.TourCompany)
+                .HasForeignKey<TourCompany>(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK__TourCompa__UserI__5812160E");
         });
 
@@ -605,7 +597,6 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
             entity.Property(e => e.PremiumClassPrice).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.BusinessClassPrice).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Currency).HasMaxLength(10);
-            entity.Property(e => e.MainImageUrl).HasMaxLength(500);
             entity.Property(e => e.StartDate).HasColumnType("date");
             entity.Property(e => e.EndDate).HasColumnType("date");
             entity.Property(e => e.RegistrationDeadline).HasColumnType("date");
@@ -667,8 +658,8 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
             entity.Property(e => e.PassportNumber).HasMaxLength(50);
             entity.Property(e => e.PassportScan).HasMaxLength(500);
 
-            entity.HasOne(e => e.ResidentialCountry).WithMany(c => c.Persons)
-            .HasForeignKey(e => e.ResidentialCountryId)
+            entity.HasOne(e => e.ResidentialCity).WithMany(c => c.Persons)
+            .HasForeignKey(e => e.ResidentialCityId)
             .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -686,7 +677,6 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
 
             entity.Property(e => e.Email).HasMaxLength(75);
             entity.Property(e => e.Password).HasMaxLength(255);
-            entity.Property(e => e.CurrentLocation).HasMaxLength(100);
             entity.Property(e => e.BankAccount).HasMaxLength(100);
             entity.Property(e => e.RoleId).HasDefaultValue(1);
 
@@ -726,7 +716,6 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
 
             entity.Property(e => e.Email).HasMaxLength(50);
             entity.Property(e => e.Bio).HasMaxLength(1000);
-            entity.Property(e => e.CurrentLocation).HasMaxLength(100);
             entity.Property(e => e.LicenseScan).HasMaxLength(500);
             entity.Property(e => e.Languages).HasMaxLength(250);
             entity.Property(e => e.IsAvailable).HasDefaultValue(true);
@@ -753,15 +742,82 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
-            entity.HasOne(d => d.Attraction).WithMany(p => p.Wishlists)
-                .HasForeignKey(d => d.AttractionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+            entity.HasOne(d => d.TourPackage).WithMany(p => p.Wishlists)
+                .HasForeignKey(d => d.TourPackageId)
+                .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK__Wishlists__Attra__2FCF1A8A");
 
             entity.HasOne(d => d.User).WithMany(p => p.Wishlists)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK__Wishlists__UserI__2EDAF651");
+        });
+
+        modelBuilder.Entity<TourPackageMedia>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.MediaUrl)
+                .IsRequired()
+                .HasMaxLength(500);
+
+            entity.Property(e => e.DisplayOrder)
+                .HasDefaultValue(0);
+
+            entity.Property(e => e.MediaType)
+                .HasConversion<int>();
+
+            entity.HasOne(d => d.TourPackage).WithMany(p => p.Media)
+                .HasForeignKey(d => d.TourPackageId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_TourPackageMedia_TourPackages");
+        });
+
+        modelBuilder.Entity<Ticket>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Subject).HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.Property(e => e.ImageUrl).HasMaxLength(500);
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.Property(e => e.Status)
+                .HasConversion<int>()
+                .HasDefaultValue(Domain.Enums.TicketStatus.Open);
+
+            entity.HasOne(d => d.User).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Tickets_Users");
+
+
+            entity.HasOne(d => d.SupportReply).WithOne(r => r.Ticket)
+                .HasForeignKey<SupportReply>(r => r.TicketId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_SupportReplies_Tickets");
+        });
+
+        modelBuilder.Entity<SupportReply>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.ReplyContent).HasMaxLength(2000);
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.Ticket).WithOne(t => t.SupportReply)
+                .HasForeignKey<SupportReply>(d => d.TicketId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_SupportReplies_Tickets");
+
+            entity.HasOne(d => d.Admin).WithMany(u => u.SupportReplies)
+                .HasForeignKey(d => d.AdminId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_SupportReplies_Admins");
         });
 
         OnModelCreatingPartial(modelBuilder);

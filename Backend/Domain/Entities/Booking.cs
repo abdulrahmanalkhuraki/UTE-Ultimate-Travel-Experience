@@ -1,10 +1,14 @@
 ﻿using Domain.Enums;
+using System.Numerics;
 
 namespace Domain.Entities;
 
-public partial class Booking : BaseEntity
-{
+    public partial class Booking : BaseEntity
+    {
     public DateTime BookingDate { get; set; }
+
+
+    public string? BookingNumber { get; set; }
 
     public int NumberOfAdults { get; set; }
 
@@ -18,7 +22,7 @@ public partial class Booking : BaseEntity
     // if the company reject the tourist booking it should provide reject reason
     public string? RejectReason { get; set; }
 
-    public decimal? TotalCost { get; set; }
+    public decimal? TotalCost { get; set; } 
 
     public int TourPackageId { get; set; }
 

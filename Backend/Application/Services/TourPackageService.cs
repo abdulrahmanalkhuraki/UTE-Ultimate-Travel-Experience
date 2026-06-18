@@ -96,10 +96,10 @@ namespace Application.Services
                 };
 
                 if (request.MainImage is not null)
-                    entity.MainImageUrl = await _fileStorage.SaveAsync(request.MainImage, MainImageFolder, cancellationToken);
+                    //entity.MainImageUrl = await _fileStorage.SaveAsync(request.MainImage, MainImageFolder, cancellationToken);
 
-                foreach (var cityId in request.CityIds.Distinct())
-                    entity.PackageCities.Add(new TourPackage_City { CityId = cityId });
+                //foreach (var cityId in request.CityIds.Distinct())
+                //    entity.PackageAttractions.Add(new TourPackage_Attraction { CityId = cityId });
 
                 foreach (var guideId in request.TouristGuideIds.Distinct())
                     entity.TourPackageGuides.Add(new TourPackage_TouristGuide { TouristGuideId = guideId });
@@ -149,7 +149,7 @@ namespace Application.Services
             {
                 var entity = await _unitOfWork.TourPackages
                     .Query()
-                    .Include(p => p.PackageCities)
+                    .Include(p => p.PackageAttractions)
                     .Include(p => p.TourPackageGuides)
                     .Include(p => p.CabinClasses)
                     .Include(p => p.PackageItineraries)
@@ -195,16 +195,16 @@ namespace Application.Services
                 entity.UpdatedAtUtc = DateTime.UtcNow;
 
                 if (request.MainImage is not null)
-                    entity.MainImageUrl = await _fileStorage.SaveAsync(request.MainImage, MainImageFolder, cancellationToken);
+                    //entity.MainImageUrl = await _fileStorage.SaveAsync(request.MainImage, MainImageFolder, cancellationToken);
                 // else: keep the existing MainImageUrl.
 
                 // Replace visited cities (only when sent).
                 if (request.CityIds is not null)
                 {
-                    _unitOfWork.PackageCities.RemoveRange(entity.PackageCities);
-                    entity.PackageCities = request.CityIds.Distinct()
-                        .Select(cityId => new TourPackage_City { CityId = cityId })
-                        .ToList();
+                    //_unitOfWork.PackageCities.RemoveRange(entity.PackageAttractions);
+                    //entity.PackageAttractions = request.CityIds.Distinct()
+                    //    .Select(cityId => new TourPackage_Attraction { CityId = cityId })
+                    //    .ToList();
                 }
 
                 // Replace assigned guides (only when sent).
@@ -394,7 +394,7 @@ namespace Application.Services
             {
                 var entity = await _unitOfWork.TourPackages
                     .Query()
-                    .Include(p => p.PackageCities)
+                    .Include(p => p.PackageAttractions)
                     .Include(p => p.PackageItineraries)
                         .ThenInclude(d => d.Activities)
                     .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
@@ -416,7 +416,7 @@ namespace Application.Services
                 var activities = entity.PackageItineraries.SelectMany(d => d.Activities).ToList();
                 _unitOfWork.Activities.RemoveRange(activities);
                 _unitOfWork.Itineraries.RemoveRange(entity.PackageItineraries);
-                _unitOfWork.PackageCities.RemoveRange(entity.PackageCities);
+                _unitOfWork.PackageCities.RemoveRange(entity.PackageAttractions);
                 _unitOfWork.TourPackages.Remove(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -466,7 +466,7 @@ namespace Application.Services
             return _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
         }
 
-        public async Task<IReadOnlyList<TourPackageResponse>> GetMineByTimelineAsync(int ownerUserId, ProgramTimeline timeline, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<TourPackageResponse>> GetMineByTimelineAsync(int ownerUserId, TimeLine timeline, CancellationToken cancellationToken = default)
         {
             var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -476,16 +476,16 @@ namespace Application.Services
             query = timeline switch
             {
                 // الحالية: active and not finished yet (ongoing or upcoming).
-                ProgramTimeline.Current => query.Where(p => p.Status == TourPackageStatus.Active && p.EndDate >= today),
+                TimeLine.Current => query.Where(p => p.Status == TourPackageStatus.Active && p.EndDate >= today),
                 // السابقة: active but already finished.
-                ProgramTimeline.Previous => query.Where(p => p.Status == TourPackageStatus.Active && p.EndDate < today),
+                TimeLine.Previous => query.Where(p => p.Status == TourPackageStatus.Active && p.EndDate < today),
                 // الملغاة: cancelled, regardless of dates.
-                ProgramTimeline.Cancelled => query.Where(p => p.Status == TourPackageStatus.Cancelled),
+                TimeLine.Cancelled => query.Where(p => p.Status == TourPackageStatus.Cancelled),
                 _ => query,
             };
 
             // Upcoming/cancelled read best soonest-first; finished programs newest-first.
-            query = timeline == ProgramTimeline.Previous
+            query = timeline == TimeLine.Previous
                 ? query.OrderByDescending(p => p.EndDate)
                 : query.OrderBy(p => p.StartDate);
 
@@ -543,7 +543,7 @@ namespace Application.Services
             if (countryId is > 0)
                 query = query.Where(p => p.CountryId == countryId);
             if (cityId is > 0)
-                query = query.Where(p => p.PackageCities.Any(pc => pc.CityId == cityId));
+                //query = query.Where(p => p.PackageAttractions.Any(pc => pc.CityId == cityId));
             if (minPrice is > 0)
                 query = query.Where(p => p.PricePerPerson >= minPrice);
             if (maxPrice is > 0)
@@ -580,7 +580,7 @@ namespace Application.Services
                 .AsSplitQuery()
                 .Include(p => p.Country)
                 .Include(p => p.Company)
-                .Include(p => p.PackageCities).ThenInclude(pc => pc.City)
+                //.Include(p => p.PackageAttractions).ThenInclude(pc => pc.City)
                 .Include(p => p.TourPackageGuides).ThenInclude(g => g.TouristGuide)
                 .Include(p => p.CabinClasses)
                 .Include(p => p.PackageItineraries).ThenInclude(d => d.Activities);

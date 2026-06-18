@@ -69,7 +69,7 @@ namespace Application.Services
                     //DateOfBirth = request.DateOfBirth,
                     //YearsOfExperiance = request.YearsOfExperiance,
                     //Bio = request.Bio.Trim(),
-                    //ResidentialCountryId = request.PlaceOfResidence.Trim(),
+                    //ResidentialCityId = request.PlaceOfResidence.Trim(),
                     //CurrentLocation = request.CurrentLocation?.Trim(),
                     //NationalNumber = request.NationalNumber.Trim(),
                     //PassportNumber = request.PassportNumber?.Trim(),
@@ -141,8 +141,8 @@ namespace Application.Services
                 //if (request.DateOfBirth.HasValue) entity.DateOfBirth = request.DateOfBirth.Value;
                 if (request.YearsOfExperiance.HasValue) entity.YearsOfExperiance = request.YearsOfExperiance.Value;
                 if (request.Bio is not null) entity.Bio = request.Bio.Trim();
-                //if (request.PlaceOfResidence is not null) entity.ResidentialCountryId = request.PlaceOfResidence.Trim();
-                if (request.CurrentLocation is not null) entity.CurrentLocation = request.CurrentLocation.Trim();
+                //if (request.PlaceOfResidence is not null) entity.ResidentialCityId = request.PlaceOfResidence.Trim();
+                //if (request.CurrentLocation is not null) entity.CurrentLocation = request.CurrentLocation.Trim();
                 //if (request.NationalNumber is not null) entity.NationalNumber = request.NationalNumber.Trim();
                 //if (request.PassportNumber is not null) entity.PassportNumber = request.PassportNumber.Trim();
                 if (request.Languages is not null) entity.Languages = request.Languages.Trim();

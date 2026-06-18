@@ -21,9 +21,9 @@ namespace Application.Mappings
                     opt => opt.MapFrom(src => src.Activities
                         .OrderBy(a => a.OrderNumber)));
 
-            CreateMap<TourPackage_City, PackageCityResponse>()
-                .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.CityId))
-                .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City.CityName));
+            //CreateMap<TourPackage_Attraction, PackageCityResponse>()
+            //    .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.CityId))
+            //    .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City.CityName));
 
             // A program's assigned guide (المرشد المختار) shown on the program.
             CreateMap<TouristGuide, TourPackageGuideResponse>()
@@ -39,7 +39,7 @@ namespace Application.Mappings
                 .ForMember(dest => dest.CompanyName,
                     opt => opt.MapFrom(src => src.Company != null ? src.Company.Name : null))
                 .ForMember(dest => dest.Cities,
-                    opt => opt.MapFrom(src => src.PackageCities))
+                    opt => opt.MapFrom(src => src.PackageAttractions))
                 .ForMember(dest => dest.Guides,
                     opt => opt.MapFrom(src => src.TourPackageGuides.Select(g => g.TouristGuide)))
                 .ForMember(dest => dest.AvailableCabinClasses,

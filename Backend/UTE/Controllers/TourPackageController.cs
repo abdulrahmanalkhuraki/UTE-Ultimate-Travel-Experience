@@ -5,6 +5,7 @@ using Application.DTOs.TourPackage.Request;
 using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
 using Application.Interfaces.TourPackage;
+using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -77,7 +78,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMineCurrent(CancellationToken cancellationToken = default)
-            => GetMineByTimeline(ProgramTimeline.Current, cancellationToken);
+            => GetMineByTimeline(TimeLine.Current, cancellationToken);
 
         /// <summary>Lists the signed-in company's past (finished) programs (السابقة).</summary>
         [HttpGet("mine/previous")]
@@ -85,7 +86,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMinePrevious(CancellationToken cancellationToken = default)
-            => GetMineByTimeline(ProgramTimeline.Previous, cancellationToken);
+            => GetMineByTimeline(TimeLine.Previous, cancellationToken);
 
         /// <summary>Lists the signed-in company's cancelled programs (الملغاة).</summary>
         [HttpGet("mine/cancelled")]
@@ -93,7 +94,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMineCancelled(CancellationToken cancellationToken = default)
-            => GetMineByTimeline(ProgramTimeline.Cancelled, cancellationToken);
+            => GetMineByTimeline(TimeLine.Cancelled, cancellationToken);
 
         /// <summary>Aggregate counts of the signed-in company's programs for the dashboard stats card (إحصائيات البرامج).</summary>
         [HttpGet("mine/stats")]
@@ -151,7 +152,7 @@ namespace UTE.Controllers
             }
         }
 
-        private async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMineByTimeline(ProgramTimeline timeline, CancellationToken cancellationToken)
+        private async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMineByTimeline(TimeLine timeline, CancellationToken cancellationToken)
         {
             var userId = GetCurrentUserId();
             if (userId is null)

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Domain.Entities;
+﻿namespace Domain.Entities;
 
 public partial class Country
 {
@@ -22,6 +19,4 @@ public partial class Country
     public virtual ICollection<TourPackage> TourPackages { get; set; } = new List<TourPackage>();
 
     public virtual ICollection<Companion> NatinalityCompanions { get; set; } = new List<Companion>();
-
-    public virtual ICollection<Person> Persons { get; set; } = new List<Person>();
 }
