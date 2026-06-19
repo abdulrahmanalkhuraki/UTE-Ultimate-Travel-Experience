@@ -1009,12 +1009,12 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_PackageItineraryAttractions_AttractionId",
-                table: "Activities",
+                table: "PackageItineraryAttractions",
                 column: "AttractionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PackageItineraryAttractions_ItineraryId",
-                table: "Activities",
+                table: "PackageItineraryAttractions",
                 column: "ItineraryId");
 
             migrationBuilder.CreateIndex(
