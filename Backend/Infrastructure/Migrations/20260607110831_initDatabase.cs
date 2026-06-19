@@ -834,7 +834,7 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Activities",
+                name: "PackageItineraryAttractions",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)

@@ -76,12 +76,12 @@ namespace Infrastructure.Migrations
             migrationBuilder.AddCheckConstraint(
                 name: "CHK_PaymentMethods",
                 table: "Payments",
-                sql: "[PaymentMethod] IN ('Credit','Bank_Transfer','Digital_Wallet')");
+                sql: "[PaymentMethod] IN (0, 1, 2)");
 
             migrationBuilder.AddCheckConstraint(
                 name: "CHK_PaymentStatuses",
                 table: "Payments",
-                sql: "[PaymentStatus] IN ('Pending','Completed','Failed','Cancelled')");
+                sql: "[PaymentStatus] IN (0, 1, 2, 3)");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_PaymentId",

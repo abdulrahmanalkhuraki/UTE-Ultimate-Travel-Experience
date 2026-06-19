@@ -28,7 +28,7 @@ namespace Infrastructure.Migrations
             migrationBuilder.AddCheckConstraint(
                 name: "CK_Booking_FlightType",
                 table: "Bookings",
-                sql: "[FlightType] IN ('Economy', 'Premium_Economy', 'Business_Class', 'First_Class')");
+                sql: "[FlightType] IN (0, 1, 2, 3)");
         }
 
         /// <inheritdoc />

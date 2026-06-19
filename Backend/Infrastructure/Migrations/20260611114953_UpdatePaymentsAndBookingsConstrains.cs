@@ -24,8 +24,8 @@ namespace Infrastructure.Migrations
                 table: "TouristGuides");
 
             migrationBuilder.DropPrimaryKey(
-                name: "PK_payments",
-                table: "payments");
+                name: "PK_Payments",
+                table: "Payments");
 
             migrationBuilder.DropCheckConstraint(
                 name: "CHK_Companion_Relationship",
@@ -41,16 +41,9 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropColumn(
                 name: "PaymentMethod",
-                table: "payments");
+                table: "Payments");
 
-            migrationBuilder.RenameTable(
-                name: "payments",
-                newName: "Payments");
 
-            migrationBuilder.RenameIndex(
-                name: "IX_payments_UserId",
-                table: "Payments",
-                newName: "IX_Payments_UserId");
 
             migrationBuilder.AlterColumn<DateTime>(
                 name: "PaymentDate",
@@ -191,18 +184,9 @@ namespace Infrastructure.Migrations
                 name: "RejectReason",
                 table: "Bookings");
 
-            migrationBuilder.RenameTable(
-                name: "Payments",
-                newName: "payments");
-
-            migrationBuilder.RenameIndex(
-                name: "IX_Payments_UserId",
-                table: "payments",
-                newName: "IX_payments_UserId");
-
             migrationBuilder.AlterColumn<DateOnly>(
                 name: "PaymentDate",
-                table: "payments",
+                table: "Payments",
                 type: "date",
                 nullable: false,
                 oldClrType: typeof(DateTime),
@@ -210,7 +194,7 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.AddColumn<string>(
                 name: "Payment_Method",
-                table: "payments",
+                table: "Payments",
                 type: "varchar(50)",
                 unicode: false,
                 maxLength: 50,
@@ -244,8 +228,8 @@ namespace Infrastructure.Migrations
                 defaultValue: "Standard");
 
             migrationBuilder.AddPrimaryKey(
-                name: "PK_payments",
-                table: "payments",
+                name: "PK_Payments",
+                table: "Payments",
                 column: "Id");
 
             migrationBuilder.AddCheckConstraint(
@@ -272,7 +256,7 @@ namespace Infrastructure.Migrations
                 name: "FK_Bookings_payments",
                 table: "Bookings",
                 column: "PaymentId",
-                principalTable: "payments",
+                principalTable: "Payments",
                 principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(

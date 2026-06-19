@@ -87,7 +87,7 @@ namespace Infrastructure.Migrations
                 oldType: "bit");
 
             migrationBuilder.AlterColumn<string>(
-                name: "NationalIdCard",
+                name: "IdCard",
                 table: "TouristGuides",
                 type: "nvarchar(500)",
                 maxLength: 500,
@@ -359,7 +359,7 @@ namespace Infrastructure.Migrations
                 oldDefaultValue: true);
 
             migrationBuilder.AlterColumn<string>(
-                name: "NationalIdCard",
+                name: "IdCard",
                 table: "TouristGuides",
                 type: "nvarchar(max)",
                 nullable: false,
