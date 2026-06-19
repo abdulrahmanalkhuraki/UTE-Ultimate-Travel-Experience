@@ -23,7 +23,11 @@ namespace Application.Mappings
                 .ForMember(dest => dest.NationalNumber, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalNumber : null))
                 .ForMember(dest => dest.NationalIdImage, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalIdCard : null))
                 .ForMember(dest => dest.PassportNumber, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportNumber : null))
-                .ForMember(dest => dest.PassportImage, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportScan : null));
+                .ForMember(dest => dest.PassportImage, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportScan : null))
+                .ForMember(dest => dest.CurrentLocation, opt => opt.MapFrom(src =>
+                    src.Latitude.HasValue && src.Longitude.HasValue
+                        ? $"{src.Latitude.Value:F6}, {src.Longitude.Value:F6}"
+                        : null));
         }
     }
 }

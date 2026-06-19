@@ -24,10 +24,8 @@ namespace Domain.Entities
 
         public virtual Country NatinalityCountry { get; set; } = null!;
 
-        /// <summary>Companies this guide works for.</summary>
         public virtual ICollection<Company_TouristGuide> CompanyGuides { get; set; } = new List<Company_TouristGuide>();
 
-        /// <summary>Programs this guide is assigned to.</summary>
         public virtual ICollection<TourPackage_TouristGuide> TourPackageGuides { get; set; } = new List<TourPackage_TouristGuide>();
     }
 }

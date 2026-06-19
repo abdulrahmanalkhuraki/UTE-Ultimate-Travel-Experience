@@ -13,11 +13,6 @@ using ValidationException = Application.Exceptions.ValidationException;
 
 namespace Application.Services
 {
-    /// <summary>
-    /// CRUD for tour guides, scoped to the signed-in company. A guide is linked to
-    /// the company through <see cref="Company_TouristGuide"/> (many-to-many), so a company
-    /// only ever sees and manages its own guides.
-    /// </summary>
     public class TouristGuideService : ITouristGuideService
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -55,38 +50,32 @@ namespace Application.Services
 
             var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
             await EnsureCountryExistsAsync(request.NationalityCountryId, cancellationToken);
+            await EnsureCityExistsAsync(request.ResidentialCityId, cancellationToken);
 
             try
             {
-                var entity = new TouristGuide
-                {
-                    //Firstname = request.Firstname.Trim(),
-                    //Lastname = request.Lastname.Trim(),
-                    //Phone = request.Phone.Trim(),
-                    //Email = request.Email.Trim(),
-                    //NationalityCountryId = request.NationalityCountryId,
-                    //Gender = request.Gender,
-                    //DateOfBirth = request.DateOfBirth,
-                    //YearsOfExperiance = request.YearsOfExperiance,
-                    //Bio = request.Bio.Trim(),
-                    //ResidentialCityId = request.PlaceOfResidence.Trim(),
-                    //CurrentLocation = request.CurrentLocation?.Trim(),
-                    //NationalNumber = request.NationalNumber.Trim(),
-                    //PassportNumber = request.PassportNumber?.Trim(),
-                    //Languages = request.Languages?.Trim(),
-                    //IsAvailable = true,
-                    //CreatedAtUtc = DateTime.UtcNow,
-                    //UpdatedAtUtc = DateTime.UtcNow,
-                };
+                var person = _mapper.Map<Person>(request);
+                person.CreatedAtUtc = DateTime.UtcNow;
+                person.UpdatedAtUtc = DateTime.UtcNow;
 
                 if (request.ProfileImage is not null)
-                    //entity.ProfileImage = await _fileStorage.SaveAsync(request.ProfileImage, GuideImageFolder, cancellationToken);
-                if (request.IdCardImage is not null)
-                    //entity.NationalIdCard = await _fileStorage.SaveAsync(request.IdCardImage, GuideImageFolder, cancellationToken);
+                    person.ProfileImage = await _fileStorage.SaveAsync(request.ProfileImage, GuideImageFolder, cancellationToken);
+                if (request.NationalIdImage is not null)
+                    person.NationalIdCard = await _fileStorage.SaveAsync(request.NationalIdImage, GuideImageFolder, cancellationToken);
                 if (request.PassportImage is not null)
-                    //entity.PassportScan = await _fileStorage.SaveAsync(request.PassportImage, GuideImageFolder, cancellationToken);
+                    person.PassportScan = await _fileStorage.SaveAsync(request.PassportImage, GuideImageFolder, cancellationToken);
 
-                // Link the new guide to the creating company.
+                var entity = new TouristGuide
+                {
+                    Email = request.Email.Trim(),
+                    NationalityCountryId = request.NationalityCountryId,
+                    YearsOfExperiance = request.YearsOfExperiance,
+                    Bio = request.Bio.Trim(),
+                    Languages = request.Languages?.Trim(),
+                    IsAvailable = true,
+                    Person = person,
+                };
+
                 entity.CompanyGuides.Add(new Company_TouristGuide { CompanyId = companyId });
 
                 await _unitOfWork.TouristGuides.AddAsync(entity, cancellationToken);
@@ -115,14 +104,16 @@ namespace Application.Services
 
             var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
 
-            // Partial update: only validate the country when it is actually being changed.
             if (request.NationalityCountryId.HasValue)
                 await EnsureCountryExistsAsync(request.NationalityCountryId.Value, cancellationToken);
+            if (request.ResidentialCityId.HasValue)
+                await EnsureCityExistsAsync(request.ResidentialCityId.Value, cancellationToken);
 
             try
             {
                 var entity = await _unitOfWork.TouristGuides
                     .Query()
+                    .Include(g => g.Person)
                     .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
 
                 if (entity is null)
@@ -130,34 +121,36 @@ namespace Application.Services
 
                 await EnsureGuideBelongsToCompanyAsync(id, companyId, cancellationToken);
 
-                // Partial update: apply only the fields that were actually sent (non-null).
-                // Anything omitted keeps its current value.
-                //if (request.Firstname is not null) entity.Firstname = request.Firstname.Trim();
-                //if (request.Lastname is not null) entity.Lastname = request.Lastname.Trim();
-                //if (request.Phone is not null) entity.Phone = request.Phone.Trim();
-                //if (request.Email is not null) entity.Email = request.Email.Trim();
+                if (request.FirstName is not null) entity.Person.FirstName = request.FirstName.Trim();
+                if (request.LastName is not null) entity.Person.LastName = request.LastName.Trim();
+                if (request.Phone is not null) entity.Person.Phone = request.Phone.Trim();
+                if (request.Email is not null) entity.Email = request.Email.Trim();
                 if (request.NationalityCountryId.HasValue) entity.NationalityCountryId = request.NationalityCountryId.Value;
-                //if (request.Gender.HasValue) entity.Gender = request.Gender.Value;
-                //if (request.DateOfBirth.HasValue) entity.DateOfBirth = request.DateOfBirth.Value;
+                if (request.Gender is not null) entity.Person.Gender = request.Gender;
+                if (request.DateOfBirth.HasValue) entity.Person.DateOfBirth = request.DateOfBirth.Value;
                 if (request.YearsOfExperiance.HasValue) entity.YearsOfExperiance = request.YearsOfExperiance.Value;
                 if (request.Bio is not null) entity.Bio = request.Bio.Trim();
-                //if (request.PlaceOfResidence is not null) entity.ResidentialCityId = request.PlaceOfResidence.Trim();
-                //if (request.CurrentLocation is not null) entity.CurrentLocation = request.CurrentLocation.Trim();
-                //if (request.NationalNumber is not null) entity.NationalNumber = request.NationalNumber.Trim();
-                //if (request.PassportNumber is not null) entity.PassportNumber = request.PassportNumber.Trim();
+                if (request.ResidentialCityId.HasValue) entity.Person.ResidentialCityId = request.ResidentialCityId.Value;
+                if (request.NationalNumber is not null) entity.Person.NationalNumber = request.NationalNumber.Trim();
+                if (request.PassportNumber is not null) entity.Person.PassportNumber = request.PassportNumber.Trim();
                 if (request.Languages is not null) entity.Languages = request.Languages.Trim();
                 if (request.IsAvailable.HasValue) entity.IsAvailable = request.IsAvailable.Value;
-                //entity.UpdatedAtUtc = DateTime.UtcNow;
+                entity.Person.UpdatedAtUtc = DateTime.UtcNow;
 
-                //entity.ProfileImage = request.ProfileImage is not null
-                    //? await _fileStorage.SaveAsync(request.ProfileImage, GuideImageFolder, cancellationToken)
-                    //: request.ProfileImageUrl ?? entity.ProfileImage;
-                //entity.NationalIdCard = request.IdCardImage is not null
-                    //? await _fileStorage.SaveAsync(request.IdCardImage, GuideImageFolder, cancellationToken)
-                    //: request.IdCardUrl ?? entity.NationalIdCard;
-                //entity.PassportScan = request.PassportImage is not null
-                    //? await _fileStorage.SaveAsync(request.PassportImage, GuideImageFolder, cancellationToken)
-                    //: request.PassportScanUrl ?? entity.PassportScan;
+                if (request.ProfileImage is not null)
+                    entity.Person.ProfileImage = await _fileStorage.SaveAsync(request.ProfileImage, GuideImageFolder, cancellationToken);
+                else if (request.ProfileImageUrl is not null)
+                    entity.Person.ProfileImage = request.ProfileImageUrl;
+
+                if (request.NationalIdImage is not null)
+                    entity.Person.NationalIdCard = await _fileStorage.SaveAsync(request.NationalIdImage, GuideImageFolder, cancellationToken);
+                else if (request.NationalIdCardUrl is not null)
+                    entity.Person.NationalIdCard = request.NationalIdCardUrl;
+
+                if (request.PassportImage is not null)
+                    entity.Person.PassportScan = await _fileStorage.SaveAsync(request.PassportImage, GuideImageFolder, cancellationToken);
+                else if (request.PassportScanUrl is not null)
+                    entity.Person.PassportScan = request.PassportScanUrl;
 
                 _unitOfWork.TouristGuides.Update(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -194,17 +187,14 @@ namespace Application.Services
                 if (link is null)
                     throw new ForbiddenException("You can only delete guides that belong to your company.");
 
-                // Block deletion while the guide is assigned to any of this company's programs.
                 var isAssigned = await _unitOfWork.TourPackage_TouristGuide
                     .Query()
                     .AnyAsync(pg => pg.TouristGuideId == id && pg.Package.CompanyId == companyId, cancellationToken);
                 if (isAssigned)
                     throw new BusinessRuleException("Cannot delete a guide assigned to one of your programs.");
 
-                // Unlink from this company.
                 _unitOfWork.Company_TouristGuide.Remove(link);
 
-                // If no other company keeps this guide, hard-delete the guide record.
                 var otherLinks = entity.CompanyGuides.Any(cg => cg.CompanyId != companyId);
                 if (!otherLinks)
                     _unitOfWork.TouristGuides.Remove(entity);
@@ -238,7 +228,6 @@ namespace Application.Services
 
             var entities = await QueryWithGraph()
                 .Where(g => g.CompanyGuides.Any(cg => cg.CompanyId == companyId))
-                //.OrderBy(g => g.Firstname).ThenBy(g => g.Lastname)
                 .ToListAsync(cancellationToken);
 
             return _mapper.Map<IReadOnlyList<TouristGuideResponse>>(entities);
@@ -246,12 +235,13 @@ namespace Application.Services
 
         #region Helpers
 
-        /// <summary>Base query that eager-loads the lookups needed to build a response.</summary>
         private IQueryable<TouristGuide> QueryWithGraph() =>
             _unitOfWork.TouristGuides
                 .Query()
                 .AsNoTracking()
-                .Include(g => g.NatinalityCountry);
+                .Include(g => g.NatinalityCountry)
+                .Include(g => g.Person)
+                    .ThenInclude(p => p.ResidentialCity);
 
         private async Task<TouristGuideResponse> BuildResponseAsync(int id, CancellationToken cancellationToken)
         {
@@ -270,7 +260,6 @@ namespace Application.Services
                 throw new ForbiddenException("This guide does not belong to your company.");
         }
 
-        /// <summary>Resolves the company owned by the JWT user, or throws if none.</summary>
         private async Task<int> ResolveCompanyIdAsync(int ownerUserId, CancellationToken cancellationToken)
         {
             if (ownerUserId <= 0)
@@ -294,6 +283,15 @@ namespace Application.Services
                 .AnyAsync(c => c.Id == countryId, cancellationToken);
             if (!countryExists)
                 throw new NotFoundException($"Country with ID {countryId} not found");
+        }
+
+        private async Task EnsureCityExistsAsync(int cityId, CancellationToken cancellationToken)
+        {
+            var cityExists = await _unitOfWork.Cities
+                .Query().AsNoTracking()
+                .AnyAsync(c => c.Id == cityId, cancellationToken);
+            if (!cityExists)
+                throw new NotFoundException($"City with ID {cityId} not found");
         }
 
         #endregion

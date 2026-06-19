@@ -1,18 +1,14 @@
-using System;
-
 namespace Application.DTOs.TouristGuide.Response
 {
-    /// <summary>Full tour-guide details returned by the guide endpoints.</summary>
     public class TouristGuideResponse
     {
         public int Id { get; set; }
 
-        public string Firstname { get; set; } = null!;
+        public string FirstName { get; set; } = null!;
 
-        public string Lastname { get; set; } = null!;
+        public string LastName { get; set; } = null!;
 
-        /// <summary>Convenience full name (الاسم الكامل).</summary>
-        public string FullName => $"{Firstname} {Lastname}".Trim();
+        public string FullName => $"{FirstName} {LastName}".Trim();
 
         public string Phone { get; set; } = null!;
 
@@ -22,7 +18,7 @@ namespace Application.DTOs.TouristGuide.Response
 
         public string? NationalityCountryName { get; set; }
 
-        public bool Gender { get; set; }
+        public string Gender { get; set; } = null!;
 
         public DateOnly DateOfBirth { get; set; }
 
@@ -30,9 +26,9 @@ namespace Application.DTOs.TouristGuide.Response
 
         public string Bio { get; set; } = null!;
 
-        public string PlaceOfResidence { get; set; } = null!;
+        public int ResidentialCityId { get; set; }
 
-        public string? CurrentLocation { get; set; }
+        public string? ResidentialCityName { get; set; }
 
         public string? NationalNumber { get; set; }
 
@@ -42,7 +38,7 @@ namespace Application.DTOs.TouristGuide.Response
 
         public string? ProfileImageUrl { get; set; }
 
-        public string? IdCard { get; set; }
+        public string? NationalIdCard { get; set; }
 
         public string? PassportScan { get; set; }
 

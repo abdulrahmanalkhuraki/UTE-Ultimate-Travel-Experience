@@ -1,29 +1,22 @@
-using System;
 using Application.DTOs.TouristGuide.Request;
 using FluentValidation;
 
 namespace Application.Validators.TouristGuide
 {
-    /// <summary>
-    /// Update-time rules for a tour guide. This is a PARTIAL update (تعديل جزئي):
-    /// every field is optional, so each rule only runs when its field is actually
-    /// sent (non-null). Images can be kept by sending nothing, so they are not
-    /// required here (unlike create).
-    /// </summary>
     public sealed class TouristGuideUpdateValidator : AbstractValidator<TouristGuideUpdateRequest>
     {
         public TouristGuideUpdateValidator()
         {
-            When(x => x.Firstname != null, () =>
+            When(x => x.FirstName != null, () =>
             {
-                RuleFor(x => x.Firstname)
+                RuleFor(x => x.FirstName)
                     .NotEmpty().WithMessage("First name cannot be empty")
                     .MaximumLength(100).WithMessage("First name must not exceed 100 characters");
             });
 
-            When(x => x.Lastname != null, () =>
+            When(x => x.LastName != null, () =>
             {
-                RuleFor(x => x.Lastname)
+                RuleFor(x => x.LastName)
                     .NotEmpty().WithMessage("Last name cannot be empty")
                     .MaximumLength(100).WithMessage("Last name must not exceed 100 characters");
             });
@@ -47,12 +40,9 @@ namespace Application.Validators.TouristGuide
                 .GreaterThan(0).WithMessage("Nationality (country) is required")
                 .When(x => x.NationalityCountryId.HasValue);
 
-            When(x => x.PlaceOfResidence != null, () =>
-            {
-                RuleFor(x => x.PlaceOfResidence)
-                    .NotEmpty().WithMessage("Place of residence cannot be empty")
-                    .MaximumLength(100).WithMessage("Place of residence must not exceed 100 characters");
-            });
+            RuleFor(x => x.ResidentialCityId)
+                .GreaterThan(0).WithMessage("Residential city is required")
+                .When(x => x.ResidentialCityId.HasValue);
 
             RuleFor(x => x.DateOfBirth)
                 .Must(d => d!.Value < DateOnly.FromDateTime(DateTime.UtcNow))
@@ -80,10 +70,6 @@ namespace Application.Validators.TouristGuide
             RuleFor(x => x.PassportNumber)
                 .MaximumLength(50).WithMessage("Passport number must not exceed 50 characters")
                 .When(x => x.PassportNumber != null);
-
-            RuleFor(x => x.CurrentLocation)
-                .MaximumLength(100).WithMessage("Current location must not exceed 100 characters")
-                .When(x => x.CurrentLocation != null);
 
             RuleFor(x => x.Languages)
                 .MaximumLength(250).WithMessage("Languages must not exceed 250 characters")

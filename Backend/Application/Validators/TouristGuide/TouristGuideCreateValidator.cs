@@ -1,22 +1,17 @@
-using System;
 using Application.DTOs.TouristGuide.Request;
 using FluentValidation;
 
 namespace Application.Validators.TouristGuide
 {
-    /// <summary>
-    /// Create-time rules for a tour guide ("إضافة مرشد" form). Core identity and
-    /// contact fields are required; images and a few extras are optional.
-    /// </summary>
     public sealed class TouristGuideCreateValidator : AbstractValidator<TouristGuideCreateRequest>
     {
         public TouristGuideCreateValidator()
         {
-            RuleFor(x => x.Firstname)
+            RuleFor(x => x.FirstName)
                 .NotEmpty().WithMessage("First name is required")
                 .MaximumLength(100).WithMessage("First name must not exceed 100 characters");
 
-            RuleFor(x => x.Lastname)
+            RuleFor(x => x.LastName)
                 .NotEmpty().WithMessage("Last name is required")
                 .MaximumLength(100).WithMessage("Last name must not exceed 100 characters");
 
@@ -32,9 +27,8 @@ namespace Application.Validators.TouristGuide
             RuleFor(x => x.NationalityCountryId)
                 .GreaterThan(0).WithMessage("Nationality (country) is required");
 
-            RuleFor(x => x.PlaceOfResidence)
-                .NotEmpty().WithMessage("Place of residence is required")
-                .MaximumLength(100).WithMessage("Place of residence must not exceed 100 characters");
+            RuleFor(x => x.ResidentialCityId)
+                .GreaterThan(0).WithMessage("Residential city is required");
 
             RuleFor(x => x.DateOfBirth)
                 .NotEmpty().WithMessage("Date of birth is required")
@@ -54,17 +48,13 @@ namespace Application.Validators.TouristGuide
             RuleFor(x => x.PassportNumber)
                 .MaximumLength(50).WithMessage("Passport number must not exceed 50 characters");
 
-            RuleFor(x => x.CurrentLocation)
-                .MaximumLength(100).WithMessage("Current location must not exceed 100 characters");
-
             RuleFor(x => x.Languages)
                 .MaximumLength(250).WithMessage("Languages must not exceed 250 characters");
 
-            // Images are required when adding a guide (صور المرشد إجبارية).
             RuleFor(x => x.ProfileImage)
                 .NotNull().WithMessage("Profile image is required");
 
-            RuleFor(x => x.IdCardImage)
+            RuleFor(x => x.NationalIdImage)
                 .NotNull().WithMessage("National ID image is required");
 
             RuleFor(x => x.PassportImage)
