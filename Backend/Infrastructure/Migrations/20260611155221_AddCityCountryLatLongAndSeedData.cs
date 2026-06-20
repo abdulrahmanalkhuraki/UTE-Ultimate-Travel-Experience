@@ -45,13 +45,13 @@ namespace Infrastructure.Migrations
                 columns: new[] { "Id", "CountryCode", "CountryName", "Flag", "Latitude", "Longitude" },
                 values: new object[,]
                 {
-                    { 2, "JO", "Jordan", null, 31.945400m, 35.928400m },
-                    { 3, "SY", "Syria", null, 33.513800m, 36.276500m },
-                    { 4, "LB", "Lebanon", null, 33.893800m, 35.501800m },
-                    { 5, "EG", "Egypt", null, 30.044400m, 31.235700m },
-                    { 6, "AE", "United Arab Emirates", null, 24.453900m, 54.377300m },
-                    { 7, "TR", "Turkey", null, 39.933400m, 32.859700m },
-                    { 8, "SA", "Saudi Arabia", null, 24.713600m, 46.675300m }
+                    { 1, "JO", "Jordan", null, 31.945400m, 35.928400m },
+                    { 2, "SY", "Syria", null, 33.513800m, 36.276500m },
+                    { 3, "LB", "Lebanon", null, 33.893800m, 35.501800m },
+                    { 4, "EG", "Egypt", null, 30.044400m, 31.235700m },
+                    { 5, "AE", "United Arab Emirates", null, 24.453900m, 54.377300m },
+                    { 6, "TR", "Turkey", null, 39.933400m, 32.859700m },
+                    { 7, "SA", "Saudi Arabia", null, 24.713600m, 46.675300m }
                 });
 
             migrationBuilder.InsertData(
