@@ -263,7 +263,7 @@ namespace Infrastructure.Migrations
                     ResidentialCountryId = table.Column<int>(type: "int", nullable: false),
                     Gender = table.Column<bool>(type: "bit", nullable: false),
                     DateOfBirth = table.Column<DateOnly>(type: "date", nullable: false),
-                    IdCard = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NationalIdCard = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PassportScan = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Relationship = table.Column<int>(type: "int", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())"),
