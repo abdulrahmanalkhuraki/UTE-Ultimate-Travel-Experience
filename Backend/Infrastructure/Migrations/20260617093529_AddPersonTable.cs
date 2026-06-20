@@ -54,10 +54,6 @@ namespace Infrastructure.Migrations
                 name: "PackageItineraryAttractions",
                 newName: "Activities");
 
-            migrationBuilder.RenameTable(
-                name: "PackageItineraries",
-                newName: "Itineraries");
-
             migrationBuilder.DropIndex(
                 name: "IX_Companions_ResidentialCountryId",
                 table: "Companions");
