@@ -46,9 +46,7 @@ namespace Infrastructure.Migrations
             name: "IX_PackageItineraryAttractions_AttractionId",
             table: "PackageItineraryAttractions");
 
-            migrationBuilder.DropColumn(
-                name: "AttractionId",
-                table: "PackageItineraryAttractions");
+            migrationBuilder.Sql(@"IF COL_LENGTH('PackageItineraryAttractions','AttractionId') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('PackageItineraryAttractions') AND c.name = 'AttractionId'; IF @df IS NOT NULL EXEC('ALTER TABLE [PackageItineraryAttractions] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [PackageItineraryAttractions] DROP COLUMN [AttractionId]; END");
 
             migrationBuilder.RenameTable(
                 name: "PackageItineraryAttractions",
@@ -58,137 +56,69 @@ namespace Infrastructure.Migrations
                 name: "IX_Companions_ResidentialCountryId",
                 table: "Companions");
 
-            migrationBuilder.DropColumn(
-                name: "Date_Of_Birth",
-                table: "Users");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Users','Date_Of_Birth') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Users') AND c.name = 'Date_Of_Birth'; IF @df IS NOT NULL EXEC('ALTER TABLE [Users] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Users] DROP COLUMN [Date_Of_Birth]; END");
 
-            migrationBuilder.DropColumn(
-                name: "FirstName",
-                table: "Users");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Users','FirstName') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Users') AND c.name = 'FirstName'; IF @df IS NOT NULL EXEC('ALTER TABLE [Users] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Users] DROP COLUMN [FirstName]; END");
 
-            migrationBuilder.DropColumn(
-                name: "Gender",
-                table: "Users");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Users','Gender') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Users') AND c.name = 'Gender'; IF @df IS NOT NULL EXEC('ALTER TABLE [Users] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Users] DROP COLUMN [Gender]; END");
 
-            migrationBuilder.DropColumn(
-                name: "IsProfileCompleted",
-                table: "Users");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Users','IsProfileCompleted') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Users') AND c.name = 'IsProfileCompleted'; IF @df IS NOT NULL EXEC('ALTER TABLE [Users] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Users] DROP COLUMN [IsProfileCompleted]; END");
 
-            migrationBuilder.DropColumn(
-                name: "LastName",
-                table: "Users");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Users','LastName') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Users') AND c.name = 'LastName'; IF @df IS NOT NULL EXEC('ALTER TABLE [Users] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Users] DROP COLUMN [LastName]; END");
 
-            migrationBuilder.DropColumn(
-                name: "NationalIdImage",
-                table: "Users");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Users','NationalIdImage') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Users') AND c.name = 'NationalIdImage'; IF @df IS NOT NULL EXEC('ALTER TABLE [Users] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Users] DROP COLUMN [NationalIdImage]; END");
 
-            migrationBuilder.DropColumn(
-                name: "NationalNumber",
-                table: "Users");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Users','NationalNumber') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Users') AND c.name = 'NationalNumber'; IF @df IS NOT NULL EXEC('ALTER TABLE [Users] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Users] DROP COLUMN [NationalNumber]; END");
 
-            migrationBuilder.DropColumn(
-                name: "PassportNumber",
-                table: "Users");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Users','PassportNumber') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Users') AND c.name = 'PassportNumber'; IF @df IS NOT NULL EXEC('ALTER TABLE [Users] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Users] DROP COLUMN [PassportNumber]; END");
 
-            migrationBuilder.DropColumn(
-                name: "PassportImage",
-                table: "Users");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Users','PassportImage') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Users') AND c.name = 'PassportImage'; IF @df IS NOT NULL EXEC('ALTER TABLE [Users] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Users] DROP COLUMN [PassportImage]; END");
 
-            migrationBuilder.DropColumn(
-                name: "Phone",
-                table: "Users");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Users','Phone') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Users') AND c.name = 'Phone'; IF @df IS NOT NULL EXEC('ALTER TABLE [Users] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Users] DROP COLUMN [Phone]; END");
 
-            migrationBuilder.DropColumn(
-                name: "Image",
-                table: "Users");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Users','Image') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Users') AND c.name = 'Image'; IF @df IS NOT NULL EXEC('ALTER TABLE [Users] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Users] DROP COLUMN [Image]; END");
 
-            migrationBuilder.DropColumn(
-                name: "PlaceOfResidence",
-                table: "Users");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Users','PlaceOfResidence') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Users') AND c.name = 'PlaceOfResidence'; IF @df IS NOT NULL EXEC('ALTER TABLE [Users] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Users] DROP COLUMN [PlaceOfResidence]; END");
 
-            migrationBuilder.DropColumn(
-                name: "CreatedAtUtc",
-                table: "TouristGuides");
+            migrationBuilder.Sql(@"IF COL_LENGTH('TouristGuides','CreatedAtUtc') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('TouristGuides') AND c.name = 'CreatedAtUtc'; IF @df IS NOT NULL EXEC('ALTER TABLE [TouristGuides] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [TouristGuides] DROP COLUMN [CreatedAtUtc]; END");
 
-            migrationBuilder.DropColumn(
-                name: "DateOfBirth",
-                table: "TouristGuides");
+            migrationBuilder.Sql(@"IF COL_LENGTH('TouristGuides','DateOfBirth') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('TouristGuides') AND c.name = 'DateOfBirth'; IF @df IS NOT NULL EXEC('ALTER TABLE [TouristGuides] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [TouristGuides] DROP COLUMN [DateOfBirth]; END");
 
-            migrationBuilder.DropColumn(
-                name: "Firstname",
-                table: "TouristGuides");
+            migrationBuilder.Sql(@"IF COL_LENGTH('TouristGuides','Firstname') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('TouristGuides') AND c.name = 'Firstname'; IF @df IS NOT NULL EXEC('ALTER TABLE [TouristGuides] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [TouristGuides] DROP COLUMN [Firstname]; END");
 
-            migrationBuilder.DropColumn(
-                name: "Gender",
-                table: "TouristGuides");
+            migrationBuilder.Sql(@"IF COL_LENGTH('TouristGuides','Gender') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('TouristGuides') AND c.name = 'Gender'; IF @df IS NOT NULL EXEC('ALTER TABLE [TouristGuides] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [TouristGuides] DROP COLUMN [Gender]; END");
 
-            migrationBuilder.DropColumn(
-                name: "Lastname",
-                table: "TouristGuides");
+            migrationBuilder.Sql(@"IF COL_LENGTH('TouristGuides','Lastname') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('TouristGuides') AND c.name = 'Lastname'; IF @df IS NOT NULL EXEC('ALTER TABLE [TouristGuides] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [TouristGuides] DROP COLUMN [Lastname]; END");
 
-            migrationBuilder.DropColumn(
-                name: "IdCard",
-                table: "TouristGuides");
+            migrationBuilder.Sql(@"IF COL_LENGTH('TouristGuides','IdCard') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('TouristGuides') AND c.name = 'IdCard'; IF @df IS NOT NULL EXEC('ALTER TABLE [TouristGuides] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [TouristGuides] DROP COLUMN [IdCard]; END");
 
-            migrationBuilder.DropColumn(
-                name: "NationalNumber",
-                table: "TouristGuides");
+            migrationBuilder.Sql(@"IF COL_LENGTH('TouristGuides','NationalNumber') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('TouristGuides') AND c.name = 'NationalNumber'; IF @df IS NOT NULL EXEC('ALTER TABLE [TouristGuides] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [TouristGuides] DROP COLUMN [NationalNumber]; END");
 
-            migrationBuilder.DropColumn(
-                name: "PassportNumber",
-                table: "TouristGuides");
+            migrationBuilder.Sql(@"IF COL_LENGTH('TouristGuides','PassportNumber') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('TouristGuides') AND c.name = 'PassportNumber'; IF @df IS NOT NULL EXEC('ALTER TABLE [TouristGuides] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [TouristGuides] DROP COLUMN [PassportNumber]; END");
 
-            migrationBuilder.DropColumn(
-                name: "PassportScan",
-                table: "TouristGuides");
+            migrationBuilder.Sql(@"IF COL_LENGTH('TouristGuides','PassportScan') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('TouristGuides') AND c.name = 'PassportScan'; IF @df IS NOT NULL EXEC('ALTER TABLE [TouristGuides] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [TouristGuides] DROP COLUMN [PassportScan]; END");
 
-            migrationBuilder.DropColumn(
-                name: "Phone",
-                table: "TouristGuides");
+            migrationBuilder.Sql(@"IF COL_LENGTH('TouristGuides','Phone') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('TouristGuides') AND c.name = 'Phone'; IF @df IS NOT NULL EXEC('ALTER TABLE [TouristGuides] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [TouristGuides] DROP COLUMN [Phone]; END");
 
-            migrationBuilder.DropColumn(
-                name: "ProfileImageUrl",
-                table: "TouristGuides");
+            migrationBuilder.Sql(@"IF COL_LENGTH('TouristGuides','PlaceOfResidence') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('TouristGuides') AND c.name = 'PlaceOfResidence'; IF @df IS NOT NULL EXEC('ALTER TABLE [TouristGuides] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [TouristGuides] DROP COLUMN [PlaceOfResidence]; END");
 
-            migrationBuilder.DropColumn(
-                name: "PlaceOfResidence",
-                table: "TouristGuides");
+            migrationBuilder.Sql(@"IF COL_LENGTH('TouristGuides','UpdatedAtUtc') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('TouristGuides') AND c.name = 'UpdatedAtUtc'; IF @df IS NOT NULL EXEC('ALTER TABLE [TouristGuides] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [TouristGuides] DROP COLUMN [UpdatedAtUtc]; END");
 
-            migrationBuilder.DropColumn(
-                name: "UpdatedAtUtc",
-                table: "TouristGuides");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Companions','CreatedAtUtc') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Companions') AND c.name = 'CreatedAtUtc'; IF @df IS NOT NULL EXEC('ALTER TABLE [Companions] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Companions] DROP COLUMN [CreatedAtUtc]; END");
 
-            migrationBuilder.DropColumn(
-                name: "CreatedAtUtc",
-                table: "Companions");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Companions','DateOfBirth') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Companions') AND c.name = 'DateOfBirth'; IF @df IS NOT NULL EXEC('ALTER TABLE [Companions] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Companions] DROP COLUMN [DateOfBirth]; END");
 
-            migrationBuilder.DropColumn(
-                name: "DateOfBirth",
-                table: "Companions");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Companions','Firstname') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Companions') AND c.name = 'Firstname'; IF @df IS NOT NULL EXEC('ALTER TABLE [Companions] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Companions] DROP COLUMN [Firstname]; END");
 
-            migrationBuilder.DropColumn(
-                name: "Firstname",
-                table: "Companions");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Companions','Gender') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Companions') AND c.name = 'Gender'; IF @df IS NOT NULL EXEC('ALTER TABLE [Companions] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Companions] DROP COLUMN [Gender]; END");
 
-            migrationBuilder.DropColumn(
-                name: "Gender",
-                table: "Companions");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Companions','Lastname') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Companions') AND c.name = 'Lastname'; IF @df IS NOT NULL EXEC('ALTER TABLE [Companions] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Companions] DROP COLUMN [Lastname]; END");
 
-            migrationBuilder.DropColumn(
-                name: "Lastname",
-                table: "Companions");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Companions','IdCard') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Companions') AND c.name = 'IdCard'; IF @df IS NOT NULL EXEC('ALTER TABLE [Companions] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Companions] DROP COLUMN [IdCard]; END");
 
-            migrationBuilder.DropColumn(
-                name: "IdCard",
-                table: "Companions");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Companions','Phone') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Companions') AND c.name = 'Phone'; IF @df IS NOT NULL EXEC('ALTER TABLE [Companions] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Companions] DROP COLUMN [Phone]; END");
 
-            migrationBuilder.DropColumn(
-                name: "Phone",
-                table: "Companions");
-
-            migrationBuilder.DropColumn(
-                name: "UpdatedAtUtc",
-                table: "Companions");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Companions','UpdatedAtUtc') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Companions') AND c.name = 'UpdatedAtUtc'; IF @df IS NOT NULL EXEC('ALTER TABLE [Companions] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Companions] DROP COLUMN [UpdatedAtUtc]; END");
 
             migrationBuilder.RenameColumn(
                 name: "ResidentialCountryId",
@@ -354,13 +284,9 @@ namespace Infrastructure.Migrations
                 name: "IX_Companions_PersonId",
                 table: "Companions");
 
-            migrationBuilder.DropColumn(
-                name: "PersonId",
-                table: "Users");
+            migrationBuilder.Sql(@"IF COL_LENGTH('Users','PersonId') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('Users') AND c.name = 'PersonId'; IF @df IS NOT NULL EXEC('ALTER TABLE [Users] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [Users] DROP COLUMN [PersonId]; END");
 
-            migrationBuilder.DropColumn(
-                name: "PersonId",
-                table: "TouristGuides");
+            migrationBuilder.Sql(@"IF COL_LENGTH('TouristGuides','PersonId') IS NOT NULL BEGIN DECLARE @df sysname; SELECT @df = d.name FROM sys.default_constraints d JOIN sys.columns c ON c.default_object_id = d.object_id WHERE c.object_id = OBJECT_ID('TouristGuides') AND c.name = 'PersonId'; IF @df IS NOT NULL EXEC('ALTER TABLE [TouristGuides] DROP CONSTRAINT [' + @df + ']'); ALTER TABLE [TouristGuides] DROP COLUMN [PersonId]; END");
 
             migrationBuilder.RenameColumn(
                 name: "ResidencyCard",
