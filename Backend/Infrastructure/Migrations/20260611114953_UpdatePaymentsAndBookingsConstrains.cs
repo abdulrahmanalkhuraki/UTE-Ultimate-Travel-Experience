@@ -39,6 +39,10 @@ namespace Infrastructure.Migrations
                 name: "CK_Booking_BookingStatus",
                 table: "Bookings");
 
+            migrationBuilder.DropCheckConstraint(
+                name: "CHK_PaymentMethods",
+                table: "Payments");
+
             migrationBuilder.DropColumn(
                 name: "PaymentMethod",
                 table: "Payments");
