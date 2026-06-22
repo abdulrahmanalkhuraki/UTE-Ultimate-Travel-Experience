@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'available_programs.dart';
 import 'wishlist.dart';
 import 'trips_screen.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
 
 class AppBottomNavBar extends StatelessWidget {
   final int selectedIndex;
@@ -26,8 +28,8 @@ class AppBottomNavBar extends StatelessWidget {
     );
   }
 
-  static const _iconsNormal = ['main.png', 'addWishList.png', 'Heart.png', 'Calender.png', 'setting.png'];
-  static const _iconsActive = ['main2.png', 'addWishList2.png', 'Heart2.png', 'calender2.png', 'setting2.png'];
+  static const _iconsNormal = ['home.png', 'addWishList.png', 'Heart.png', 'Calender.png', 'setting.png'];
+  static const _iconsActive = ['home2.png', 'addWishList2.png', 'Heart2.png', 'calender2.png', 'setting2.png'];
   static const _labels = ['الرئيسية', 'أتمنى زيارتها', 'المفضلة', 'رحلاتي', 'الإعدادات'];
 
   @override

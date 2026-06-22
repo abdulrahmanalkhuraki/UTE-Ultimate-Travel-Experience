@@ -1,3 +1,6 @@
+import 'package:tourism_app/wishlist.dart';
+import 'package:tourism_app/wishlist_data.dart';
+
 import 'bottomNavigationBar.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart' hide BottomNavigationBar;
@@ -12,40 +15,38 @@ class AvailableProgramsPage extends StatefulWidget {
 }
 
 class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
-  late List<bool> _isWishlisted;
-  late List<int> _currentRatings;
+
   final List<Map<String, dynamic>> programsData = [
     {
+      'id': '1',
       'location': 'دبي _ ابو ظبي _ عجمان',
       'date': 'من 20-4 الى 20-5',
       'price': '4500\$',
       'image': 'assets/images/Eiffel.png',
     },
     {
+      'id': '2',
       'location': 'باريس _ ديزني لاند _ ليون',
       'date': 'من 01-7 الى 15-7',
       'price': '6200\$',
       'image': 'assets/images/Eiffel.png',
     },
     {
+      'id': '3',
       'location': 'إسطنبول _ بورصة _ سبانجا',
       'date': 'من 10-8 الى 25-8',
       'price': '3100\$',
       'image': 'assets/images/Eiffel.png',
     },
     {
+      'id': '4',
       'location': 'طوكيو _ كيوتو _ أوساكا',
       'date': 'من 05-9 الى 20-9',
       'price': '5800\$',
       'image': 'assets/images/Eiffel.png',
     },
   ];
-  @override
-  void initState() {
-    super.initState();
-    _isWishlisted = List.generate(programsData.length, (index) => false);
-    _currentRatings = List.generate(programsData.length, (index) => 0);
-  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -172,18 +173,18 @@ class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
                                         child: GestureDetector(
                                           onTap: () {
                                             setState(() {
-                                              _isWishlisted[index] = !_isWishlisted[index];
+                                              WishlistData.instance.toggleWishlist(currentProgram['id']);
                                             });
                                           },
-                                          child: SizedBox(
-                                            width: 41,
-                                            height: 31.12,
-                                            child: Image.asset(
-                                              'assets/icons/addToWishList.png',
-                                              fit: BoxFit.contain,
-                                              color: _isWishlisted[index] ? Colors.orange : null,
-                                              colorBlendMode: _isWishlisted[index] ? BlendMode.srcIn : null,
-                                            ),
+                                          child: Image.asset(
+                                            'assets/icons/addToWishList.png',
+                                            fit: BoxFit.contain,
+                                            color: WishlistData.instance.isWishlisted(currentProgram['id'])
+                                                ? Colors.orange
+                                                : null,
+                                            colorBlendMode: WishlistData.instance.isWishlisted(currentProgram['id'])
+                                                ? BlendMode.srcIn
+                                                : null,
                                           ),
                                         ),
                                       ),
@@ -273,10 +274,17 @@ class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
                                                         Row(
                                                           children: List.generate(5, (starIndex) {
                                                             return GestureDetector(
-                                                              onTap: () => setState(() => _currentRatings[index] = starIndex + 1),
+                                                              onTap: () {
+                                                                setState(() {
+                                                                  WishlistData.instance.setRating(currentProgram['id'], starIndex + 1);
+                                                                });
+                                                              },
                                                               child: Image.asset(
-                                                                starIndex < _currentRatings[index] ? 'assets/icons/star1.png' : 'assets/icons/star2.png',
-                                                                width: 18, height: 18,
+                                                                WishlistData.instance.getRating(currentProgram['id']) > starIndex
+                                                                    ? 'assets/icons/star1.png'
+                                                                    : 'assets/icons/star2.png',
+                                                                width: 18,
+                                                                height: 18,
                                                               ),
                                                             );
                                                           }),
