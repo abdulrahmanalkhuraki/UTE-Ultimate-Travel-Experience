@@ -1,12 +1,19 @@
 import 'package:bloc/bloc.dart';
+import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
+import 'package:ute_app/api/api_exception.dart';
+import 'package:ute_app/api/api_serv.dart';
+import 'package:ute_app/api/auth_api.dart';
+
+
 
 part 'login_state.dart';
 
 class LoginCubit extends Cubit<LoginState> {
-  LoginCubit() : super(LoginInitial());
+  LoginCubit({AuthApi? authApi}) : _authApi = authApi ?? AuthApi(), super(LoginInitial());
 
-  // ── getter مشترك ──
+  final AuthApi _authApi;
+
   bool get _currentObscure {
     final s = state;
     if (s is LoginInitial) return s.obscurePassword;
@@ -19,25 +26,32 @@ class LoginCubit extends Cubit<LoginState> {
     final newVal = !_currentObscure;
     final s = state;
     if (s is LoginInitial) emit(LoginInitial(obscurePassword: newVal));
-    if (s is LoginFailure) emit(LoginFailure(message: s.message, obscurePassword: newVal));
+    if (s is LoginFailure) {
+      emit(LoginFailure(message: s.message, obscurePassword: newVal));
+    }
   }
 
   Future<void> login({required String email, required String password}) async {
     emit(LoginLoading(obscurePassword: _currentObscure));
     try {
-      await Future.delayed(const Duration(milliseconds: 500));
-      emit(LoginSuccess(token: _fakeLogin(email: email, password: password)));
-    } catch (error) {
-      emit(LoginFailure(message: error.toString(), obscurePassword: _currentObscure));
+      final response = await _authApi.login(email: email, password: password);
+      final token = response.token;
+      if (token == null || token.isEmpty) {
+        emit(LoginFailure(
+          message: 'لم يتم استلام رمز الدخول من الخادم.',
+          obscurePassword: _currentObscure,
+        ));
+        return;
+      }
+      await ApiServ.setAuthToken(token);
+      emit(LoginSuccess(token: token));
+    } on DioException catch (e) {
+      final error = ApiException.fromDioException(e);
+      emit(LoginFailure(message: error.message, obscurePassword: _currentObscure));
+    } catch (e) {
+      emit(LoginFailure(message: e.toString(), obscurePassword: _currentObscure));
     }
   }
 
   void reset() => emit(LoginInitial());
-
-  String _fakeLogin({required String email, required String password}) {
-    if (email.isEmpty || password.isEmpty) throw Exception('البريد وكلمة المرور مطلوبان.');
-    if (!email.contains('@')) throw Exception('أدخل بريد إلكتروني صحيح.');
-    if (password.length < 6) throw Exception('كلمة المرور يجب أن تكون 6 أحرف على الأقل.');
-    return 'token_${DateTime.now().millisecondsSinceEpoch}';
-  }
 }
