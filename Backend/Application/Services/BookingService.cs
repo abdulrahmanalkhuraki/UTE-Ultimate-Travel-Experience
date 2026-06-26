@@ -97,6 +97,7 @@ namespace Application.Services
                 var existingCompanions = await _unitOfWork.Companions
                     .Query()
                     .Where(c => companionIds.Contains(c.Id))
+                    .Include(c => c.Person)
                     .ToListAsync(cancellationToken);
 
                 var foundIds = existingCompanions.Select(c => c.Id).ToHashSet();

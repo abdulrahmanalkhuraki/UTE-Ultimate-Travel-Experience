@@ -582,7 +582,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CompanionId");
 
-                    b.ToTable("CompanionBookings");
+                    b.ToTable("Companion_Bookings");
                 });
 
             modelBuilder.Entity("Domain.Entities.Company_TouristGuide", b =>
@@ -1798,13 +1798,13 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Companion_Booking", b =>
                 {
                     b.HasOne("Domain.Entities.Booking", "Booking")
-                        .WithMany("CompanionBookings")
+                        .WithMany("Companion_Bookings")
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.Companion", "Companion")
-                        .WithMany("CompanionBookings")
+                        .WithMany("Companion_Bookings")
                         .HasForeignKey("CompanionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2160,7 +2160,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Booking", b =>
                 {
-                    b.Navigation("CompanionBookings");
+                    b.Navigation("Companion_Bookings");
 
                     b.Navigation("Notifications");
                 });
@@ -2174,7 +2174,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Companion", b =>
                 {
-                    b.Navigation("CompanionBookings");
+                    b.Navigation("Companion_Bookings");
                 });
 
             modelBuilder.Entity("Domain.Entities.Country", b =>

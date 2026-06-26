@@ -1,13 +1,17 @@
 using Application.DTOs.Companion.Request;
 using Application.DTOs.Companion.Response;
+using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
 using Application.Interfaces.Companion;
+using Application.Interfaces.User;
+using Application.Validators.Companion;
 using AutoMapper;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using ValidationException = Application.Exceptions.ValidationException;
 
 namespace Application.Services
 {
@@ -16,366 +20,286 @@ namespace Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<CompanionService> _logger;
-        private readonly IMemoryCache _cache;
+        private readonly IFileStorage _fileStorage;
+        private readonly CompanionCreateValidator _createValidator;
+        private readonly CompanionUpdateValidator _updateValidator;
 
-        // Cache constants
-        private const string CompanionCacheKeyPrefix = "companion_";
-        private const string CompanionsListCacheKey = "all_companions";
-        private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
-        private static readonly TimeSpan SlidingCacheDuration = TimeSpan.FromMinutes(2);
+        private const string CompanionImageFolder = "companion-images";
 
         public CompanionService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             ILogger<CompanionService> logger,
-            IMemoryCache cache)
+            IFileStorage fileStorage,
+            CompanionCreateValidator createValidator,
+            CompanionUpdateValidator updateValidator)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
+            _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
+            _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
         }
 
-        /// <summary>Creates a new companion for a user.</summary>
-        /// <param name="request">The companion creation payload.</param>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns>The newly created <see cref="CompanionResponse"/> with computed fields.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when request is null.</exception>
-        /// <exception cref="NotFoundException">Thrown when the user, nationality country, or residential country is not found.</exception>
-        /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
-        public async Task<CompanionResponse> CreateAsync(CompanionCreateRequest request, CancellationToken cancellationToken)
+        public async Task<CompanionResponse> CreateAsync(int userId, CompanionCreateRequest request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
-            //_logger.LogInformation("Attempting to create new companion for user {UserId}", request.UserId);
+            var validationResult = await _createValidator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+                throw new ValidationException(validationResult.Errors);
+
+            var userExists = await _unitOfWork.Users
+                .Query()
+                .AnyAsync(u => u.Id == userId, cancellationToken);
+            if (!userExists)
+                throw new NotFoundException($"User with ID {userId} not found");
+
+            await EnsureCountryExistsAsync(request.NationalityCountryId, cancellationToken);
+            await EnsureCityExistsAsync(request.ResidentialCityId, cancellationToken);
 
             try
             {
-                // Verify user exists
-                //var userExists = await _unitOfWork.Users
-                    //.Query()
-                    //.AnyAsync(u => u.Id == request.UserId, cancellationToken);
+                var person = _mapper.Map<Person>(request);
+                person.CreatedAtUtc = DateTime.UtcNow;
+                person.UpdatedAtUtc = DateTime.UtcNow;
 
-                //if (!userExists)
-                //{
-                    //_logger.LogWarning("User with ID {UserId} not found", request.UserId);
-                    //throw new NotFoundException($"User with ID {request.UserId} not found");
-                //}
+                if (request.NationalIdCard is not null)
+                    person.NationalIdCard = await _fileStorage.SaveAsync(request.NationalIdCard, CompanionImageFolder, cancellationToken);
+                if (request.PassportScan is not null)
+                    person.PassportScan = await _fileStorage.SaveAsync(request.PassportScan, CompanionImageFolder, cancellationToken);
 
-                // Verify nationality country exists
-                var nationalityCountryExists = await _unitOfWork.Countries
-                    .Query()
-                    .AnyAsync(c => c.Id == request.NationalityCountryId, cancellationToken);
-
-                if (!nationalityCountryExists)
+                var companion = new Companion
                 {
-                    _logger.LogWarning("Nationality country with ID {CountryId} not found", request.NationalityCountryId);
-                    throw new NotFoundException($"Nationality country with ID {request.NationalityCountryId} not found");
-                }
+                    NationalityCountryId = request.NationalityCountryId,
+                    Relationship = request.Relationship,
+                    UserId = userId,
+                    Person = person,
+                };
 
-                // Verify residential country exists
-                var residentialCountryExists = await _unitOfWork.Countries
-                    .Query()
-                    .AnyAsync(c => c.Id == request.ResidentialCountryId, cancellationToken);
+                if (request.ResidencyCard is not null)
+                    companion.ResidencyCard = await _fileStorage.SaveAsync(request.ResidencyCard, CompanionImageFolder, cancellationToken);
 
-                if (!residentialCountryExists)
-                {
-                    _logger.LogWarning("Residential country with ID {CountryId} not found", request.ResidentialCountryId);
-                    throw new NotFoundException($"Residential country with ID {request.ResidentialCountryId} not found");
-                }
-
-                // Map request to entity
-                var companion = _mapper.Map<Companion>(request);
-
-                // Add to repository
                 await _unitOfWork.Companions.AddAsync(companion, cancellationToken);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Companion created successfully with ID {CompanionId}", companion.Id);
+                _logger.LogInformation("Companion {CompanionId} created for user {UserId}", companion.Id, userId);
 
-                // Build response with computed fields
-                var response = await BuildCompanionResponseAsync(companion, cancellationToken);
-
-                // Invalidate list cache
-                _cache.Remove(CompanionsListCacheKey);
-
-                return response;
+                return await BuildResponseAsync(companion.Id, cancellationToken);
             }
-            catch (NotFoundException)
+            catch (Exception ex) when (ex is not ValidationException and not NotFoundException)
             {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating companion");
+                _logger.LogError(ex, "Error creating companion for user {UserId}", userId);
                 throw new ServiceException($"Failed to create companion: {ex.Message}", ex);
             }
         }
 
-        /// <summary>Retrieves a companion by ID with computed fields.</summary>
-        /// <param name="id">The companion ID.</param>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns>The <see cref="CompanionResponse"/> with computed fields.</returns>
-        /// <exception cref="ArgumentException">Thrown when id is invalid.</exception>
-        /// <exception cref="NotFoundException">Thrown when the companion is not found.</exception>
-        /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
-        public async Task<CompanionResponse> GetAsync(int id, CancellationToken cancellationToken)
+        public async Task<CompanionResponse> GetAsync(int id, int userId, CancellationToken cancellationToken)
         {
             if (id <= 0)
                 throw new ArgumentException("Invalid companion ID", nameof(id));
 
-            _logger.LogDebug("Retrieving companion with ID {CompanionId}", id);
+            await EnsureCompanionBelongsToUserAsync(id, userId, cancellationToken);
 
-            // Try cache first
-            var cacheKey = $"{CompanionCacheKeyPrefix}{id}";
-            if (_cache.TryGetValue(cacheKey, out CompanionResponse? cachedCompanion) && cachedCompanion is not null)
-            {
-                _logger.LogDebug("Cache hit for companion {CompanionId}", id);
-                return cachedCompanion;
-            }
-
-            try
-            {
-                var entity = await _unitOfWork.Companions
-                    .Query()
-                    .Include(c => c.NationalityCountry)
-                    //.Include(c => c.ResidentialCountry)
-                    .Include(c => c.CompanionBookings)
-                        .ThenInclude(cb => cb.Booking)
-                            .ThenInclude(b => b.TourPackage)
-                    .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
-
-                if (entity is null)
-                {
-                    _logger.LogDebug("Companion with ID {CompanionId} not found", id);
-                    throw new NotFoundException($"Companion with ID {id} not found");
-                }
-
-                var response = await BuildCompanionResponseAsync(entity, cancellationToken);
-
-                // Cache the result with sliding expiration
-                var cacheOptions = new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = CacheDuration,
-                    SlidingExpiration = SlidingCacheDuration,
-                    Priority = CacheItemPriority.Normal
-                };
-
-                _cache.Set(cacheKey, response, cacheOptions);
-
-                _logger.LogDebug("Successfully retrieved companion {CompanionId}", id);
-
-                return response;
-            }
-            catch (NotFoundException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving companion {CompanionId}", id);
-                throw new ServiceException($"Failed to retrieve companion: {ex.Message}", ex);
-            }
+            return await BuildResponseAsync(id, cancellationToken);
         }
 
-        /// <summary>Retrieves all companions with computed fields.</summary>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns>A read-only list of <see cref="CompanionResponse"/> with computed fields.</returns>
-        /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
-        public async Task<IReadOnlyList<CompanionResponse>> GetAllAsync(CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<CompanionResponse>> GetAllAsync(int userId, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("Retrieving all companions");
+            var entities = await QueryWithGraph()
+                .Where(c => c.UserId == userId)
+                .ToListAsync(cancellationToken);
 
-            // Try cache
-            if (_cache.TryGetValue(CompanionsListCacheKey, out IReadOnlyList<CompanionResponse>? cachedCompanions) && cachedCompanions is not null)
+            var responses = new List<CompanionResponse>(entities.Count);
+            foreach (var entity in entities)
             {
-                _logger.LogDebug("Cache hit for all companions");
-                return cachedCompanions;
+                responses.Add(await BuildResponseFromEntity(entity, cancellationToken));
             }
 
-            try
-            {
-                var entities = await _unitOfWork.Companions
-                    .Query()
-                    .Include(c => c.NationalityCountry)
-                    //.Include(c => c.ResidentialCountry)
-                    .Include(c => c.CompanionBookings)
-                        .ThenInclude(cb => cb.Booking)
-                            .ThenInclude(b => b.TourPackage)
-                    .ToListAsync(cancellationToken);
-
-                var responses = new List<CompanionResponse>();
-                foreach (var entity in entities)
-                {
-                    var response = await BuildCompanionResponseAsync(entity, cancellationToken);
-                    responses.Add(response);
-                }
-
-                var result = responses.AsReadOnly();
-
-                // Cache the result with lower priority
-                _cache.Set(CompanionsListCacheKey, result, new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = CacheDuration,
-                    Priority = CacheItemPriority.Low
-                });
-
-                _logger.LogDebug("Successfully retrieved {Count} companions", result.Count);
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving all companions");
-                throw new ServiceException($"Failed to retrieve companions: {ex.Message}", ex);
-            }
+            return responses.AsReadOnly();
         }
 
-        /// <summary>Updates an existing companion with computed fields.</summary>
-        /// <param name="id">The companion ID.</param>
-        /// <param name="request">The companion update payload.</param>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns>The updated <see cref="CompanionResponse"/> with computed fields.</returns>
-        /// <exception cref="ArgumentException">Thrown when id is invalid.</exception>
-        /// <exception cref="ArgumentNullException">Thrown when request is null.</exception>
-        /// <exception cref="NotFoundException">Thrown when the companion or countries are not found.</exception>
-        /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
-        public async Task<CompanionResponse> UpdateAsync(int id, CompanionUpdateRequest request, CancellationToken cancellationToken)
+        public async Task<CompanionResponse> UpdateAsync(int id, int userId, CompanionUpdateRequest request, CancellationToken cancellationToken)
         {
             if (id <= 0)
                 throw new ArgumentException("Invalid companion ID", nameof(id));
 
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
-            _logger.LogInformation("Attempting to update companion {CompanionId}", id);
+            var validationResult = await _updateValidator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+                throw new ValidationException(validationResult.Errors);
+
+            if (request.NationalityCountryId.HasValue)
+                await EnsureCountryExistsAsync(request.NationalityCountryId.Value, cancellationToken);
+            if (request.ResidentialCityId.HasValue)
+                await EnsureCityExistsAsync(request.ResidentialCityId.Value, cancellationToken);
 
             try
             {
                 var entity = await _unitOfWork.Companions
                     .Query()
-                    .Include(c => c.NationalityCountry)
-                    //.Include(c => c.ResidentialCountry)
+                    .Include(c => c.Person)
                     .Include(c => c.CompanionBookings)
                         .ThenInclude(cb => cb.Booking)
                             .ThenInclude(b => b.TourPackage)
                     .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
 
                 if (entity is null)
-                {
-                    _logger.LogWarning("Companion with ID {CompanionId} not found", id);
                     throw new NotFoundException($"Companion with ID {id} not found");
-                }
 
-                // Verify new countries exist if provided
-                if (request.NationalityCountryId.HasValue)
-                {
-                    var countryExists = await _unitOfWork.Countries
-                        .Query()
-                        .AnyAsync(c => c.Id == request.NationalityCountryId.Value, cancellationToken);
+                await EnsureCompanionBelongsToUserAsync(id, userId, cancellationToken);
 
-                    if (!countryExists)
-                    {
-                        _logger.LogWarning("Nationality country with ID {CountryId} not found", request.NationalityCountryId);
-                        throw new NotFoundException($"Nationality country with ID {request.NationalityCountryId} not found");
-                    }
-                }
-
-                if (request.ResidentialCountryId.HasValue)
-                {
-                    var countryExists = await _unitOfWork.Countries
-                        .Query()
-                        .AnyAsync(c => c.Id == request.ResidentialCountryId.Value, cancellationToken);
-
-                    if (!countryExists)
-                    {
-                        _logger.LogWarning("Residential country with ID {CountryId} not found", request.ResidentialCountryId);
-                        throw new NotFoundException($"Residential country with ID {request.ResidentialCountryId} not found");
-                    }
-                }
-
-                // Map request to entity (partial update)
-                _mapper.Map(request, entity);
+                await ApplyPartialUpdateAsync(entity, request, cancellationToken);
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Companion {CompanionId} updated successfully", id);
+                _logger.LogInformation("Companion {CompanionId} updated", id);
 
-                // Build response with computed fields
-                var response = await BuildCompanionResponseAsync(entity, cancellationToken);
-
-                // Invalidate caches
-                _cache.Remove($"{CompanionCacheKeyPrefix}{id}");
-                _cache.Remove(CompanionsListCacheKey);
-
-                return response;
+                return await BuildResponseFromEntity(entity, cancellationToken);
             }
-            catch (NotFoundException)
-            {
-                throw;
-            }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not ValidationException and not NotFoundException and not ForbiddenException)
             {
                 _logger.LogError(ex, "Error updating companion {CompanionId}", id);
                 throw new ServiceException($"Failed to update companion: {ex.Message}", ex);
             }
         }
 
-        /// <summary>Deletes a companion by ID.</summary>
-        /// <param name="id">The companion ID.</param>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns>True if deletion was successful; false if companion was not found.</returns>
-        /// <exception cref="ArgumentException">Thrown when id is invalid.</exception>
-        /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
-        //public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
-        //{
-        //    if (id <= 0)
-        //        throw new ArgumentException("Invalid companion ID", nameof(id));
-
-        //    _logger.LogInformation("Attempting to delete companion {CompanionId}", id);
-        //    return 1;
-        //}
-
-        /// <summary>Builds a CompanionResponse with computed fields from a Companion entity.</summary>
-        /// <param name="companion">The companion entity.</param>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns>The populated <see cref="CompanionResponse"/>.</returns>
-        private async Task<CompanionResponse> BuildCompanionResponseAsync(Companion companion, CancellationToken cancellationToken)
+        public async Task<bool> DeleteAsync(int id, int userId, CancellationToken cancellationToken)
         {
-            // Map basic properties
-            var response = _mapper.Map<CompanionResponse>(companion);
+            if (id <= 0)
+                throw new ArgumentException("Invalid companion ID", nameof(id));
 
-            // Calculate RegistrationDate from CreatedAtUtc
-            //response.RegistrationDate = DateOnly.FromDateTime(companion.CreatedAtUtc);
+            await EnsureCompanionBelongsToUserAsync(id, userId, cancellationToken);
 
-            // Calculate JoinedPackagesCount and related trip data
-            if (companion.CompanionBookings != null && companion.CompanionBookings.Any())
+            try
             {
-                // Count unique packages (through bookings)
-                response.JoinedPackagesCount = companion.CompanionBookings
+                var entity = await _unitOfWork.Companions
+                    .Query()
+                    .Include(c => c.Person)
+                    .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+
+                if (entity is null)
+                    return false;
+
+                if (entity.Person is null)
+                    return false;
+
+
+                _unitOfWork.Persons.Remove(entity.Person);
+                _unitOfWork.Companions.Remove(entity);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                _logger.LogInformation("Companion {CompanionId} deleted", id);
+                return true;
+            }
+            catch (Exception ex) when (ex is not NotFoundException and not ForbiddenException)
+            {
+                _logger.LogError(ex, "Error deleting companion {CompanionId}", id);
+                throw new ServiceException($"Failed to delete companion: {ex.Message}", ex);
+            }
+        }
+
+        #region Helpers
+
+        private async Task ApplyPartialUpdateAsync(Companion entity, CompanionUpdateRequest request, CancellationToken cancellationToken)
+        {
+            _mapper.Map(request, entity.Person);
+
+            if (request.NationalityCountryId.HasValue) entity.NationalityCountryId = request.NationalityCountryId.Value;
+            if (request.Relationship.HasValue) entity.Relationship = request.Relationship.Value;
+
+            entity.Person.UpdatedAtUtc = DateTime.UtcNow;
+
+            if (request.NationalIdCard is not null)
+                entity.Person.NationalIdCard = await _fileStorage.SaveAsync(request.NationalIdCard, CompanionImageFolder, cancellationToken);
+            if (request.PassportScan is not null)
+                entity.Person.PassportScan = await _fileStorage.SaveAsync(request.PassportScan, CompanionImageFolder, cancellationToken);
+            if (request.ResidencyCard is not null)
+                entity.ResidencyCard = await _fileStorage.SaveAsync(request.ResidencyCard, CompanionImageFolder, cancellationToken);
+        }
+
+        private IQueryable<Companion> QueryWithGraph() =>
+            _unitOfWork.Companions
+                .Query()
+                .AsNoTracking()
+                .Include(c => c.NationalityCountry)
+                .Include(c => c.Person)
+                    .ThenInclude(p => p.ResidentialCity)
+                .Include(c => c.CompanionBookings)
+                    .ThenInclude(cb => cb.Booking)
+                        .ThenInclude(b => b.TourPackage);
+
+        private async Task<CompanionResponse> BuildResponseAsync(int id, CancellationToken cancellationToken)
+        {
+            var entity = await QueryWithGraph().FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+            if (entity is null)
+                throw new NotFoundException($"Companion with ID {id} not found");
+            return await BuildResponseFromEntity(entity, cancellationToken);
+        }
+
+        private async Task<CompanionResponse> BuildResponseFromEntity(Companion entity, CancellationToken cancellationToken)
+        {
+            var response = _mapper.Map<CompanionResponse>(entity);
+
+            response.RegistrationDate = DateOnly.FromDateTime(entity.Person.CreatedAtUtc);
+
+            var CompletedCompanionBookings = entity.CompanionBookings.Where(cb => cb.Booking.Status == BookingStatus.Completed).ToList();
+
+            if (CompletedCompanionBookings != null &&
+                CompletedCompanionBookings.Count != 0)
+            {
+
+                response.JoinedPackagesCount = entity.CompanionBookings
                     .Select(cb => cb.Booking.TourPackageId)
                     .Distinct()
                     .Count();
 
-                // Get the last trip package ID (most recent booking)
-                var lastBooking = companion.CompanionBookings
-                    .OrderByDescending(cb => cb.Booking.BookingDate)
-                    .FirstOrDefault();
-
-                response.LastTripPackageId = lastBooking?.Booking.TourPackageId;
-
-                // Calculate TotalAmountSpent (sum of default class prices)
-                response.TotalAmountSpent = companion.CompanionBookings
+                response.TotalAmountSpent = entity.CompanionBookings
                     .Where(cb => cb.Booking.TourPackage != null)
                     .Sum(cb => cb.Booking.TourPackage.PricePerPerson);
-            }
-            else
-            {
-                response.JoinedPackagesCount = 0;
-                response.LastTripPackageId = null;
-                response.TotalAmountSpent = 0;
+
+                var lastBooking = entity.CompanionBookings
+                    .Where(cb => cb.Booking.TourPackage != null)
+                    .OrderByDescending(cb => cb.Booking.TourPackage.StartDate)
+                    .FirstOrDefault();
+
+                if (lastBooking?.Booking.TourPackage != null)
+                    response.LastTourPackage = _mapper.Map<TourPackageResponse>(lastBooking.Booking.TourPackage);
             }
 
-            return await Task.FromResult(response);
+            return response;
         }
+
+        private async Task EnsureCompanionBelongsToUserAsync(int companionId, int userId, CancellationToken cancellationToken)
+        {
+            var belongs = await _unitOfWork.Companions
+                .Query().AsNoTracking()
+                .AnyAsync(c => c.Id == companionId && c.UserId == userId, cancellationToken);
+
+            if (!belongs)
+                throw new ForbiddenException("This companion does not belong to you.");
+        }
+
+        private async Task EnsureCountryExistsAsync(int countryId, CancellationToken cancellationToken)
+        {
+            var exists = await _unitOfWork.Countries
+                .Query().AsNoTracking()
+                .AnyAsync(c => c.Id == countryId, cancellationToken);
+            if (!exists)
+                throw new NotFoundException($"Country with ID {countryId} not found");
+        }
+
+        private async Task EnsureCityExistsAsync(int cityId, CancellationToken cancellationToken)
+        {
+            var exists = await _unitOfWork.Cities
+                .Query().AsNoTracking()
+                .AnyAsync(c => c.Id == cityId, cancellationToken);
+            if (!exists)
+                throw new NotFoundException($"City with ID {cityId} not found");
+        }
+
+        #endregion
     }
 }

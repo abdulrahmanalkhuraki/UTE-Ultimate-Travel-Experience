@@ -91,7 +91,7 @@ namespace Infrastructure.Migrations
                 table: "PackageCities",
                 newName: "IX_PackageCities_AttractionId");
 
-            migrationBuilder.RenameColumn("ResidentialCountryId", "Persons", "ResidentialCityId");
+            migrationBuilder.RenameColumn("ResidentialCityId", "Persons", "ResidentialCityId");
 
             migrationBuilder.AddColumn<bool>(
                 name: "IsDeleted",
@@ -317,7 +317,7 @@ namespace Infrastructure.Migrations
             migrationBuilder.RenameTable(name: "PackageCities", newName: "TourPackage_Attraction");
             migrationBuilder.RenameTable(name: "TourPackageGuides", newName: "TourPackage_TouristGuide");
             migrationBuilder.RenameTable(name: "CompanyGuides", newName: "Company_TouristGuide");
-            migrationBuilder.RenameTable(name: "CompanionBookings", newName: "Companion_Booking");
+            migrationBuilder.RenameTable(name: "Companion_Bookings", newName: "Companion_Booking");
         }
 
         /// <inheritdoc />

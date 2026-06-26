@@ -26,7 +26,7 @@ namespace Infrastructure.Security
         {
             get
             {
-                var Claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+                var Claim = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
                 return int.TryParse(Claim, out int id) && id > 0 ? id : null;
             }
         }

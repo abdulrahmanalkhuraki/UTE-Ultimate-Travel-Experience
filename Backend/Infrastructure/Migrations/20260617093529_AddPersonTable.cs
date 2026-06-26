@@ -191,7 +191,7 @@ namespace Infrastructure.Migrations
                 table: "Companions");
 
             migrationBuilder.RenameColumn(
-                name: "ResidentialCountryId",
+                name: "ResidentialCityId",
                 table: "Companions",
                 newName: "PersonId");
 
@@ -285,7 +285,7 @@ namespace Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Persons_ResidentialCountryId",
                 table: "Persons",
-                column: "ResidentialCountryId");
+                column: "ResidentialCityId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Companions_Persons_PersonId",
@@ -370,7 +370,7 @@ namespace Infrastructure.Migrations
             migrationBuilder.RenameColumn(
                 name: "PersonId",
                 table: "Companions",
-                newName: "ResidentialCountryId");
+                newName: "ResidentialCityId");
 
             migrationBuilder.RenameColumn(
                 name: "Image",
@@ -463,7 +463,7 @@ namespace Infrastructure.Migrations
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
-                name: "ResidentialCountryId",
+                name: "ResidentialCityId",
                 table: "Users",
                 type: "nvarchar(100)",
                 maxLength: 100,
@@ -550,7 +550,7 @@ namespace Infrastructure.Migrations
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
-                name: "ResidentialCountryId",
+                name: "ResidentialCityId",
                 table: "TouristGuides",
                 type: "nvarchar(100)",
                 maxLength: 100,
@@ -804,7 +804,7 @@ namespace Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Companions_ResidentialCountryId",
                 table: "Companions",
-                column: "ResidentialCountryId");
+                column: "ResidentialCityId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Activities_AttractionId",
@@ -866,7 +866,7 @@ namespace Infrastructure.Migrations
             migrationBuilder.AddForeignKey(
                 name: "FK_Companions_Countries_ResidentialCountryId",
                 table: "Companions",
-                column: "ResidentialCountryId",
+                column: "ResidentialCityId",
                 principalTable: "Countries",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);

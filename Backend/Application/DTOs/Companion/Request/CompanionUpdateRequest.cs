@@ -1,4 +1,5 @@
 using Domain.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace Application.DTOs.Companion.Request
 {
@@ -8,10 +9,14 @@ namespace Application.DTOs.Companion.Request
         string? Lastname,
         string? Phone,
         int? NationalityCountryId,
-        int? ResidentialCountryId,
-        bool? Gender,
+        int? ResidentialCityId,
+        string? Gender,
         DateOnly? DateOfBirth,
-        string? IdCard,
+        string? NationalNumber,
+        IFormFile? NationalIdCard,
+        string? PassportNumber,
+        IFormFile? PassportScan,
+        IFormFile? ResidencyCard,
         CompanionRelationship? Relationship
     );
 }

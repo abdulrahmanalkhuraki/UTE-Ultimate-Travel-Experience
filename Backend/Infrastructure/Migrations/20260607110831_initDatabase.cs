@@ -779,7 +779,7 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CompanionBookings",
+                name: "Companion_Bookings",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -907,12 +907,12 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_CompanionBookings_BookingId",
-                table: "CompanionBookings",
+                table: "Companion_Bookings",
                 column: "BookingId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CompanionBookings_CompanionId",
-                table: "CompanionBookings",
+                table: "Companion_Bookings",
                 column: "CompanionId");
 
             migrationBuilder.CreateIndex(
@@ -923,7 +923,7 @@ namespace Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Companions_ResidentialCountryId",
                 table: "Companions",
-                column: "ResidentialCountryId");
+                column: "ResidentialCityId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Companions_UserId",
@@ -1123,7 +1123,7 @@ namespace Infrastructure.Migrations
                 name: "AttractionCategories");
 
             migrationBuilder.DropTable(
-                name: "CompanionBookings");
+                name: "Companion_Bookings");
 
             migrationBuilder.DropTable(
                 name: "DeviceTokens");

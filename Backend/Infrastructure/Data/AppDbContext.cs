@@ -29,7 +29,7 @@ namespace Infrastructure.Data;
 
     public virtual DbSet<TourPackageCabinClass> TourPackageCabinClasses { get; set; }
 
-    public virtual DbSet<Companion_Booking> CompanionBookings { get; set; }
+    public virtual DbSet<Companion_Booking> Companion_Bookings { get; set; }
 
     public virtual DbSet<City> Cities { get; set; }
 
@@ -38,7 +38,6 @@ namespace Infrastructure.Data;
     public virtual DbSet<EmailVerification> EmailVerifications { get; set; }
 
     public virtual DbSet<Favorite> Favorites { get; set; }
-
 
     public virtual DbSet<Notification> Notifications { get; set; }
 
@@ -179,6 +178,8 @@ namespace Infrastructure.Data;
 
         modelBuilder.Entity<Companion_Booking>(entity =>
         {
+            entity.ToTable("Companion_Booking");
+
             entity.HasKey(e => e.Id);
 
             entity.HasOne(e => e.Companion).WithMany(d => d.CompanionBookings)

@@ -44,7 +44,7 @@ namespace Infrastructure.Migrations
                 defaultValue: 0m);
 
             migrationBuilder.AddColumn<string>(
-                name: "ResidentialCountryId",
+                name: "ResidentialCityId",
                 table: "TouristGuides",
                 type: "nvarchar(100)",
                 maxLength: 100,
@@ -68,7 +68,7 @@ namespace Infrastructure.Migrations
                 table: "TourPackages");
 
             migrationBuilder.DropColumn(
-                name: "ResidentialCountryId",
+                name: "ResidentialCityId",
                 table: "TouristGuides");
 
             migrationBuilder.AddColumn<int>(
