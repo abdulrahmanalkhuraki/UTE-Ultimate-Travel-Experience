@@ -22,6 +22,8 @@
 
         public string? PassportScan { get; set; }
 
+        public int NationalityCountryId { get; set; }
+
         public int ResidentialCityId { get; set; }
 
         public int Age => CalculateAge();

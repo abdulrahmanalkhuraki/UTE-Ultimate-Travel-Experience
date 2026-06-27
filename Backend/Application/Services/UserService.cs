@@ -22,6 +22,7 @@ namespace Application.Services
         private readonly IMemoryCache _cache;
         private readonly IPasswordHasher _passwordHasher;
         private readonly IFileStorage _fileStorage;
+        private readonly IJwtTokenGenerator _tokens;
         private readonly UserUpdateValidator _userUpdateValidator;
         private readonly CompleteProfileValidator _completeProfileValidator;
         private readonly UpdateLocationValidator _updateLocationValidator;
@@ -40,6 +41,7 @@ namespace Application.Services
             IMemoryCache cache,
             IPasswordHasher passwordHasher,
             IFileStorage fileStorage,
+            IJwtTokenGenerator tokens,
             UserUpdateValidator updateMeValidator,
             CompleteProfileValidator completeProfileValidator,
             UpdateLocationValidator updateLocationValidator,
@@ -51,13 +53,14 @@ namespace Application.Services
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
             _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
+            _tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
             _userUpdateValidator = updateMeValidator ?? throw new ArgumentNullException(nameof(updateMeValidator));
             _completeProfileValidator = completeProfileValidator ?? throw new ArgumentNullException(nameof(completeProfileValidator));
             _updateLocationValidator = updateLocationValidator ?? throw new ArgumentNullException(nameof(updateLocationValidator));
             _changePasswordValidator = changePasswordValidator ?? throw new ArgumentNullException(nameof(changePasswordValidator));
         }
 
-        public async Task<UserResponse> CompleteProfileAsync(int userId, CompleteProfileRequest request, CancellationToken cancellationToken = default)
+        public async Task<CompleteProfileResponse> CompleteProfileAsync(int userId, CompleteProfileRequest request, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
@@ -152,9 +155,19 @@ namespace Application.Services
 
                 InvalidateUserCache(userId);
 
-                var response = _mapper.Map<UserResponse>(user);
+
+                var userResponse = _mapper.Map<UserResponse>(user);
 
                 _logger.LogInformation("User {UserId} successfully completed their profile", userId);
+
+
+                var (token, expiresAt) = _tokens.GenerateToken(user);
+
+                var response = new CompleteProfileResponse()
+                {
+                    User = userResponse,
+                    Token = token
+                };
 
                 return response;
             }

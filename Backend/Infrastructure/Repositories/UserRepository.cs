@@ -13,7 +13,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
         Db.Users
           .Include(u => u.Role)
           .Include(u => u.Person)
-          .FirstOrDefaultAsync(u => u.Email == email, ct);
+          .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted, ct);
 
     public Task<User?> GetByIdWithRoleAsync(int userId, CancellationToken ct = default) =>
         Db.Users
@@ -21,5 +21,5 @@ public class UserRepository : GenericRepository<User>, IUserRepository
           .FirstOrDefaultAsync(u => u.Id == userId, ct);
 
     public Task<bool> EmailExistsAsync(string email, CancellationToken ct = default) =>
-        Db.Users.AnyAsync(u => u.Email == email, ct);
+        Db.Users.AnyAsync(u => u.Email == email && !u.IsDeleted, ct);
 }

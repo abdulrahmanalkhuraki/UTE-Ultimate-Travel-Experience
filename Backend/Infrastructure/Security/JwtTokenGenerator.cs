@@ -36,7 +36,8 @@ public class JwtTokenGenerator : IJwtTokenGenerator
             new(ClaimTypes.GivenName, firstName),
             new(ClaimTypes.Surname, lastName),
             new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.Role, roleName)
+            new(ClaimTypes.Role, roleName),
+            new("isprofilecompleted", (user.PersonId is not null).ToString().ToLowerInvariant())
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));

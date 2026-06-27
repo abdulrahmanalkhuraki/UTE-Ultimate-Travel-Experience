@@ -11,6 +11,7 @@ namespace UTE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Policy = "RequireCompletedProfile")]
     [Authorize(Roles = "Tourist")]
     [Produces(MediaTypeNames.Application.Json)]
     public class CompanionController : ControllerBase

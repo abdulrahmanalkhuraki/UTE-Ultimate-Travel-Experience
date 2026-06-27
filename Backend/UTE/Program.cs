@@ -3,14 +3,14 @@ using Application.Interfaces.Booking;
 using Application.Interfaces.Companion;
 using Application.Interfaces.Notifications;
 using Application.Interfaces.TourCompany;
-using Application.Interfaces.TourPackage;
 using Application.Interfaces.TouristGuide;
+using Application.Interfaces.TourPackage;
 using Application.Interfaces.User;
 using Application.Mappings;
 using Application.Services;
 using Application.Validators.Booking;
-using Application.Validators.TourCompany;
 using Application.Validators.Companion;
+using Application.Validators.TourCompany;
 using Application.Validators.TouristGuide;
 using Application.Validators.User;
 using Domain.Interfaces;
@@ -19,6 +19,7 @@ using Infrastructure;
 using Infrastructure.Repositories;
 using Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
@@ -30,6 +31,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
 using UTE.Middleware;
+using UTE.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,7 +66,20 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireCompletedProfile", policy =>
+    {
+        // Ensure the user is logged in
+        policy.RequireAuthenticatedUser();
+
+        // Ensure the token/cookie contains the specific claim
+        policy.RequireClaim("IsProfileCompleted", "true");
+    });
+});
+
+// Register the custom authorization result handler
+builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, CustomAuthorizationResponseHandler>();
 
 // ==========================================
 // 3. ADD CONTROLLERS
