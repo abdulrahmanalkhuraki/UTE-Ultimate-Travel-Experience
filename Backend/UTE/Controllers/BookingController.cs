@@ -48,6 +48,28 @@ namespace UTE.Controllers
         }
 
         /// <summary>
+        /// Retrieves the current booking
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>The requested booking</returns>
+        /// <response code="200">Returns the requested booking</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="404">If the booking is not found</response>
+        /// <response code="500">If there was an internal server error</response>
+        [HttpGet("Current")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [ProducesResponseType(typeof(BookingResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<BookingResponse>> GetCurrent(CancellationToken cancellationToken = default)
+        {
+            var booking = await _bookingService.GetCurrentAsync(cancellationToken);
+            return Ok(booking);
+        }
+
+
+        /// <summary>
         /// Retrieves all bookings
         /// </summary>
         /// <param name="cancellationToken">Cancellation token</param>
@@ -56,16 +78,60 @@ namespace UTE.Controllers
         /// <response code="401">If the user is not authenticated</response>
         /// <response code="403">If the user is not an admin</response>
         /// <response code="500">If there was an internal server error</response>
-        [HttpGet]
+        [HttpGet("UserBookings/{id:int:min(1)}")]
         [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(IReadOnlyList<BookingResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IReadOnlyList<BookingResponse>>> GetAll(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IReadOnlyList<BookingResponse>>> GetAll(int id,CancellationToken cancellationToken = default)
         {
-            var bookings = await _bookingService.GetAllAsync(cancellationToken);
+            var bookings = await _bookingService.GetAllAsync(id, cancellationToken);
+            return Ok(bookings);
+        }
+
+        /// <summary>
+        /// Retrieves Cancelled bookings
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>List of Cancelled bookings</returns>
+        /// <response code="200">Returns the list of bookings</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user is not an Tourist</response>
+        /// <response code="500">If there was an internal server error</response>
+        [HttpGet("Cancelled")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "Tourist")]
+        [ProducesResponseType(typeof(IReadOnlyList<BookingResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<IReadOnlyList<BookingResponse>>> GetCancelled(CancellationToken cancellationToken = default)
+        {
+            var bookings = await _bookingService.GetCancelledAsync(cancellationToken);
+            return Ok(bookings);
+        }
+
+        /// <summary>
+        /// Retrieves Completed bookings
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>List of Completed bookings</returns>
+        /// <response code="200">Returns the list of bookings</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user is not an Tourist</response>
+        /// <response code="500">If there was an internal server error</response>
+        [HttpGet("Completed")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "Tourist")]
+        [ProducesResponseType(typeof(IReadOnlyList<BookingResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<IReadOnlyList<BookingResponse>>> GetCompleted(CancellationToken cancellationToken = default)
+        {
+            var bookings = await _bookingService.GetCompletedAsync(cancellationToken);
             return Ok(bookings);
         }
 

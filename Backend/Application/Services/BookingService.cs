@@ -289,9 +289,9 @@ namespace Application.Services
             }
         }
 
-        public async Task<IReadOnlyList<BookingResponse>> GetAllAsync(CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<BookingResponse>> GetAllAsync(int userId, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("Retrieving all bookings");
+            _logger.LogDebug($"Retrieving all bookings for user with Id = {userId}");
 
             if (_cache.TryGetValue(BookingsListCacheKey, out IReadOnlyList<BookingResponse>? cached) && cached is not null)
             {
@@ -299,11 +299,11 @@ namespace Application.Services
                 return cached;
             }
 
-
             try
             {
                 var entities = await _unitOfWork.Bookings
                     .Query()
+                    .Where(b => b.UserId == userId)
                     .Include(b => b.TourPackage)
                     .Include(b => b.Payment)
                     .Include(b => b.CompanionBookings)
@@ -330,6 +330,105 @@ namespace Application.Services
             }
         }
 
+
+        public async Task<IReadOnlyList<BookingResponse>> GetCancelledAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogDebug($"Retrieving all bookings");
+
+            var userId = _currentUser.UserId;
+
+            try
+            {
+                var entities = await _unitOfWork.Bookings
+                    .Query()
+                    .Where(b => b.UserId == userId)
+                    .Where(b => b.Status == BookingStatus.Cancelled)
+                    .Include(b => b.TourPackage)
+                    .Include(b => b.Payment)
+                    .Include(b => b.CompanionBookings)
+                        .ThenInclude(cb => cb.Companion)
+                    .OrderByDescending(b => b.BookingDate)
+                    .ToListAsync(cancellationToken);
+
+                var response = _mapper.Map<IReadOnlyList<BookingResponse>>(entities);
+
+
+                _logger.LogDebug("Successfully retrieved {Count} bookings", response.Count);
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Cancelled bookings");
+                throw new ServiceException($"Failed to retrieve bookings: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<IReadOnlyList<BookingResponse>> GetCompletedAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogDebug($"Retrieving Completed bookings");
+
+            var userId = _currentUser.UserId;
+
+            try
+            {
+                var entities = await _unitOfWork.Bookings
+                    .Query()
+                    .Where(b => b.UserId == userId)
+                    .Where(b => b.Status == BookingStatus.Completed)
+                    .Include(b => b.TourPackage)
+                    .Include(b => b.Payment)
+                    .Include(b => b.CompanionBookings)
+                        .ThenInclude(cb => cb.Companion)
+                    .OrderByDescending(b => b.BookingDate)
+                    .ToListAsync(cancellationToken);
+
+                var response = _mapper.Map<IReadOnlyList<BookingResponse>>(entities);
+
+
+                _logger.LogDebug("Successfully retrieved {Count} bookings", response.Count);
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Completed bookings");
+                throw new ServiceException($"Failed to retrieve bookings: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<BookingResponse> GetCurrentAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogDebug($"Retrieving Current booking");
+
+            var userId = _currentUser.UserId;
+
+            try
+            {
+                var entity = await _unitOfWork.Bookings
+                    .Query()
+                    .Where(b => b.UserId == userId)
+                    .Where(b => b.Status == BookingStatus.In_Progress)
+                    .Include(b => b.TourPackage)
+                    .Include(b => b.Payment)
+                    .Include(b => b.CompanionBookings)
+                        .ThenInclude(cb => cb.Companion)
+                    .OrderByDescending(b => b.BookingDate)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                var response = _mapper.Map<BookingResponse>(entity);
+
+
+                _logger.LogDebug("Successfully retrieved Current booking");
+                
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving current booking");
+                throw new ServiceException($"Failed to retrieve bookings: {ex.Message}", ex);
+            }
+        }
 
         public async Task<IReadOnlyList<BookingResponse>> GetUnApprovedAsync(int? packageId, CancellationToken cancellationToken)
         {
@@ -923,6 +1022,9 @@ namespace Application.Services
 
             _cache.Remove(BookingsListCacheKey);
         }
+
+
+
         #endregion
     }
 }

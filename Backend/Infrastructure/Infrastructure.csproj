@@ -7,17 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Data\SeedData\attraction_categories.json" />
-    <None Remove="Data\SeedData\countries.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Data\SeedData\attraction_categories.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Data\SeedData\countries.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <Compile Remove="Data\SeedData\**" />
+    <EmbeddedResource Remove="Data\SeedData\**" />
+    <None Remove="Data\SeedData\**" />
   </ItemGroup>
 
   <ItemGroup>

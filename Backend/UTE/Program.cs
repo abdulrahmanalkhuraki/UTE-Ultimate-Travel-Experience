@@ -16,8 +16,6 @@ using Application.Validators.User;
 using Domain.Interfaces;
 using Domain.Validators;
 using Infrastructure;
-using Infrastructure.Data;
-using Infrastructure.Data.Seeders;
 using Infrastructure.Repositories;
 using Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
