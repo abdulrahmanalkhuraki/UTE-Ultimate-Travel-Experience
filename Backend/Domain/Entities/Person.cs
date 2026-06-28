@@ -22,6 +22,8 @@
 
         public string? PassportScan { get; set; }
 
+        public string? ResidencyCard { get; set; } = null!;
+
         public int NationalityCountryId { get; set; }
 
         public int ResidentialCityId { get; set; }
@@ -29,6 +31,8 @@
         public int Age => CalculateAge();
 
         public string Fullname => FirstName + " " + LastName;
+
+        public virtual Country NationalityCountry { get; set; } = null!;
 
         public virtual City ResidentialCity { get; set; } = null!;
 

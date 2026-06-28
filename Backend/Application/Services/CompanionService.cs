@@ -69,17 +69,15 @@ namespace Application.Services
                     person.NationalIdCard = await _fileStorage.SaveAsync(request.NationalIdCard, CompanionImageFolder, cancellationToken);
                 if (request.PassportScan is not null)
                     person.PassportScan = await _fileStorage.SaveAsync(request.PassportScan, CompanionImageFolder, cancellationToken);
+                if (request.ResidencyCard is not null)
+                    person.ResidencyCard = await _fileStorage.SaveAsync(request.ResidencyCard, CompanionImageFolder, cancellationToken);
 
                 var companion = new Companion
                 {
-                    NationalityCountryId = request.NationalityCountryId,
                     Relationship = request.Relationship,
                     UserId = userId,
                     Person = person,
                 };
-
-                if (request.ResidencyCard is not null)
-                    companion.ResidencyCard = await _fileStorage.SaveAsync(request.ResidencyCard, CompanionImageFolder, cancellationToken);
 
                 await _unitOfWork.Companions.AddAsync(companion, cancellationToken);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -207,8 +205,10 @@ namespace Application.Services
         {
             _mapper.Map(request, entity.Person);
 
-            if (request.NationalityCountryId.HasValue) entity.NationalityCountryId = request.NationalityCountryId.Value;
-            if (request.Relationship.HasValue) entity.Relationship = request.Relationship.Value;
+            if (request.NationalityCountryId.HasValue) 
+                entity.Person.NationalityCountryId = request.NationalityCountryId.Value;
+            if (request.Relationship.HasValue) 
+                entity.Relationship = request.Relationship.Value;
 
             entity.Person.UpdatedAtUtc = DateTime.UtcNow;
 
@@ -217,7 +217,7 @@ namespace Application.Services
             if (request.PassportScan is not null)
                 entity.Person.PassportScan = await _fileStorage.SaveAsync(request.PassportScan, CompanionImageFolder, cancellationToken);
             if (request.ResidencyCard is not null)
-                entity.ResidencyCard = await _fileStorage.SaveAsync(request.ResidencyCard, CompanionImageFolder, cancellationToken);
+                entity.Person.ResidencyCard = await _fileStorage.SaveAsync(request.ResidencyCard, CompanionImageFolder, cancellationToken);
         }
 
         private IQueryable<Companion> QueryWithGraph() =>

@@ -61,7 +61,7 @@ public class AuthService : IAuthService
         {
             Email              = email,
             Password           = _hasher.Hash(request.Password),
-            RoleId             = role.Id,
+            RoleId             = role.RoleId,
             CreatedAtUtc       = now,
             UpdatedAtUtc       = now,
             IsEmailVerified    = false,

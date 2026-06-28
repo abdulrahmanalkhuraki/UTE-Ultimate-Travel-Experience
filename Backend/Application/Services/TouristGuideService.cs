@@ -60,15 +60,16 @@ namespace Application.Services
 
                 if (request.ProfileImage is not null)
                     person.ProfileImage = await _fileStorage.SaveAsync(request.ProfileImage, GuideImageFolder, cancellationToken);
-                if (request.NationalIdImage is not null)
-                    person.NationalIdCard = await _fileStorage.SaveAsync(request.NationalIdImage, GuideImageFolder, cancellationToken);
-                if (request.PassportImage is not null)
-                    person.PassportScan = await _fileStorage.SaveAsync(request.PassportImage, GuideImageFolder, cancellationToken);
+                if (request.NationalIdCard is not null)
+                    person.NationalIdCard = await _fileStorage.SaveAsync(request.NationalIdCard, GuideImageFolder, cancellationToken);
+                if (request.PassportScan is not null)
+                    person.PassportScan = await _fileStorage.SaveAsync(request.PassportScan, GuideImageFolder, cancellationToken);
+                if (request.ResidencyCard is not null)
+                    person.ResidencyCard = await _fileStorage.SaveAsync(request.ResidencyCard, GuideImageFolder, cancellationToken);
 
                 var entity = new TouristGuide
                 {
                     Email = request.Email.Trim(),
-                    NationalityCountryId = request.NationalityCountryId,
                     YearsOfExperiance = request.YearsOfExperiance,
                     Bio = request.Bio.Trim(),
                     Languages = request.Languages?.Trim(),
@@ -85,7 +86,10 @@ namespace Application.Services
 
                 return await BuildResponseAsync(entity.Id, cancellationToken);
             }
-            catch (Exception ex) when (ex is not ValidationException and not NotFoundException and not ForbiddenException and not ConflictException)
+            catch (Exception ex) when (ex is not ValidationException 
+            and not NotFoundException 
+            and not ForbiddenException 
+            and not ConflictException)
             {
                 _logger.LogError(ex, "Unexpected error while creating guide {Email}", request.Email);
                 throw new ServiceException($"Failed to create guide: {ex.Message}", ex);
@@ -121,36 +125,22 @@ namespace Application.Services
 
                 await EnsureGuideBelongsToCompanyAsync(id, companyId, cancellationToken);
 
-                if (request.FirstName is not null) entity.Person.FirstName = request.FirstName.Trim();
-                if (request.LastName is not null) entity.Person.LastName = request.LastName.Trim();
-                if (request.Phone is not null) entity.Person.Phone = request.Phone.Trim();
-                if (request.Email is not null) entity.Email = request.Email.Trim();
-                if (request.NationalityCountryId.HasValue) entity.NationalityCountryId = request.NationalityCountryId.Value;
-                if (request.Gender is not null) entity.Person.Gender = request.Gender;
-                if (request.DateOfBirth.HasValue) entity.Person.DateOfBirth = request.DateOfBirth.Value;
-                if (request.YearsOfExperiance.HasValue) entity.YearsOfExperiance = request.YearsOfExperiance.Value;
-                if (request.Bio is not null) entity.Bio = request.Bio.Trim();
-                if (request.ResidentialCityId.HasValue) entity.Person.ResidentialCityId = request.ResidentialCityId.Value;
-                if (request.NationalNumber is not null) entity.Person.NationalNumber = request.NationalNumber.Trim();
-                if (request.PassportNumber is not null) entity.Person.PassportNumber = request.PassportNumber.Trim();
-                if (request.Languages is not null) entity.Languages = request.Languages.Trim();
-                if (request.IsAvailable.HasValue) entity.IsAvailable = request.IsAvailable.Value;
+                _mapper.Map(request, entity);
+                _mapper.Map(request, entity.Person);
                 entity.Person.UpdatedAtUtc = DateTime.UtcNow;
 
                 if (request.ProfileImage is not null)
                     entity.Person.ProfileImage = await _fileStorage.SaveAsync(request.ProfileImage, GuideImageFolder, cancellationToken);
-                else if (request.ProfileImageUrl is not null)
-                    entity.Person.ProfileImage = request.ProfileImageUrl;
 
                 if (request.NationalIdImage is not null)
                     entity.Person.NationalIdCard = await _fileStorage.SaveAsync(request.NationalIdImage, GuideImageFolder, cancellationToken);
-                else if (request.NationalIdCardUrl is not null)
-                    entity.Person.NationalIdCard = request.NationalIdCardUrl;
 
                 if (request.PassportImage is not null)
                     entity.Person.PassportScan = await _fileStorage.SaveAsync(request.PassportImage, GuideImageFolder, cancellationToken);
-                else if (request.PassportScanUrl is not null)
-                    entity.Person.PassportScan = request.PassportScanUrl;
+
+                if (request.ResidencyCard is not null)
+                    entity.Person.ResidencyCard = await _fileStorage.SaveAsync(request.ResidencyCard, GuideImageFolder, cancellationToken);
+
 
                 _unitOfWork.TouristGuides.Update(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -159,7 +149,10 @@ namespace Application.Services
 
                 return await BuildResponseAsync(id, cancellationToken);
             }
-            catch (Exception ex) when (ex is not ValidationException and not NotFoundException and not ForbiddenException and not ConflictException)
+            catch (Exception ex) when (ex is not ValidationException 
+            and not NotFoundException 
+            and not ForbiddenException 
+            and not ConflictException)
             {
                 _logger.LogError(ex, "Unexpected error while updating guide {GuideId}", id);
                 throw new ServiceException($"Failed to update guide: {ex.Message}", ex);

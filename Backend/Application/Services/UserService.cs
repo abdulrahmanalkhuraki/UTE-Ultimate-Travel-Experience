@@ -605,7 +605,7 @@ namespace Application.Services
                         _logger.LogWarning($"Role '{roleName}' Not Found");
                         throw new NotFoundException($"Role '{roleName}' Not Found, Role name Should be in ['Tourist','TourCompany','Admin']");
                     }
-                    query = query.Where(u => u.RoleId == role.Id);
+                    query = query.Where(u => u.RoleId == role.RoleId);
                     _logger.LogDebug("Applied role filter: {RoleName}", roleName);
                 }
 

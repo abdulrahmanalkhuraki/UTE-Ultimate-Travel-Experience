@@ -4,6 +4,8 @@ public partial class Attraction : BaseEntity
 {
     public string AttractionName { get; set; } = null!;
 
+    public int AttractionCategoryId { get; set; }
+
     public string? Description { get; set; }
 
     public decimal Longitude { get; set; }
@@ -21,5 +23,5 @@ public partial class Attraction : BaseEntity
 
     public virtual City City { get; set; } = null!;
 
-    public virtual ICollection<AttractionCategory> AttractionCategories { get; set; } = new List<AttractionCategory>();
+    public virtual AttractionCategory AttractionCategory { get; set; } = null!;
 }

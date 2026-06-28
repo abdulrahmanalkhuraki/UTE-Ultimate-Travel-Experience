@@ -80,6 +80,9 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AttractionCategoryId")
+                        .HasColumnType("int");
+
                     b.Property<string>("AttractionName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -105,10 +108,10 @@ namespace Infrastructure.Migrations
                         .HasColumnName("Entry_Fee");
 
                     b.Property<decimal>("Latitude")
-                        .HasColumnType("decimal(10, 6)");
+                        .HasColumnType("decimal(18, 8)");
 
                     b.Property<decimal>("Longitude")
-                        .HasColumnType("decimal(10, 6)");
+                        .HasColumnType("decimal(18, 8)");
 
                     b.Property<TimeOnly?>("OpenAt")
                         .HasColumnType("time");
@@ -120,6 +123,8 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AttractionCategoryId");
+
                     b.HasIndex("CityId");
 
                     b.ToTable("Attractions");
@@ -127,38 +132,171 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.AttractionCategory", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AttractionId")
-                        .HasColumnType("int");
-
                     b.Property<int>("CategoryId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("CategoryName")
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryId"));
+
+                    b.Property<string>("ArCategoryName")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                    b.Property<string>("EnCategoryName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AttractionId");
+                    b.HasKey("CategoryId");
 
                     b.ToTable("AttractionCategories");
+
+                    b.HasData(
+                        new
+                        {
+                            CategoryId = 1,
+                            ArCategoryName = "متاحف",
+                            EnCategoryName = "Museums"
+                        },
+                        new
+                        {
+                            CategoryId = 2,
+                            ArCategoryName = "مواقع تاريخية",
+                            EnCategoryName = "Historical Sites"
+                        },
+                        new
+                        {
+                            CategoryId = 3,
+                            ArCategoryName = "حدائق وطبيعة",
+                            EnCategoryName = "Parks & Nature"
+                        },
+                        new
+                        {
+                            CategoryId = 4,
+                            ArCategoryName = "مدن ملاهي",
+                            EnCategoryName = "Amusement Parks"
+                        },
+                        new
+                        {
+                            CategoryId = 5,
+                            ArCategoryName = "شواطئ",
+                            EnCategoryName = "Beaches"
+                        },
+                        new
+                        {
+                            CategoryId = 6,
+                            ArCategoryName = "مراكز تسوق",
+                            EnCategoryName = "Shopping Malls"
+                        },
+                        new
+                        {
+                            CategoryId = 7,
+                            ArCategoryName = "حدائق حيوان وأحواض أسماك",
+                            EnCategoryName = "Zoos & Aquariums"
+                        },
+                        new
+                        {
+                            CategoryId = 8,
+                            ArCategoryName = "مواقع دينية",
+                            EnCategoryName = "Religious Sites"
+                        },
+                        new
+                        {
+                            CategoryId = 9,
+                            ArCategoryName = "مسارح وعروض",
+                            EnCategoryName = "Theaters & Shows"
+                        },
+                        new
+                        {
+                            CategoryId = 10,
+                            ArCategoryName = "معارض فنية",
+                            EnCategoryName = "Art Galleries"
+                        },
+                        new
+                        {
+                            CategoryId = 11,
+                            ArCategoryName = "معالم ونصب تذكارية",
+                            EnCategoryName = "Landmarks & Monuments"
+                        },
+                        new
+                        {
+                            CategoryId = 12,
+                            ArCategoryName = "قلاع وقصور",
+                            EnCategoryName = "Castles & Palaces"
+                        },
+                        new
+                        {
+                            CategoryId = 13,
+                            ArCategoryName = "جبال ومسارات مشي",
+                            EnCategoryName = "Mountains & Hiking Trails"
+                        },
+                        new
+                        {
+                            CategoryId = 14,
+                            ArCategoryName = "حدائق مائية",
+                            EnCategoryName = "Water Parks"
+                        },
+                        new
+                        {
+                            CategoryId = 15,
+                            ArCategoryName = "ملاعب رياضية",
+                            EnCategoryName = "Sports Arenas"
+                        },
+                        new
+                        {
+                            CategoryId = 16,
+                            ArCategoryName = "مهرجانات وفعاليات",
+                            EnCategoryName = "Festivals & Events"
+                        },
+                        new
+                        {
+                            CategoryId = 17,
+                            ArCategoryName = "منتجعات صحية",
+                            EnCategoryName = "Spas & Wellness"
+                        },
+                        new
+                        {
+                            CategoryId = 18,
+                            ArCategoryName = "أسواق محلية وبازارات",
+                            EnCategoryName = "Local Markets & Bazaars"
+                        },
+                        new
+                        {
+                            CategoryId = 19,
+                            ArCategoryName = "محميات طبيعية",
+                            EnCategoryName = "Nature Reserves"
+                        },
+                        new
+                        {
+                            CategoryId = 20,
+                            ArCategoryName = "منصات مشاهدة",
+                            EnCategoryName = "Observation Decks"
+                        },
+                        new
+                        {
+                            CategoryId = 21,
+                            ArCategoryName = "كهوف",
+                            EnCategoryName = "Caves"
+                        },
+                        new
+                        {
+                            CategoryId = 22,
+                            ArCategoryName = "منتجعات تزلج",
+                            EnCategoryName = "Ski Resorts"
+                        },
+                        new
+                        {
+                            CategoryId = 23,
+                            ArCategoryName = "جزر",
+                            EnCategoryName = "Islands"
+                        },
+                        new
+                        {
+                            CategoryId = 24,
+                            ArCategoryName = "شلالات",
+                            EnCategoryName = "Waterfalls"
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.Booking", b =>
@@ -268,260 +406,15 @@ namespace Infrastructure.Migrations
                     b.Property<int>("CountryId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Image")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
-
-                    b.Property<decimal>("Latitude")
-                        .HasColumnType("decimal(10, 6)");
-
-                    b.Property<decimal>("Longitude")
-                        .HasColumnType("decimal(10, 6)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CountryId");
 
                     b.ToTable("Cities");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CityName = "Amman",
-                            CountryId = 1,
-                            Description = "The capital of Jordan.",
-                            Latitude = 31.945400m,
-                            Longitude = 35.928400m
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CityName = "Aqaba",
-                            CountryId = 1,
-                            Description = "Red Sea coastal city and diving hub.",
-                            Latitude = 29.526700m,
-                            Longitude = 35.007800m
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CityName = "Petra",
-                            CountryId = 1,
-                            Description = "Ancient rose-red city, a wonder of the world.",
-                            Latitude = 30.328500m,
-                            Longitude = 35.444400m
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CityName = "Irbid",
-                            CountryId = 1,
-                            Description = "Northern university city.",
-                            Latitude = 32.555600m,
-                            Longitude = 35.850000m
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CityName = "Damascus",
-                            CountryId = 2,
-                            Description = "One of the oldest continuously inhabited cities.",
-                            Latitude = 33.513800m,
-                            Longitude = 36.276500m
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CityName = "Aleppo",
-                            CountryId = 2,
-                            Description = "Historic city famous for its citadel and souks.",
-                            Latitude = 36.202100m,
-                            Longitude = 37.134300m
-                        },
-                        new
-                        {
-                            Id = 7,
-                            CityName = "Homs",
-                            CountryId = 2,
-                            Description = "Central Syrian city.",
-                            Latitude = 34.732400m,
-                            Longitude = 36.713700m
-                        },
-                        new
-                        {
-                            Id = 8,
-                            CityName = "Latakia",
-                            CountryId = 2,
-                            Description = "Main Mediterranean port city.",
-                            Latitude = 35.519600m,
-                            Longitude = 35.791500m
-                        },
-                        new
-                        {
-                            Id = 9,
-                            CityName = "Beirut",
-                            CountryId = 3,
-                            Description = "The capital and cultural heart of Lebanon.",
-                            Latitude = 33.893800m,
-                            Longitude = 35.501800m
-                        },
-                        new
-                        {
-                            Id = 10,
-                            CityName = "Tripoli",
-                            CountryId = 3,
-                            Description = "Northern city rich in Mamluk architecture.",
-                            Latitude = 34.436700m,
-                            Longitude = 35.849700m
-                        },
-                        new
-                        {
-                            Id = 11,
-                            CityName = "Byblos",
-                            CountryId = 3,
-                            Description = "Ancient port, among the oldest cities in the world.",
-                            Latitude = 34.123200m,
-                            Longitude = 35.651000m
-                        },
-                        new
-                        {
-                            Id = 12,
-                            CityName = "Cairo",
-                            CountryId = 4,
-                            Description = "The capital, home to the Giza pyramids nearby.",
-                            Latitude = 30.044400m,
-                            Longitude = 31.235700m
-                        },
-                        new
-                        {
-                            Id = 13,
-                            CityName = "Alexandria",
-                            CountryId = 4,
-                            Description = "Mediterranean port city founded by Alexander the Great.",
-                            Latitude = 31.200100m,
-                            Longitude = 29.918700m
-                        },
-                        new
-                        {
-                            Id = 14,
-                            CityName = "Luxor",
-                            CountryId = 4,
-                            Description = "Open-air museum of ancient Egyptian temples.",
-                            Latitude = 25.687200m,
-                            Longitude = 32.639600m
-                        },
-                        new
-                        {
-                            Id = 15,
-                            CityName = "Sharm El Sheikh",
-                            CountryId = 4,
-                            Description = "Red Sea resort town.",
-                            Latitude = 27.915800m,
-                            Longitude = 34.330000m
-                        },
-                        new
-                        {
-                            Id = 16,
-                            CityName = "Dubai",
-                            CountryId = 5,
-                            Description = "Global city known for skyscrapers and shopping.",
-                            Latitude = 25.204800m,
-                            Longitude = 55.270800m
-                        },
-                        new
-                        {
-                            Id = 17,
-                            CityName = "Abu Dhabi",
-                            CountryId = 5,
-                            Description = "The capital of the UAE.",
-                            Latitude = 24.453900m,
-                            Longitude = 54.377300m
-                        },
-                        new
-                        {
-                            Id = 18,
-                            CityName = "Sharjah",
-                            CountryId = 5,
-                            Description = "Cultural capital of the UAE.",
-                            Latitude = 25.346300m,
-                            Longitude = 55.420900m
-                        },
-                        new
-                        {
-                            Id = 19,
-                            CityName = "Istanbul",
-                            CountryId = 6,
-                            Description = "Transcontinental city spanning Europe and Asia.",
-                            Latitude = 41.008200m,
-                            Longitude = 28.978400m
-                        },
-                        new
-                        {
-                            Id = 20,
-                            CityName = "Ankara",
-                            CountryId = 6,
-                            Description = "The capital of Turkey.",
-                            Latitude = 39.933400m,
-                            Longitude = 32.859700m
-                        },
-                        new
-                        {
-                            Id = 21,
-                            CityName = "Antalya",
-                            CountryId = 6,
-                            Description = "Mediterranean resort city on the Turkish Riviera.",
-                            Latitude = 36.896900m,
-                            Longitude = 30.713300m
-                        },
-                        new
-                        {
-                            Id = 22,
-                            CityName = "Cappadocia",
-                            CountryId = 6,
-                            Description = "Famous for fairy chimneys and hot-air balloons.",
-                            Latitude = 38.643100m,
-                            Longitude = 34.828900m
-                        },
-                        new
-                        {
-                            Id = 23,
-                            CityName = "Riyadh",
-                            CountryId = 7,
-                            Description = "The capital of Saudi Arabia.",
-                            Latitude = 24.713600m,
-                            Longitude = 46.675300m
-                        },
-                        new
-                        {
-                            Id = 24,
-                            CityName = "Jeddah",
-                            CountryId = 7,
-                            Description = "Red Sea port city and gateway to Mecca.",
-                            Latitude = 21.485800m,
-                            Longitude = 39.192500m
-                        },
-                        new
-                        {
-                            Id = 25,
-                            CityName = "Mecca",
-                            CountryId = 7,
-                            Description = "The holiest city in Islam.",
-                            Latitude = 21.389100m,
-                            Longitude = 39.857900m
-                        },
-                        new
-                        {
-                            Id = 26,
-                            CityName = "Medina",
-                            CountryId = 7,
-                            Description = "The second holiest city in Islam.",
-                            Latitude = 24.524700m,
-                            Longitude = 39.569200m
-                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.Companion", b =>
@@ -540,9 +433,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<int>("Relationship")
                         .HasColumnType("int");
-
-                    b.Property<string>("ResidencyCard")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -582,7 +472,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CompanionId");
 
-                    b.ToTable("Companion_Bookings");
+                    b.ToTable("Companion_Booking", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Company_TouristGuide", b =>
@@ -637,16 +527,6 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Flag")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<decimal>("Latitude")
-                        .HasColumnType("decimal(10, 6)");
-
-                    b.Property<decimal>("Longitude")
-                        .HasColumnType("decimal(10, 6)");
-
                     b.HasKey("Id");
 
                     b.ToTable("Countries");
@@ -655,58 +535,1460 @@ namespace Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CountryCode = "JO",
-                            CountryName = "Jordan",
-                            Latitude = 31.945400m,
-                            Longitude = 35.928400m
+                            CountryCode = "AF",
+                            CountryName = "Afghanistan"
                         },
                         new
                         {
                             Id = 2,
-                            CountryCode = "SY",
-                            CountryName = "Syria",
-                            Latitude = 33.513800m,
-                            Longitude = 36.276500m
+                            CountryCode = "AX",
+                            CountryName = "Åland Islands"
                         },
                         new
                         {
                             Id = 3,
-                            CountryCode = "LB",
-                            CountryName = "Lebanon",
-                            Latitude = 33.893800m,
-                            Longitude = 35.501800m
+                            CountryCode = "AL",
+                            CountryName = "Albania"
                         },
                         new
                         {
                             Id = 4,
-                            CountryCode = "EG",
-                            CountryName = "Egypt",
-                            Latitude = 30.044400m,
-                            Longitude = 31.235700m
+                            CountryCode = "DZ",
+                            CountryName = "Algeria"
                         },
                         new
                         {
                             Id = 5,
-                            CountryCode = "AE",
-                            CountryName = "United Arab Emirates",
-                            Latitude = 24.453900m,
-                            Longitude = 54.377300m
+                            CountryCode = "AS",
+                            CountryName = "American Samoa"
                         },
                         new
                         {
                             Id = 6,
-                            CountryCode = "TR",
-                            CountryName = "Turkey",
-                            Latitude = 39.933400m,
-                            Longitude = 32.859700m
+                            CountryCode = "AD",
+                            CountryName = "AndorrA"
                         },
                         new
                         {
                             Id = 7,
+                            CountryCode = "AO",
+                            CountryName = "Angola"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CountryCode = "AI",
+                            CountryName = "Anguilla"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CountryCode = "AQ",
+                            CountryName = "Antarctica"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CountryCode = "AG",
+                            CountryName = "Antigua and Barbuda"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CountryCode = "AR",
+                            CountryName = "Argentina"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            CountryCode = "AM",
+                            CountryName = "Armenia"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            CountryCode = "AW",
+                            CountryName = "Aruba"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            CountryCode = "AU",
+                            CountryName = "Australia"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            CountryCode = "AT",
+                            CountryName = "Austria"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            CountryCode = "AZ",
+                            CountryName = "Azerbaijan"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            CountryCode = "BS",
+                            CountryName = "Bahamas"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            CountryCode = "BH",
+                            CountryName = "Bahrain"
+                        },
+                        new
+                        {
+                            Id = 19,
+                            CountryCode = "BD",
+                            CountryName = "Bangladesh"
+                        },
+                        new
+                        {
+                            Id = 20,
+                            CountryCode = "BB",
+                            CountryName = "Barbados"
+                        },
+                        new
+                        {
+                            Id = 21,
+                            CountryCode = "BY",
+                            CountryName = "Belarus"
+                        },
+                        new
+                        {
+                            Id = 22,
+                            CountryCode = "BE",
+                            CountryName = "Belgium"
+                        },
+                        new
+                        {
+                            Id = 23,
+                            CountryCode = "BZ",
+                            CountryName = "Belize"
+                        },
+                        new
+                        {
+                            Id = 24,
+                            CountryCode = "BJ",
+                            CountryName = "Benin"
+                        },
+                        new
+                        {
+                            Id = 25,
+                            CountryCode = "BM",
+                            CountryName = "Bermuda"
+                        },
+                        new
+                        {
+                            Id = 26,
+                            CountryCode = "BT",
+                            CountryName = "Bhutan"
+                        },
+                        new
+                        {
+                            Id = 27,
+                            CountryCode = "BO",
+                            CountryName = "Bolivia"
+                        },
+                        new
+                        {
+                            Id = 28,
+                            CountryCode = "BA",
+                            CountryName = "Bosnia and Herzegovina"
+                        },
+                        new
+                        {
+                            Id = 29,
+                            CountryCode = "BW",
+                            CountryName = "Botswana"
+                        },
+                        new
+                        {
+                            Id = 30,
+                            CountryCode = "BV",
+                            CountryName = "Bouvet Island"
+                        },
+                        new
+                        {
+                            Id = 31,
+                            CountryCode = "BR",
+                            CountryName = "Brazil"
+                        },
+                        new
+                        {
+                            Id = 32,
+                            CountryCode = "IO",
+                            CountryName = "British Indian Ocean Territory"
+                        },
+                        new
+                        {
+                            Id = 33,
+                            CountryCode = "BN",
+                            CountryName = "Brunei Darussalam"
+                        },
+                        new
+                        {
+                            Id = 34,
+                            CountryCode = "BG",
+                            CountryName = "Bulgaria"
+                        },
+                        new
+                        {
+                            Id = 35,
+                            CountryCode = "BF",
+                            CountryName = "Burkina Faso"
+                        },
+                        new
+                        {
+                            Id = 36,
+                            CountryCode = "BI",
+                            CountryName = "Burundi"
+                        },
+                        new
+                        {
+                            Id = 37,
+                            CountryCode = "KH",
+                            CountryName = "Cambodia"
+                        },
+                        new
+                        {
+                            Id = 38,
+                            CountryCode = "CM",
+                            CountryName = "Cameroon"
+                        },
+                        new
+                        {
+                            Id = 39,
+                            CountryCode = "CA",
+                            CountryName = "Canada"
+                        },
+                        new
+                        {
+                            Id = 40,
+                            CountryCode = "CV",
+                            CountryName = "Cape Verde"
+                        },
+                        new
+                        {
+                            Id = 41,
+                            CountryCode = "KY",
+                            CountryName = "Cayman Islands"
+                        },
+                        new
+                        {
+                            Id = 42,
+                            CountryCode = "CF",
+                            CountryName = "Central African Republic"
+                        },
+                        new
+                        {
+                            Id = 43,
+                            CountryCode = "TD",
+                            CountryName = "Chad"
+                        },
+                        new
+                        {
+                            Id = 44,
+                            CountryCode = "CL",
+                            CountryName = "Chile"
+                        },
+                        new
+                        {
+                            Id = 45,
+                            CountryCode = "CN",
+                            CountryName = "China"
+                        },
+                        new
+                        {
+                            Id = 46,
+                            CountryCode = "CX",
+                            CountryName = "Christmas Island"
+                        },
+                        new
+                        {
+                            Id = 47,
+                            CountryCode = "CC",
+                            CountryName = "Cocos (Keeling) Islands"
+                        },
+                        new
+                        {
+                            Id = 48,
+                            CountryCode = "CO",
+                            CountryName = "Colombia"
+                        },
+                        new
+                        {
+                            Id = 49,
+                            CountryCode = "KM",
+                            CountryName = "Comoros"
+                        },
+                        new
+                        {
+                            Id = 50,
+                            CountryCode = "CG",
+                            CountryName = "Congo"
+                        },
+                        new
+                        {
+                            Id = 51,
+                            CountryCode = "CD",
+                            CountryName = "Congo, The Democratic Republic of the"
+                        },
+                        new
+                        {
+                            Id = 52,
+                            CountryCode = "CK",
+                            CountryName = "Cook Islands"
+                        },
+                        new
+                        {
+                            Id = 53,
+                            CountryCode = "CR",
+                            CountryName = "Costa Rica"
+                        },
+                        new
+                        {
+                            Id = 54,
+                            CountryCode = "CI",
+                            CountryName = "Cote D\"Ivoire"
+                        },
+                        new
+                        {
+                            Id = 55,
+                            CountryCode = "HR",
+                            CountryName = "Croatia"
+                        },
+                        new
+                        {
+                            Id = 56,
+                            CountryCode = "CU",
+                            CountryName = "Cuba"
+                        },
+                        new
+                        {
+                            Id = 57,
+                            CountryCode = "CY",
+                            CountryName = "Cyprus"
+                        },
+                        new
+                        {
+                            Id = 58,
+                            CountryCode = "CZ",
+                            CountryName = "Czech Republic"
+                        },
+                        new
+                        {
+                            Id = 59,
+                            CountryCode = "DK",
+                            CountryName = "Denmark"
+                        },
+                        new
+                        {
+                            Id = 60,
+                            CountryCode = "DJ",
+                            CountryName = "Djibouti"
+                        },
+                        new
+                        {
+                            Id = 61,
+                            CountryCode = "DM",
+                            CountryName = "Dominica"
+                        },
+                        new
+                        {
+                            Id = 62,
+                            CountryCode = "DO",
+                            CountryName = "Dominican Republic"
+                        },
+                        new
+                        {
+                            Id = 63,
+                            CountryCode = "EC",
+                            CountryName = "Ecuador"
+                        },
+                        new
+                        {
+                            Id = 64,
+                            CountryCode = "EG",
+                            CountryName = "Egypt"
+                        },
+                        new
+                        {
+                            Id = 65,
+                            CountryCode = "SV",
+                            CountryName = "El Salvador"
+                        },
+                        new
+                        {
+                            Id = 66,
+                            CountryCode = "GQ",
+                            CountryName = "Equatorial Guinea"
+                        },
+                        new
+                        {
+                            Id = 67,
+                            CountryCode = "ER",
+                            CountryName = "Eritrea"
+                        },
+                        new
+                        {
+                            Id = 68,
+                            CountryCode = "EE",
+                            CountryName = "Estonia"
+                        },
+                        new
+                        {
+                            Id = 69,
+                            CountryCode = "ET",
+                            CountryName = "Ethiopia"
+                        },
+                        new
+                        {
+                            Id = 70,
+                            CountryCode = "FK",
+                            CountryName = "Falkland Islands (Malvinas)"
+                        },
+                        new
+                        {
+                            Id = 71,
+                            CountryCode = "FO",
+                            CountryName = "Faroe Islands"
+                        },
+                        new
+                        {
+                            Id = 72,
+                            CountryCode = "FJ",
+                            CountryName = "Fiji"
+                        },
+                        new
+                        {
+                            Id = 73,
+                            CountryCode = "FI",
+                            CountryName = "Finland"
+                        },
+                        new
+                        {
+                            Id = 74,
+                            CountryCode = "FR",
+                            CountryName = "France"
+                        },
+                        new
+                        {
+                            Id = 75,
+                            CountryCode = "GF",
+                            CountryName = "French Guiana"
+                        },
+                        new
+                        {
+                            Id = 76,
+                            CountryCode = "PF",
+                            CountryName = "French Polynesia"
+                        },
+                        new
+                        {
+                            Id = 77,
+                            CountryCode = "TF",
+                            CountryName = "French Southern Territories"
+                        },
+                        new
+                        {
+                            Id = 78,
+                            CountryCode = "GA",
+                            CountryName = "Gabon"
+                        },
+                        new
+                        {
+                            Id = 79,
+                            CountryCode = "GM",
+                            CountryName = "Gambia"
+                        },
+                        new
+                        {
+                            Id = 80,
+                            CountryCode = "GE",
+                            CountryName = "Georgia"
+                        },
+                        new
+                        {
+                            Id = 81,
+                            CountryCode = "DE",
+                            CountryName = "Germany"
+                        },
+                        new
+                        {
+                            Id = 82,
+                            CountryCode = "GH",
+                            CountryName = "Ghana"
+                        },
+                        new
+                        {
+                            Id = 83,
+                            CountryCode = "GI",
+                            CountryName = "Gibraltar"
+                        },
+                        new
+                        {
+                            Id = 84,
+                            CountryCode = "GR",
+                            CountryName = "Greece"
+                        },
+                        new
+                        {
+                            Id = 85,
+                            CountryCode = "GL",
+                            CountryName = "Greenland"
+                        },
+                        new
+                        {
+                            Id = 86,
+                            CountryCode = "GD",
+                            CountryName = "Grenada"
+                        },
+                        new
+                        {
+                            Id = 87,
+                            CountryCode = "GP",
+                            CountryName = "Guadeloupe"
+                        },
+                        new
+                        {
+                            Id = 88,
+                            CountryCode = "GU",
+                            CountryName = "Guam"
+                        },
+                        new
+                        {
+                            Id = 89,
+                            CountryCode = "GT",
+                            CountryName = "Guatemala"
+                        },
+                        new
+                        {
+                            Id = 90,
+                            CountryCode = "GG",
+                            CountryName = "Guernsey"
+                        },
+                        new
+                        {
+                            Id = 91,
+                            CountryCode = "GN",
+                            CountryName = "Guinea"
+                        },
+                        new
+                        {
+                            Id = 92,
+                            CountryCode = "GW",
+                            CountryName = "Guinea-Bissau"
+                        },
+                        new
+                        {
+                            Id = 93,
+                            CountryCode = "GY",
+                            CountryName = "Guyana"
+                        },
+                        new
+                        {
+                            Id = 94,
+                            CountryCode = "HT",
+                            CountryName = "Haiti"
+                        },
+                        new
+                        {
+                            Id = 95,
+                            CountryCode = "HM",
+                            CountryName = "Heard Island and Mcdonald Islands"
+                        },
+                        new
+                        {
+                            Id = 96,
+                            CountryCode = "VA",
+                            CountryName = "Holy See (Vatican City State)"
+                        },
+                        new
+                        {
+                            Id = 97,
+                            CountryCode = "HN",
+                            CountryName = "Honduras"
+                        },
+                        new
+                        {
+                            Id = 98,
+                            CountryCode = "HK",
+                            CountryName = "Hong Kong"
+                        },
+                        new
+                        {
+                            Id = 99,
+                            CountryCode = "HU",
+                            CountryName = "Hungary"
+                        },
+                        new
+                        {
+                            Id = 100,
+                            CountryCode = "IS",
+                            CountryName = "Iceland"
+                        },
+                        new
+                        {
+                            Id = 101,
+                            CountryCode = "IN",
+                            CountryName = "India"
+                        },
+                        new
+                        {
+                            Id = 102,
+                            CountryCode = "ID",
+                            CountryName = "Indonesia"
+                        },
+                        new
+                        {
+                            Id = 103,
+                            CountryCode = "IR",
+                            CountryName = "Iran, Islamic Republic Of"
+                        },
+                        new
+                        {
+                            Id = 104,
+                            CountryCode = "IQ",
+                            CountryName = "Iraq"
+                        },
+                        new
+                        {
+                            Id = 105,
+                            CountryCode = "IE",
+                            CountryName = "Ireland"
+                        },
+                        new
+                        {
+                            Id = 106,
+                            CountryCode = "IM",
+                            CountryName = "Isle of Man"
+                        },
+                        new
+                        {
+                            Id = 107,
+                            CountryCode = "IL",
+                            CountryName = "Israel"
+                        },
+                        new
+                        {
+                            Id = 108,
+                            CountryCode = "IT",
+                            CountryName = "Italy"
+                        },
+                        new
+                        {
+                            Id = 109,
+                            CountryCode = "JM",
+                            CountryName = "Jamaica"
+                        },
+                        new
+                        {
+                            Id = 110,
+                            CountryCode = "JP",
+                            CountryName = "Japan"
+                        },
+                        new
+                        {
+                            Id = 111,
+                            CountryCode = "JE",
+                            CountryName = "Jersey"
+                        },
+                        new
+                        {
+                            Id = 112,
+                            CountryCode = "JO",
+                            CountryName = "Jordan"
+                        },
+                        new
+                        {
+                            Id = 113,
+                            CountryCode = "KZ",
+                            CountryName = "Kazakhstan"
+                        },
+                        new
+                        {
+                            Id = 114,
+                            CountryCode = "KE",
+                            CountryName = "Kenya"
+                        },
+                        new
+                        {
+                            Id = 115,
+                            CountryCode = "KI",
+                            CountryName = "Kiribati"
+                        },
+                        new
+                        {
+                            Id = 116,
+                            CountryCode = "KP",
+                            CountryName = "Korea, Democratic People\"S Republic of"
+                        },
+                        new
+                        {
+                            Id = 117,
+                            CountryCode = "KR",
+                            CountryName = "Korea, Republic of"
+                        },
+                        new
+                        {
+                            Id = 118,
+                            CountryCode = "KW",
+                            CountryName = "Kuwait"
+                        },
+                        new
+                        {
+                            Id = 119,
+                            CountryCode = "KG",
+                            CountryName = "Kyrgyzstan"
+                        },
+                        new
+                        {
+                            Id = 120,
+                            CountryCode = "LA",
+                            CountryName = "Lao People\"S Democratic Republic"
+                        },
+                        new
+                        {
+                            Id = 121,
+                            CountryCode = "LV",
+                            CountryName = "Latvia"
+                        },
+                        new
+                        {
+                            Id = 122,
+                            CountryCode = "LB",
+                            CountryName = "Lebanon"
+                        },
+                        new
+                        {
+                            Id = 123,
+                            CountryCode = "LS",
+                            CountryName = "Lesotho"
+                        },
+                        new
+                        {
+                            Id = 124,
+                            CountryCode = "LR",
+                            CountryName = "Liberia"
+                        },
+                        new
+                        {
+                            Id = 125,
+                            CountryCode = "LY",
+                            CountryName = "Libyan Arab Jamahiriya"
+                        },
+                        new
+                        {
+                            Id = 126,
+                            CountryCode = "LI",
+                            CountryName = "Liechtenstein"
+                        },
+                        new
+                        {
+                            Id = 127,
+                            CountryCode = "LT",
+                            CountryName = "Lithuania"
+                        },
+                        new
+                        {
+                            Id = 128,
+                            CountryCode = "LU",
+                            CountryName = "Luxembourg"
+                        },
+                        new
+                        {
+                            Id = 129,
+                            CountryCode = "MO",
+                            CountryName = "Macao"
+                        },
+                        new
+                        {
+                            Id = 130,
+                            CountryCode = "MK",
+                            CountryName = "Macedonia, The Former Yugoslav Republic of"
+                        },
+                        new
+                        {
+                            Id = 131,
+                            CountryCode = "MG",
+                            CountryName = "Madagascar"
+                        },
+                        new
+                        {
+                            Id = 132,
+                            CountryCode = "MW",
+                            CountryName = "Malawi"
+                        },
+                        new
+                        {
+                            Id = 133,
+                            CountryCode = "MY",
+                            CountryName = "Malaysia"
+                        },
+                        new
+                        {
+                            Id = 134,
+                            CountryCode = "MV",
+                            CountryName = "Maldives"
+                        },
+                        new
+                        {
+                            Id = 135,
+                            CountryCode = "ML",
+                            CountryName = "Mali"
+                        },
+                        new
+                        {
+                            Id = 136,
+                            CountryCode = "MT",
+                            CountryName = "Malta"
+                        },
+                        new
+                        {
+                            Id = 137,
+                            CountryCode = "MH",
+                            CountryName = "Marshall Islands"
+                        },
+                        new
+                        {
+                            Id = 138,
+                            CountryCode = "MQ",
+                            CountryName = "Martinique"
+                        },
+                        new
+                        {
+                            Id = 139,
+                            CountryCode = "MR",
+                            CountryName = "Mauritania"
+                        },
+                        new
+                        {
+                            Id = 140,
+                            CountryCode = "MU",
+                            CountryName = "Mauritius"
+                        },
+                        new
+                        {
+                            Id = 141,
+                            CountryCode = "YT",
+                            CountryName = "Mayotte"
+                        },
+                        new
+                        {
+                            Id = 142,
+                            CountryCode = "MX",
+                            CountryName = "Mexico"
+                        },
+                        new
+                        {
+                            Id = 143,
+                            CountryCode = "FM",
+                            CountryName = "Micronesia, Federated States of"
+                        },
+                        new
+                        {
+                            Id = 144,
+                            CountryCode = "MD",
+                            CountryName = "Moldova, Republic of"
+                        },
+                        new
+                        {
+                            Id = 145,
+                            CountryCode = "MC",
+                            CountryName = "Monaco"
+                        },
+                        new
+                        {
+                            Id = 146,
+                            CountryCode = "MN",
+                            CountryName = "Mongolia"
+                        },
+                        new
+                        {
+                            Id = 147,
+                            CountryCode = "MS",
+                            CountryName = "Montserrat"
+                        },
+                        new
+                        {
+                            Id = 148,
+                            CountryCode = "MA",
+                            CountryName = "Morocco"
+                        },
+                        new
+                        {
+                            Id = 149,
+                            CountryCode = "MZ",
+                            CountryName = "Mozambique"
+                        },
+                        new
+                        {
+                            Id = 150,
+                            CountryCode = "MM",
+                            CountryName = "Myanmar"
+                        },
+                        new
+                        {
+                            Id = 151,
+                            CountryCode = "NA",
+                            CountryName = "Namibia"
+                        },
+                        new
+                        {
+                            Id = 152,
+                            CountryCode = "NR",
+                            CountryName = "Nauru"
+                        },
+                        new
+                        {
+                            Id = 153,
+                            CountryCode = "NP",
+                            CountryName = "Nepal"
+                        },
+                        new
+                        {
+                            Id = 154,
+                            CountryCode = "NL",
+                            CountryName = "Netherlands"
+                        },
+                        new
+                        {
+                            Id = 155,
+                            CountryCode = "AN",
+                            CountryName = "Netherlands Antilles"
+                        },
+                        new
+                        {
+                            Id = 156,
+                            CountryCode = "NC",
+                            CountryName = "New Caledonia"
+                        },
+                        new
+                        {
+                            Id = 157,
+                            CountryCode = "NZ",
+                            CountryName = "New Zealand"
+                        },
+                        new
+                        {
+                            Id = 158,
+                            CountryCode = "NI",
+                            CountryName = "Nicaragua"
+                        },
+                        new
+                        {
+                            Id = 159,
+                            CountryCode = "NE",
+                            CountryName = "Niger"
+                        },
+                        new
+                        {
+                            Id = 160,
+                            CountryCode = "NG",
+                            CountryName = "Nigeria"
+                        },
+                        new
+                        {
+                            Id = 161,
+                            CountryCode = "NU",
+                            CountryName = "Niue"
+                        },
+                        new
+                        {
+                            Id = 162,
+                            CountryCode = "NF",
+                            CountryName = "Norfolk Island"
+                        },
+                        new
+                        {
+                            Id = 163,
+                            CountryCode = "MP",
+                            CountryName = "Northern Mariana Islands"
+                        },
+                        new
+                        {
+                            Id = 164,
+                            CountryCode = "NO",
+                            CountryName = "Norway"
+                        },
+                        new
+                        {
+                            Id = 165,
+                            CountryCode = "OM",
+                            CountryName = "Oman"
+                        },
+                        new
+                        {
+                            Id = 166,
+                            CountryCode = "PK",
+                            CountryName = "Pakistan"
+                        },
+                        new
+                        {
+                            Id = 167,
+                            CountryCode = "PW",
+                            CountryName = "Palau"
+                        },
+                        new
+                        {
+                            Id = 168,
+                            CountryCode = "PS",
+                            CountryName = "Palestinian Territory, Occupied"
+                        },
+                        new
+                        {
+                            Id = 169,
+                            CountryCode = "PA",
+                            CountryName = "Panama"
+                        },
+                        new
+                        {
+                            Id = 170,
+                            CountryCode = "PG",
+                            CountryName = "Papua New Guinea"
+                        },
+                        new
+                        {
+                            Id = 171,
+                            CountryCode = "PY",
+                            CountryName = "Paraguay"
+                        },
+                        new
+                        {
+                            Id = 172,
+                            CountryCode = "PE",
+                            CountryName = "Peru"
+                        },
+                        new
+                        {
+                            Id = 173,
+                            CountryCode = "PH",
+                            CountryName = "Philippines"
+                        },
+                        new
+                        {
+                            Id = 174,
+                            CountryCode = "PN",
+                            CountryName = "Pitcairn"
+                        },
+                        new
+                        {
+                            Id = 175,
+                            CountryCode = "PL",
+                            CountryName = "Poland"
+                        },
+                        new
+                        {
+                            Id = 176,
+                            CountryCode = "PT",
+                            CountryName = "Portugal"
+                        },
+                        new
+                        {
+                            Id = 177,
+                            CountryCode = "PR",
+                            CountryName = "Puerto Rico"
+                        },
+                        new
+                        {
+                            Id = 178,
+                            CountryCode = "QA",
+                            CountryName = "Qatar"
+                        },
+                        new
+                        {
+                            Id = 179,
+                            CountryCode = "RE",
+                            CountryName = "Reunion"
+                        },
+                        new
+                        {
+                            Id = 180,
+                            CountryCode = "RO",
+                            CountryName = "Romania"
+                        },
+                        new
+                        {
+                            Id = 181,
+                            CountryCode = "RU",
+                            CountryName = "Russian Federation"
+                        },
+                        new
+                        {
+                            Id = 182,
+                            CountryCode = "RW",
+                            CountryName = "RWANDA"
+                        },
+                        new
+                        {
+                            Id = 183,
+                            CountryCode = "SH",
+                            CountryName = "Saint Helena"
+                        },
+                        new
+                        {
+                            Id = 184,
+                            CountryCode = "KN",
+                            CountryName = "Saint Kitts and Nevis"
+                        },
+                        new
+                        {
+                            Id = 185,
+                            CountryCode = "LC",
+                            CountryName = "Saint Lucia"
+                        },
+                        new
+                        {
+                            Id = 186,
+                            CountryCode = "PM",
+                            CountryName = "Saint Pierre and Miquelon"
+                        },
+                        new
+                        {
+                            Id = 187,
+                            CountryCode = "VC",
+                            CountryName = "Saint Vincent and the Grenadines"
+                        },
+                        new
+                        {
+                            Id = 188,
+                            CountryCode = "WS",
+                            CountryName = "Samoa"
+                        },
+                        new
+                        {
+                            Id = 189,
+                            CountryCode = "SM",
+                            CountryName = "San Marino"
+                        },
+                        new
+                        {
+                            Id = 190,
+                            CountryCode = "ST",
+                            CountryName = "Sao Tome and Principe"
+                        },
+                        new
+                        {
+                            Id = 191,
                             CountryCode = "SA",
-                            CountryName = "Saudi Arabia",
-                            Latitude = 24.713600m,
-                            Longitude = 46.675300m
+                            CountryName = "Saudi Arabia"
+                        },
+                        new
+                        {
+                            Id = 192,
+                            CountryCode = "SN",
+                            CountryName = "Senegal"
+                        },
+                        new
+                        {
+                            Id = 193,
+                            CountryCode = "CS",
+                            CountryName = "Serbia and Montenegro"
+                        },
+                        new
+                        {
+                            Id = 194,
+                            CountryCode = "SC",
+                            CountryName = "Seychelles"
+                        },
+                        new
+                        {
+                            Id = 195,
+                            CountryCode = "SL",
+                            CountryName = "Sierra Leone"
+                        },
+                        new
+                        {
+                            Id = 196,
+                            CountryCode = "SG",
+                            CountryName = "Singapore"
+                        },
+                        new
+                        {
+                            Id = 197,
+                            CountryCode = "SK",
+                            CountryName = "Slovakia"
+                        },
+                        new
+                        {
+                            Id = 198,
+                            CountryCode = "SI",
+                            CountryName = "Slovenia"
+                        },
+                        new
+                        {
+                            Id = 199,
+                            CountryCode = "SB",
+                            CountryName = "Solomon Islands"
+                        },
+                        new
+                        {
+                            Id = 200,
+                            CountryCode = "SO",
+                            CountryName = "Somalia"
+                        },
+                        new
+                        {
+                            Id = 201,
+                            CountryCode = "ZA",
+                            CountryName = "South Africa"
+                        },
+                        new
+                        {
+                            Id = 202,
+                            CountryCode = "GS",
+                            CountryName = "South Georgia and the South Sandwich Islands"
+                        },
+                        new
+                        {
+                            Id = 203,
+                            CountryCode = "ES",
+                            CountryName = "Spain"
+                        },
+                        new
+                        {
+                            Id = 204,
+                            CountryCode = "LK",
+                            CountryName = "Sri Lanka"
+                        },
+                        new
+                        {
+                            Id = 205,
+                            CountryCode = "SD",
+                            CountryName = "Sudan"
+                        },
+                        new
+                        {
+                            Id = 206,
+                            CountryCode = "SR",
+                            CountryName = "Suri"
+                        },
+                        new
+                        {
+                            Id = 207,
+                            CountryCode = "SJ",
+                            CountryName = "Svalbard and Jan Mayen"
+                        },
+                        new
+                        {
+                            Id = 208,
+                            CountryCode = "SZ",
+                            CountryName = "Swaziland"
+                        },
+                        new
+                        {
+                            Id = 209,
+                            CountryCode = "SE",
+                            CountryName = "Sweden"
+                        },
+                        new
+                        {
+                            Id = 210,
+                            CountryCode = "CH",
+                            CountryName = "Switzerland"
+                        },
+                        new
+                        {
+                            Id = 211,
+                            CountryCode = "SY",
+                            CountryName = "Syrian Arab Republic"
+                        },
+                        new
+                        {
+                            Id = 212,
+                            CountryCode = "TW",
+                            CountryName = "Taiwan, Province of China"
+                        },
+                        new
+                        {
+                            Id = 213,
+                            CountryCode = "TJ",
+                            CountryName = "Tajikistan"
+                        },
+                        new
+                        {
+                            Id = 214,
+                            CountryCode = "TZ",
+                            CountryName = "Tanzania, United Republic of"
+                        },
+                        new
+                        {
+                            Id = 215,
+                            CountryCode = "TH",
+                            CountryName = "Thailand"
+                        },
+                        new
+                        {
+                            Id = 216,
+                            CountryCode = "TL",
+                            CountryName = "Timor-Leste"
+                        },
+                        new
+                        {
+                            Id = 217,
+                            CountryCode = "TG",
+                            CountryName = "Togo"
+                        },
+                        new
+                        {
+                            Id = 218,
+                            CountryCode = "TK",
+                            CountryName = "Tokelau"
+                        },
+                        new
+                        {
+                            Id = 219,
+                            CountryCode = "TO",
+                            CountryName = "Tonga"
+                        },
+                        new
+                        {
+                            Id = 220,
+                            CountryCode = "TT",
+                            CountryName = "Trinidad and Tobago"
+                        },
+                        new
+                        {
+                            Id = 221,
+                            CountryCode = "TN",
+                            CountryName = "Tunisia"
+                        },
+                        new
+                        {
+                            Id = 222,
+                            CountryCode = "TR",
+                            CountryName = "Turkey"
+                        },
+                        new
+                        {
+                            Id = 223,
+                            CountryCode = "TM",
+                            CountryName = "Turkmenistan"
+                        },
+                        new
+                        {
+                            Id = 224,
+                            CountryCode = "TC",
+                            CountryName = "Turks and Caicos Islands"
+                        },
+                        new
+                        {
+                            Id = 225,
+                            CountryCode = "TV",
+                            CountryName = "Tuvalu"
+                        },
+                        new
+                        {
+                            Id = 226,
+                            CountryCode = "UG",
+                            CountryName = "Uganda"
+                        },
+                        new
+                        {
+                            Id = 227,
+                            CountryCode = "UA",
+                            CountryName = "Ukraine"
+                        },
+                        new
+                        {
+                            Id = 228,
+                            CountryCode = "AE",
+                            CountryName = "United Arab Emirates"
+                        },
+                        new
+                        {
+                            Id = 229,
+                            CountryCode = "GB",
+                            CountryName = "United Kingdom"
+                        },
+                        new
+                        {
+                            Id = 230,
+                            CountryCode = "US",
+                            CountryName = "United States"
+                        },
+                        new
+                        {
+                            Id = 231,
+                            CountryCode = "UM",
+                            CountryName = "United States Minor Outlying Islands"
+                        },
+                        new
+                        {
+                            Id = 232,
+                            CountryCode = "UY",
+                            CountryName = "Uruguay"
+                        },
+                        new
+                        {
+                            Id = 233,
+                            CountryCode = "UZ",
+                            CountryName = "Uzbekistan"
+                        },
+                        new
+                        {
+                            Id = 234,
+                            CountryCode = "VU",
+                            CountryName = "Vanuatu"
+                        },
+                        new
+                        {
+                            Id = 235,
+                            CountryCode = "VE",
+                            CountryName = "Venezuela"
+                        },
+                        new
+                        {
+                            Id = 236,
+                            CountryCode = "VN",
+                            CountryName = "Viet Nam"
+                        },
+                        new
+                        {
+                            Id = 237,
+                            CountryCode = "VG",
+                            CountryName = "Virgin Islands, British"
+                        },
+                        new
+                        {
+                            Id = 238,
+                            CountryCode = "VI",
+                            CountryName = "Virgin Islands, U.S."
+                        },
+                        new
+                        {
+                            Id = 239,
+                            CountryCode = "WF",
+                            CountryName = "Wallis and Futuna"
+                        },
+                        new
+                        {
+                            Id = 240,
+                            CountryCode = "EH",
+                            CountryName = "Western Sahara"
+                        },
+                        new
+                        {
+                            Id = 241,
+                            CountryCode = "YE",
+                            CountryName = "Yemen"
+                        },
+                        new
+                        {
+                            Id = 242,
+                            CountryCode = "ZM",
+                            CountryName = "Zambia"
+                        },
+                        new
+                        {
+                            Id = 243,
+                            CountryCode = "ZW",
+                            CountryName = "Zimbabwe"
                         });
                 });
 
@@ -1001,6 +2283,9 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int>("NationalityCountryId")
+                        .HasColumnType("int");
+
                     b.Property<string>("PassportNumber")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -1018,6 +2303,9 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("ResidencyCard")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("ResidentialCityId")
                         .HasColumnType("int");
 
@@ -1027,6 +2315,8 @@ namespace Infrastructure.Migrations
                         .HasDefaultValueSql("(getdate())");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("NationalityCountryId");
 
                     b.HasIndex("ResidentialCityId");
 
@@ -1109,34 +2399,37 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Role", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("RoleId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoleId"));
 
                     b.Property<string>("RoleName")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.HasKey("Id");
+                    b.HasKey("RoleId");
 
                     b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            RoleId = 1,
+                            RoleName = "Admin"
+                        },
+                        new
+                        {
+                            RoleId = 2,
+                            RoleName = "Tourist"
+                        },
+                        new
+                        {
+                            RoleId = 3,
+                            RoleName = "TourCompany"
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.SupportReply", b =>
@@ -1295,40 +2588,6 @@ namespace Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("TourCompanies");
-                });
-
-            modelBuilder.Entity("Domain.Entities.TourPackage_Attraction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AttractionId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<int>("PackageId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AttractionId");
-
-                    b.HasIndex("PackageId", "AttractionId")
-                        .IsUnique();
-
-                    b.ToTable("PackageAttractions", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.TourPackage", b =>
@@ -1512,6 +2771,40 @@ namespace Infrastructure.Migrations
                     b.ToTable("TourPackageMedias");
                 });
 
+            modelBuilder.Entity("Domain.Entities.TourPackage_Attraction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AttractionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int>("PackageId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttractionId");
+
+                    b.HasIndex("PackageId", "AttractionId")
+                        .IsUnique();
+
+                    b.ToTable("PackageAttractions", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.TourPackage_TouristGuide", b =>
                 {
                     b.Property<int>("Id")
@@ -1577,7 +2870,7 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("NationalityCountryId")
+                    b.Property<int>("NatinalityCountryId")
                         .HasColumnType("int");
 
                     b.Property<int>("PersonId")
@@ -1588,7 +2881,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NationalityCountryId");
+                    b.HasIndex("NatinalityCountryId");
 
                     b.HasIndex("PersonId")
                         .IsUnique();
@@ -1628,10 +2921,10 @@ namespace Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal?>("Latitude")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 8)");
 
                     b.Property<decimal?>("Longitude")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 8)");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -1708,24 +3001,21 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Attraction", b =>
                 {
+                    b.HasOne("Domain.Entities.AttractionCategory", "AttractionCategory")
+                        .WithMany("Attractions")
+                        .HasForeignKey("AttractionCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Domain.Entities.City", "City")
                         .WithMany("Attractions")
                         .HasForeignKey("CityId")
-                        .IsRequired()
-                        .HasConstraintName("FK__Attractio__CityI__6EF57B66");
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AttractionCategory");
 
                     b.Navigation("City");
-                });
-
-            modelBuilder.Entity("Domain.Entities.AttractionCategory", b =>
-                {
-                    b.HasOne("Domain.Entities.Attraction", "Attraction")
-                        .WithMany("AttractionCategories")
-                        .HasForeignKey("AttractionId")
-                        .IsRequired()
-                        .HasConstraintName("FK__Attractio__Attra__73BA3083");
-
-                    b.Navigation("Attraction");
                 });
 
             modelBuilder.Entity("Domain.Entities.Booking", b =>
@@ -1771,9 +3061,9 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Companion", b =>
                 {
                     b.HasOne("Domain.Entities.Country", "NationalityCountry")
-                        .WithMany("NatinalityCompanions")
+                        .WithMany()
                         .HasForeignKey("NationalityCountryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.Person", "Person")
@@ -1785,7 +3075,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany("Companions")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("NationalityCountry");
@@ -1798,13 +3088,13 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Companion_Booking", b =>
                 {
                     b.HasOne("Domain.Entities.Booking", "Booking")
-                        .WithMany("Companion_Bookings")
+                        .WithMany("CompanionBookings")
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.Companion", "Companion")
-                        .WithMany("Companion_Bookings")
+                        .WithMany("CompanionBookings")
                         .HasForeignKey("CompanionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1817,16 +3107,16 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Company_TouristGuide", b =>
                 {
                     b.HasOne("Domain.Entities.TourCompany", "Company")
-                        .WithMany("Company_TouristGuide")
+                        .WithMany("CompanyGuides")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_CompanyGuides_TourCompanies");
 
                     b.HasOne("Domain.Entities.TouristGuide", "TouristGuide")
-                        .WithMany("Company_TouristGuide")
+                        .WithMany("CompanyGuides")
                         .HasForeignKey("TouristGuideId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_CompanyGuides_TouristGuides");
 
@@ -1919,11 +3209,19 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Person", b =>
                 {
+                    b.HasOne("Domain.Entities.Country", "NationalityCountry")
+                        .WithMany("Persons")
+                        .HasForeignKey("NationalityCountryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Domain.Entities.City", "ResidentialCity")
                         .WithMany("Persons")
                         .HasForeignKey("ResidentialCityId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("NationalityCountry");
 
                     b.Navigation("ResidentialCity");
                 });
@@ -2011,26 +3309,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.TourPackage_Attraction", b =>
-                {
-                    b.HasOne("Domain.Entities.Attraction", "Attraction")
-                        .WithMany()
-                        .HasForeignKey("AttractionId")
-                        .IsRequired()
-                        .HasConstraintName("FK_PackageCities_Attractions");
-
-                    b.HasOne("Domain.Entities.TourPackage", "Package")
-                        .WithMany("PackageAttractions")
-                        .HasForeignKey("PackageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_PackageCities_TourPackages");
-
-                    b.Navigation("Attraction");
-
-                    b.Navigation("Package");
-                });
-
             modelBuilder.Entity("Domain.Entities.TourPackage", b =>
                 {
                     b.HasOne("Domain.Entities.TourCompany", "Company")
@@ -2074,17 +3352,37 @@ namespace Infrastructure.Migrations
                     b.Navigation("TourPackage");
                 });
 
+            modelBuilder.Entity("Domain.Entities.TourPackage_Attraction", b =>
+                {
+                    b.HasOne("Domain.Entities.Attraction", "Attraction")
+                        .WithMany()
+                        .HasForeignKey("AttractionId")
+                        .IsRequired()
+                        .HasConstraintName("FK_PackageCities_Attractions");
+
+                    b.HasOne("Domain.Entities.TourPackage", "Package")
+                        .WithMany("PackageAttractions")
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PackageCities_TourPackages");
+
+                    b.Navigation("Attraction");
+
+                    b.Navigation("Package");
+                });
+
             modelBuilder.Entity("Domain.Entities.TourPackage_TouristGuide", b =>
                 {
                     b.HasOne("Domain.Entities.TourPackage", "Package")
-                        .WithMany("TourPackage_TouristGuide")
+                        .WithMany("TourPackageGuides")
                         .HasForeignKey("PackageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_TourPackageGuides_TourPackages");
 
                     b.HasOne("Domain.Entities.TouristGuide", "TouristGuide")
-                        .WithMany("TourPackage_TouristGuide")
+                        .WithMany("TourPackageGuides")
                         .HasForeignKey("TouristGuideId")
                         .IsRequired()
                         .HasConstraintName("FK_TourPackageGuides_TouristGuides");
@@ -2098,8 +3396,8 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Domain.Entities.Country", "NatinalityCountry")
                         .WithMany()
-                        .HasForeignKey("NationalityCountryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasForeignKey("NatinalityCountryId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.Person", "Person")
@@ -2123,7 +3421,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entities.Role", "Role")
                         .WithMany("Users")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK__Users__RoleId__4F7CD00D");
 
@@ -2153,14 +3451,14 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Attraction", b =>
+            modelBuilder.Entity("Domain.Entities.AttractionCategory", b =>
                 {
-                    b.Navigation("AttractionCategories");
+                    b.Navigation("Attractions");
                 });
 
             modelBuilder.Entity("Domain.Entities.Booking", b =>
                 {
-                    b.Navigation("Companion_Bookings");
+                    b.Navigation("CompanionBookings");
 
                     b.Navigation("Notifications");
                 });
@@ -2174,14 +3472,14 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Companion", b =>
                 {
-                    b.Navigation("Companion_Bookings");
+                    b.Navigation("CompanionBookings");
                 });
 
             modelBuilder.Entity("Domain.Entities.Country", b =>
                 {
                     b.Navigation("Cities");
 
-                    b.Navigation("NatinalityCompanions");
+                    b.Navigation("Persons");
 
                     b.Navigation("TourPackages");
                 });
@@ -2221,7 +3519,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.TourCompany", b =>
                 {
-                    b.Navigation("Company_TouristGuide");
+                    b.Navigation("CompanyGuides");
 
                     b.Navigation("Favorites");
 
@@ -2244,16 +3542,16 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Reviews");
 
-                    b.Navigation("TourPackage_TouristGuide");
+                    b.Navigation("TourPackageGuides");
 
                     b.Navigation("Wishlists");
                 });
 
             modelBuilder.Entity("Domain.Entities.TouristGuide", b =>
                 {
-                    b.Navigation("Company_TouristGuide");
+                    b.Navigation("CompanyGuides");
 
-                    b.Navigation("TourPackage_TouristGuide");
+                    b.Navigation("TourPackageGuides");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>

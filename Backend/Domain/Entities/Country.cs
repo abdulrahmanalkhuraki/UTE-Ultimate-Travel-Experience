@@ -8,15 +8,9 @@ public partial class Country
 
     public string CountryCode { get; set; } = null!;
 
-    public string? Flag { get; set; }
-
-    public decimal Longitude { get; set; }
-
-    public decimal Latitude { get; set; }
-
     public virtual ICollection<City> Cities { get; set; } = new List<City>();
 
     public virtual ICollection<TourPackage> TourPackages { get; set; } = new List<TourPackage>();
 
-    public virtual ICollection<Companion> NatinalityCompanions { get; set; } = new List<Companion>();
+    public virtual ICollection<Person> Persons { get; set; } = new List<Person>();
 }

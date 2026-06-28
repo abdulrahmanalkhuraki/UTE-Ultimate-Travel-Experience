@@ -19,10 +19,8 @@ namespace Application.DTOs.TouristGuide.Request
         string? Languages,
         bool? IsAvailable,
         IFormFile? ProfileImage,
-        string? ProfileImageUrl,
         IFormFile? NationalIdImage,
-        string? NationalIdCardUrl,
         IFormFile? PassportImage,
-        string? PassportScanUrl
+        IFormFile? ResidencyCard
     );
 }

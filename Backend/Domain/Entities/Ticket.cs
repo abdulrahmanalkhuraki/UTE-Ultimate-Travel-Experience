@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain.Enums;
 
 namespace Domain.Entities
 {
@@ -13,7 +9,7 @@ namespace Domain.Entities
         public string Subject { get; set; } = null!;
         public string Description { get; set; } = null!;
         public string? ImageUrl { get; set; }
-        public Domain.Enums.TicketStatus Status { get; set; }
+        public TicketStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public virtual User User { get; set; } = null!;
         public virtual SupportReply? SupportReply { get; set; }

@@ -18,7 +18,8 @@ namespace Application.DTOs.TouristGuide.Request
         string? PassportNumber,
         string? Languages,
         IFormFile? ProfileImage,
-        IFormFile? NationalIdImage,
-        IFormFile? PassportImage
+        IFormFile? NationalIdCard,
+        IFormFile? PassportScan,
+        IFormFile? ResidencyCard
     );
 }

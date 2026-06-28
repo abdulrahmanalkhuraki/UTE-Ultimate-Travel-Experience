@@ -5,8 +5,6 @@ namespace Domain.Entities
     public partial class Companion
     {
         public int Id { get; set; }
-        public int NationalityCountryId { get; set; }
-        public string? ResidencyCard { get; set; } = null!;
         public CompanionRelationship Relationship { get; set; }
         public int PersonId { get; set; }
         public int UserId { get; set; }

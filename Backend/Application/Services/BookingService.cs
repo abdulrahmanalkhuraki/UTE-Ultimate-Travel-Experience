@@ -53,15 +53,7 @@ namespace Application.Services
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
 
-        /// <summary>Creates a new booking with payment and companion links.</summary>
-        /// <param name="request">The booking creation payload.</param>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns>The newly created <see cref="BookingResponse"/>.</returns>
-        /// <exception cref="ValidationException">Thrown when request validation fails.</exception>
-        /// <exception cref="NotFoundException">Thrown when the package or a companion ID is not found.</exception>
-        /// <exception cref="AuthException">Thrown when the user is not authenticated.</exception>
-        /// <exception cref="ConflictException">Thrown when the user attempts to book a package whose dates overlap with one of their existing bookings.</exception>
-        /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
+
         public async Task<BookingResponse> CreateAsync(BookingCreateRequest request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
@@ -75,8 +67,6 @@ namespace Application.Services
                     string.Join(", ", validationResult.Errors));
                 throw new ValidationException(string.Join(", ", validationResult.Errors));
             }
-
-            await EnsureProfileCompletedAsync(cancellationToken);
 
             var transactionStarted = false;
 
@@ -234,13 +224,6 @@ namespace Application.Services
             }
         }
 
-        /// <summary>Retrieves a booking by its ID, including payment and companion details.</summary>
-        /// <param name="id">The booking ID.</param>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns>The matching <see cref="BookingResponse"/>.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is not positive.</exception>
-        /// <exception cref="NotFoundException">Thrown when no booking with the given ID exists.</exception>
-        /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
         public async Task<BookingResponse> GetAsync(int id, CancellationToken cancellationToken)
         {
             if (id <= 0)
@@ -254,8 +237,6 @@ namespace Application.Services
                 _logger.LogDebug("Cache hit for booking {BookingId}", id);
                 return cached;
             }
-
-            await EnsureProfileCompletedAsync(cancellationToken);
 
             try
             {
@@ -308,10 +289,6 @@ namespace Application.Services
             }
         }
 
-        /// <summary>Retrieves all bookings ordered by booking date descending.</summary>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns>A read-only list of <see cref="BookingResponse"/>.</returns>
-        /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
         public async Task<IReadOnlyList<BookingResponse>> GetAllAsync(CancellationToken cancellationToken)
         {
             _logger.LogDebug("Retrieving all bookings");
@@ -322,7 +299,6 @@ namespace Application.Services
                 return cached;
             }
 
-            await EnsureProfileCompletedAsync(cancellationToken);
 
             try
             {
@@ -354,23 +330,12 @@ namespace Application.Services
             }
         }
 
-        /// <summary>
-        /// Retrieves pending bookings for the current tour company's packages.
-        /// </summary>
-        /// <param name="packageId">Optional. If provided, only pending bookings for this specific package are returned.</param>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns>A read-only list of pending <see cref="BookingResponse"/>.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="packageId"/> is zero or negative.</exception>
-        /// <exception cref="AuthException">Thrown when the user is not authenticated.</exception>
-        /// <exception cref="ForbiddenException">Thrown when the current user is not associated with any tour company.</exception>
-        /// <exception cref="NotFoundException">Thrown when the specified <paramref name="packageId"/> does not exist for the current company.</exception>
-        /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
+
         public async Task<IReadOnlyList<BookingResponse>> GetUnApprovedAsync(int? packageId, CancellationToken cancellationToken)
         {
             if (packageId.HasValue && packageId <= 0)
                 throw new ArgumentException("Invalid package ID", nameof(packageId));
 
-            await EnsureProfileCompletedAsync(cancellationToken);
 
             var userId = _currentUser.UserId
                 ?? throw new AuthException("You must be logged in to perform this action.");
@@ -443,23 +408,11 @@ namespace Application.Services
             }
         }
 
-        /// <summary>Approves or conditionally accepts a pending booking on behalf of the tour company.</summary>
-        /// <param name="id">The booking ID.</param>
-        /// <param name="approveRequest">The approval payload. Must include <see cref="BookingApproveRequest.NewCalculatedCost"/> when the tourist specified preferences.</param>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns>The updated <see cref="BookingResponse"/>.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is not positive.</exception>
-        /// <exception cref="AuthException">Thrown when the user is not authenticated.</exception>
-        /// <exception cref="ForbiddenException">Thrown when the current user's company does not own the booking's tour package.</exception>
-        /// <exception cref="NotFoundException">Thrown when no booking with the given ID exists.</exception>
-        /// <exception cref="BusinessRuleException">Thrown when the booking status is not <see cref="BookingStatus.Pending"/> or when required data is missing.</exception>
-        /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
         public async Task<BookingResponse> ApproveAsync(int id, BookingApproveRequest approveRequest, CancellationToken cancellationToken)
         {
             if (id <= 0)
                 throw new ArgumentException("Invalid booking ID", nameof(id));
 
-            await EnsureProfileCompletedAsync(cancellationToken);
 
             _logger.LogInformation("Attempting to approve booking with ID {BookingId}", id);
 
@@ -556,17 +509,6 @@ namespace Application.Services
             }
         }
 
-        /// <summary>Rejects a pending booking  with a reason.</summary>
-        /// <param name="id">The booking ID.</param>
-        /// <param name="rejectRequest">The rejection payload. Must include a non-empty <see cref="BookingRejectRequest.RejectReason"/>.</param>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns>The updated <see cref="BookingResponse"/>.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is not positive or the rejection reason is missing.</exception>
-        /// <exception cref="AuthException">Thrown when the user is not authenticated.</exception>
-        /// <exception cref="ForbiddenException">Thrown when the current user's company does not own the booking's tour package.</exception>
-        /// <exception cref="NotFoundException">Thrown when no booking with the given ID exists.</exception>
-        /// <exception cref="BusinessRuleException">Thrown when the booking status is not <see cref="BookingStatus.Pending"/>.</exception>
-        /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
         public async Task<BookingResponse> RejectAsync(int id, BookingRejectRequest rejectRequest, CancellationToken cancellationToken)
         {
             if (id <= 0)
@@ -575,7 +517,6 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(rejectRequest?.RejectReason))
                 throw new ArgumentException("Rejection reason is required", nameof(rejectRequest));
 
-            await EnsureProfileCompletedAsync(cancellationToken);
 
             _logger.LogInformation("Attempting to Reject booking with ID {BookingId}", id);
 
@@ -643,22 +584,11 @@ namespace Application.Services
             }
         }
 
-        /// <summary>Confirms a booking after the company has accepted it (tourist action).</summary>
-        /// <param name="id">The booking ID.</param>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns>The updated <see cref="BookingResponse"/>.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is not positive.</exception>
-        /// <exception cref="AuthException">Thrown when the user is not authenticated.</exception>
-        /// <exception cref="ForbiddenException">Thrown when the current user is not the owner of this booking.</exception>
-        /// <exception cref="NotFoundException">Thrown when no booking with the given ID exists.</exception>
-        /// <exception cref="BusinessRuleException">Thrown when the booking status is not <see cref="BookingStatus.Accepted_By_Company"/>.</exception>
-        /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
         public async Task<BookingResponse> ConfirmAsync(int id, CancellationToken cancellationToken)
         {
             if (id <= 0)
                 throw new ArgumentException("Invalid booking ID", nameof(id));
 
-            await EnsureProfileCompletedAsync(cancellationToken);
 
             _logger.LogInformation("Attempting to Confirm booking with ID {BookingId} by tourist", id);
 
@@ -701,7 +631,7 @@ namespace Application.Services
                 InvalidateBookingCache(id);
 
                 var tourCompanyNotificationMessage = $"✓ Booking #{booking.Id} " +
-                    $"confirmed by {booking.User.Person.Fullname}. " +
+                    $"confirmed by {booking.User.Person?.Fullname}. " +
                     $"Tour: {booking.TourPackage.PackageName}. " +
                     $"Total: {booking.TotalCost:C}. Ready to proceed.";
 
@@ -728,22 +658,11 @@ namespace Application.Services
             }
         }
 
-        /// <summary>Declines a booking after the company has accepted it (tourist action).</summary>
-        /// <param name="id">The booking ID.</param>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns>The updated <see cref="BookingResponse"/>.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is not positive.</exception>
-        /// <exception cref="AuthException">Thrown when the user is not authenticated.</exception>
-        /// <exception cref="ForbiddenException">Thrown when the current user is not the owner of this booking.</exception>
-        /// <exception cref="NotFoundException">Thrown when no booking with the given ID exists.</exception>
-        /// <exception cref="BusinessRuleException">Thrown when the booking status is not <see cref="BookingStatus.Accepted_By_Company"/>.</exception>
-        /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
         public async Task<BookingResponse> DeclineAsync(int id, CancellationToken cancellationToken)
         {
             if (id <= 0)
                 throw new ArgumentException("Invalid booking ID", nameof(id));
 
-            await EnsureProfileCompletedAsync(cancellationToken);
 
             _logger.LogInformation("Attempting to Decline booking with ID {BookingId} by tourist", id);
 
@@ -787,7 +706,7 @@ namespace Application.Services
                 InvalidateBookingCache(id);
 
                 var tourCompanyNotificationMessage = $"✗ Booking #{booking.Id} " +
-                    $"declined by {booking.User.Person.Fullname}. Booking cancelled.";
+                    $"declined by {booking.User.Person?.Fullname}. Booking cancelled.";
 
                 await _notificationService.NotifyAsync(
                     booking.TourPackage.Company.UserId,
@@ -813,17 +732,6 @@ namespace Application.Services
             }
         }
 
-        /// <summary>Updates an existing booking's optional fields, companions, and flight type.</summary>
-        /// <param name="id">The booking ID.</param>
-        /// <param name="request">The booking update payload.</param>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns>The updated <see cref="BookingResponse"/>.</returns>
-        /// <exception cref="ValidationException">Thrown when request validation fails.</exception>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is not positive.</exception>
-        /// <exception cref="NotFoundException">Thrown when no booking with the given ID exists.</exception>
-        /// <exception cref="ConcurrencyException">Thrown when a concurrency conflict is detected.</exception>
-        /// <exception cref="BusinessRuleException">Thrown when Update Operation Not Allowed.</exception>
-        /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
         public async Task<BookingResponse> UpdateAsync(int id, BookingUpdateRequest request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
@@ -841,7 +749,6 @@ namespace Application.Services
                 throw new ValidationException(string.Join(", ", validationResult.Errors));
             }
 
-            await EnsureProfileCompletedAsync(cancellationToken);
 
             try
             {
@@ -926,19 +833,10 @@ namespace Application.Services
             }
         }
 
-        /// <summary>Cancels a booking if it's pending.</summary>
-        /// <param name="id">The booking ID.</param>
-        /// <param name="cancellationToken">Propagates notification that the operation should be cancelled.</param>
-        /// <returns><see langword="true"/> if the booking was cancelled; <see langword="false"/> if it was already cancelled or not found.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is not positive.</exception>
-        /// <exception cref="BusinessRuleException">Thrown when attempting to cancel not pending booking.</exception>
-        /// <exception cref="ServiceException">Thrown when an unexpected error occurs.</exception>
         public async Task<bool> CancelAsync(int id, CancellationToken cancellationToken)
         {
             if (id <= 0)
                 throw new ArgumentException("Invalid booking ID", nameof(id));
-
-            await EnsureProfileCompletedAsync(cancellationToken);
 
             _logger.LogInformation("Attempting to cancel booking with ID {BookingId}", id);
 
@@ -1004,16 +902,6 @@ namespace Application.Services
 
 
         #region Helpers
-
-        private async Task EnsureProfileCompletedAsync(CancellationToken cancellationToken)
-        {
-            var userId = _currentUser.UserId
-                ?? throw new AuthException("You must be logged in to perform this action.");
-
-            var user = await _unitOfWork.Users.GetByIdAsync(userId, cancellationToken);
-            if (user is null || !user.PersonId.HasValue)
-                throw new BusinessRuleException("You must complete your profile before performing this action.");
-        }
 
         private static bool Conflict(
             DateOnly firstBookingStartDate,

@@ -10,7 +10,6 @@ namespace UTE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     [Produces(MediaTypeNames.Application.Json)]
     [Consumes(MediaTypeNames.Application.Json)]
     public class BookingController : ControllerBase
@@ -36,6 +35,7 @@ namespace UTE.Controllers
         /// <response code="404">If the booking is not found</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpGet("{id:int:min(1)}")]
+        [Authorize(Policy = "RequireCompletedProfile")]
         [ProducesResponseType(typeof(BookingResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -57,6 +57,7 @@ namespace UTE.Controllers
         /// <response code="403">If the user is not an admin</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpGet]
+        [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(IReadOnlyList<BookingResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -83,6 +84,7 @@ namespace UTE.Controllers
         /// <response code="422">If the user's profile is not completed</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpPost]
+        [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "Tourist")]
         [ProducesResponseType(typeof(BookingResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -118,6 +120,7 @@ namespace UTE.Controllers
         /// <response code="422">If the booking status does not allow updates</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpPut("{id:int:min(1)}")]
+        [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "Tourist")]
         [ProducesResponseType(typeof(BookingResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -148,6 +151,7 @@ namespace UTE.Controllers
         /// <response code="422">If the booking status does not allow cancellation</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpDelete("Cancel/{id:int:min(1)}")]
+        [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "Tourist")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -175,6 +179,7 @@ namespace UTE.Controllers
         /// <response code="404">If the specified package is not found</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpGet("UnApprovedBookings")]
+        [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "TourCompany")]
         [ProducesResponseType(typeof(IReadOnlyList<BookingResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -205,6 +210,7 @@ namespace UTE.Controllers
         /// <response code="422">If the booking status is not pending or required data is missing</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpPatch("Approve/{id:int:min(1)}")]
+        [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "TourCompany")]
         [ProducesResponseType(typeof(BookingResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -235,6 +241,7 @@ namespace UTE.Controllers
         /// <response code="422">If the booking status is not pending</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpPatch("Reject/{id:int:min(1)}")]
+        [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "TourCompany")]
         [ProducesResponseType(typeof(BookingResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -264,6 +271,7 @@ namespace UTE.Controllers
         /// <response code="422">If the booking status is not Accepted_By_Company</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpPatch("Confirm/{id:int:min(1)}")]
+        [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "Tourist")]
         [ProducesResponseType(typeof(BookingResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -292,6 +300,7 @@ namespace UTE.Controllers
         /// <response code="422">If the booking status is not Accepted_By_Company</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpPatch("Decline/{id:int:min(1)}")]
+        [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "Tourist")]
         [ProducesResponseType(typeof(BookingResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]

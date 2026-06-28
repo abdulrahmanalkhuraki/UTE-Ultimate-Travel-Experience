@@ -60,6 +60,10 @@ namespace Application.Validators.User
             RuleFor(x => x.PassportImage)
                 .Must(IsValidImage).WithMessage("Passport image must be JPG/PNG/WEBP and at most 5 MB")
                 .When(x => x.PassportImage != null && x.PassportImage.Length > 0);
+
+            RuleFor(x => x.ResidencyCard)
+                .Must(IsValidImage).WithMessage("Passport image must be JPG/PNG/WEBP and at most 5 MB")
+                .When(x => x.ResidencyCard != null && x.ResidencyCard.Length > 0);
         }
 
         private static bool IsValidImage(IFormFile? file)

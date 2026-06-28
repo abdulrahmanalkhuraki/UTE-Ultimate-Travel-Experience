@@ -6,8 +6,6 @@ namespace Domain.Entities
 
         public string Email { get; set; } = null!;
 
-        public int NationalityCountryId { get; set; }
-
         public int YearsOfExperiance { get; set; }
 
         public string Bio { get; set; } = null!;

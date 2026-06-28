@@ -1,3 +1,4 @@
+using Application.DTOs.TouristGuide.Request;
 using Application.DTOs.TouristGuide.Response;
 using AutoMapper;
 using Domain.Entities;
@@ -24,6 +25,80 @@ namespace Application.Mappings
                 .ForMember(dest => dest.PassportScan, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportScan : null))
                 .ForMember(dest => dest.NationalityCountryName,
                     opt => opt.MapFrom(src => src.NatinalityCountry != null ? src.NatinalityCountry.CountryName : null));
+
+            CreateMap<TouristGuideUpdateRequest, TouristGuide>()
+                .ForMember(dest => dest.Email, opt =>
+                {
+                    opt.PreCondition(src => src.Email is not null);
+                    opt.MapFrom(src => src.Email!.Trim());
+                })
+                .ForMember(dest => dest.YearsOfExperiance, opt =>
+                {
+                    opt.PreCondition(src => src.YearsOfExperiance.HasValue);
+                    opt.MapFrom(src => src.YearsOfExperiance!.Value);
+                })
+                .ForMember(dest => dest.Bio, opt =>
+                {
+                    opt.PreCondition(src => src.Bio is not null);
+                    opt.MapFrom(src => src.Bio!.Trim());
+                })
+                .ForMember(dest => dest.Languages, opt =>
+                {
+                    opt.PreCondition(src => src.Languages is not null);
+                    opt.MapFrom(src => src.Languages!.Trim());
+                })
+                .ForMember(dest => dest.IsAvailable, opt =>
+                {
+                    opt.PreCondition(src => src.IsAvailable.HasValue);
+                    opt.MapFrom(src => src.IsAvailable!.Value);
+                });
+
+            CreateMap<TouristGuideUpdateRequest, Person>()
+                .ForMember(dest => dest.FirstName, opt =>
+                {
+                    opt.PreCondition(src => src.FirstName is not null);
+                    opt.MapFrom(src => src.FirstName!.Trim());
+                })
+                .ForMember(dest => dest.LastName, opt =>
+                {
+                    opt.PreCondition(src => src.LastName is not null);
+                    opt.MapFrom(src => src.LastName!.Trim());
+                })
+                .ForMember(dest => dest.Phone, opt =>
+                {
+                    opt.PreCondition(src => src.Phone is not null);
+                    opt.MapFrom(src => src.Phone!.Trim());
+                })
+                .ForMember(dest => dest.NationalityCountryId, opt =>
+                {
+                    opt.PreCondition(src => src.NationalityCountryId.HasValue);
+                    opt.MapFrom(src => src.NationalityCountryId!.Value);
+                })
+                .ForMember(dest => dest.Gender, opt =>
+                {
+                    opt.PreCondition(src => src.Gender is not null);
+                    opt.MapFrom(src => src.Gender!);
+                })
+                .ForMember(dest => dest.DateOfBirth, opt =>
+                {
+                    opt.PreCondition(src => src.DateOfBirth.HasValue);
+                    opt.MapFrom(src => src.DateOfBirth!.Value);
+                })
+                .ForMember(dest => dest.ResidentialCityId, opt =>
+                {
+                    opt.PreCondition(src => src.ResidentialCityId.HasValue);
+                    opt.MapFrom(src => src.ResidentialCityId!.Value);
+                })
+                .ForMember(dest => dest.NationalNumber, opt =>
+                {
+                    opt.PreCondition(src => src.NationalNumber is not null);
+                    opt.MapFrom(src => src.NationalNumber!.Trim());
+                })
+                .ForMember(dest => dest.PassportNumber, opt =>
+                {
+                    opt.PreCondition(src => src.PassportNumber is not null);
+                    opt.MapFrom(src => src.PassportNumber!.Trim());
+                });
         }
     }
 }

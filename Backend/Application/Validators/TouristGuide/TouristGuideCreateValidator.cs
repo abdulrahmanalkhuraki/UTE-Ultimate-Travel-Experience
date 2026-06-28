@@ -54,10 +54,10 @@ namespace Application.Validators.TouristGuide
             RuleFor(x => x.ProfileImage)
                 .NotNull().WithMessage("Profile image is required");
 
-            RuleFor(x => x.NationalIdImage)
+            RuleFor(x => x.NationalIdCard)
                 .NotNull().WithMessage("National ID image is required");
 
-            RuleFor(x => x.PassportImage)
+            RuleFor(x => x.PassportScan)
                 .NotNull().WithMessage("Passport image is required");
         }
     }
