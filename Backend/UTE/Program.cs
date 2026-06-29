@@ -4,6 +4,7 @@ using Application.Interfaces.Companion;
 using Application.Interfaces.Notifications;
 using Application.Interfaces.Rate;
 using Application.Interfaces.Review;
+using Application.Interfaces.Ticket;
 using Application.Interfaces.TourCompany;
 using Application.Interfaces.TouristGuide;
 using Application.Interfaces.TourPackage;
@@ -14,6 +15,7 @@ using Application.Validators.Booking;
 using Application.Validators.Companion;
 using Application.Validators.Rate;
 using Application.Validators.Review;
+using Application.Validators.Ticket;
 using Application.Validators.TourCompany;
 using Application.Validators.TouristGuide;
 using Application.Validators.User;
@@ -332,6 +334,10 @@ builder.Services.AddScoped<IRateService, RateService>();
 builder.Services.AddScoped<ReviewCreateValidator>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
+// Ticket
+builder.Services.AddScoped<TicketCreateValidator>();
+builder.Services.AddScoped<ITicketService, TicketService>();
+
 builder.Services.AddMemoryCache();
 // ==========================================
 // 8. ADD AUTOMAPPER
@@ -351,6 +357,7 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<CompanionProfile>();
     cfg.AddProfile<RateProfile>();
     cfg.AddProfile<ReviewProfile>();
+    cfg.AddProfile<TicketProfile>();
 });
 
 // ==========================================

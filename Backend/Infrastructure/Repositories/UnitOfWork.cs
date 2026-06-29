@@ -36,6 +36,7 @@ namespace Infrastructure.Repositories
             Reviews = new GenericRepository<Review>(_context);
             Rates = new GenericRepository<Rate>(_context);
             DeviceTokens = new GenericRepository<DeviceToken>(_context);
+            Tickets = new GenericRepository<Ticket>(_context);
         }
 
         public IGenericRepository<Booking> Bookings { get; }
@@ -81,6 +82,8 @@ namespace Infrastructure.Repositories
         public IGenericRepository<Notification> Notifications { get; }
 
         public IGenericRepository<DeviceToken> DeviceTokens { get; }
+
+        public IGenericRepository<Ticket> Tickets { get; }
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

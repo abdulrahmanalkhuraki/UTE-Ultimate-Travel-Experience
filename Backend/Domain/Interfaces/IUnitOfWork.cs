@@ -32,6 +32,7 @@ namespace Domain.Interfaces
         IGenericRepository<Review> Reviews { get; }
         IGenericRepository<Rate> Rates { get; }
         IGenericRepository<DeviceToken> DeviceTokens { get; }
+        IGenericRepository<Ticket> Tickets { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         Task BeginTransactionAsync(CancellationToken cancellationToken = default);
