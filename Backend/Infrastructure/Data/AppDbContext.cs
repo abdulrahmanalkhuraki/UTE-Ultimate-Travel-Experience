@@ -727,13 +727,11 @@ namespace Infrastructure.Data;
 
             entity.HasOne(d => d.Package).WithMany(p => p.Rates)
                 .HasForeignKey(d => d.PackageId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Rates__PackageId__3587F3E0");
+                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(d => d.User).WithMany(p => p.Rates)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Rates__UserId__3493CFA7");
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Review>(entity =>
@@ -752,12 +750,11 @@ namespace Infrastructure.Data;
 
             entity.HasOne(d => d.Package).WithMany(p => p.Reviews)
                 .HasForeignKey(d => d.PackageId)
-                .HasConstraintName("FK__Reviews__Package__1EA48E88");
+                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(d => d.User).WithMany(p => p.Reviews)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Reviews__UserId__1CBC4616");
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Role>(entity =>
