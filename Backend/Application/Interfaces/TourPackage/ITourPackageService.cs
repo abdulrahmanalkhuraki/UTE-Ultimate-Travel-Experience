@@ -50,6 +50,12 @@ namespace Application.Interfaces.TourPackage
         /// <summary>Deletes a program; only its owning company may do so.</summary>
         Task<bool> DeleteAsync(int id, int ownerUserId, CancellationToken cancellationToken = default);
 
+        Task<bool> AddToWishlistAsync(int tourPackageId, CancellationToken cancellationToken = default);
+
+        Task<bool> RemoveFromWishlistAsync(int tourPackageId, CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyList<TourPackageResponse>> GetWishlistAsync(CancellationToken cancellationToken = default);
+
         Task<IReadOnlyList<TourPackageResponse>> FilterAsync(
             int? countryId = null,
             int? cityId = null,

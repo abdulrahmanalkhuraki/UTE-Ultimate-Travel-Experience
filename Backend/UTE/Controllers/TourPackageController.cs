@@ -201,6 +201,57 @@ namespace UTE.Controllers
             }
         }
 
+
+        [HttpGet("MyWishlist")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "Tourist")]
+        [ProducesResponseType(typeof(ActionResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetWishlist(CancellationToken cancellationToken = default)
+        {
+            return Ok(await _service.GetWishlistAsync(cancellationToken));
+        }
+
+
+        [HttpPost("addToWishlist/{id:int:min(1)}")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "Tourist")]
+        [ProducesResponseType(typeof(ActionResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<ActionResult> AddToWishlist(int id,CancellationToken cancellationToken = default)
+        {
+            var success = await _service.AddToWishlistAsync(id,cancellationToken);
+
+            if (success)
+            {
+                return Ok(new { message = $"Tour Package With Id {id} Has been Added To Your Wishlist Successfully." });
+            }
+
+            return BadRequest();
+        }
+
+        [HttpPost("removeFromWishlist/{id:int:min(1)}")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "Tourist")]
+        [ProducesResponseType(typeof(ActionResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<ActionResult> RemoveFromWishlist(int id,CancellationToken cancellationToken = default)
+        {
+            var success = await _service.RemoveFromWishlistAsync(id,cancellationToken);
+
+            if (success)
+            {
+                return Ok(new { message = $"Tour Package With Id {id} Has been Removed From Your Wishlist Successfully." });
+            }
+
+            return BadRequest();
+        }
+
+
         /// <summary>Filters published programs.</summary>
         [HttpGet("filter")]
         [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]

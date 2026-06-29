@@ -28,6 +28,7 @@ namespace Domain.Interfaces
         IGenericRepository<Country> Countries { get; }
         IGenericRepository<City> Cities { get; }
         IGenericRepository<Notification> Notifications { get; }
+        IGenericRepository<Wishlist> Wishlists { get; }
         IGenericRepository<DeviceToken> DeviceTokens { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

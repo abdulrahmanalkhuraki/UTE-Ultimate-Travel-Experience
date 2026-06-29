@@ -18,9 +18,7 @@ namespace Application.Interfaces.User
         Task<CompleteProfileResponse> CompleteProfileAsync(int userId, CompleteProfileRequest request, CancellationToken cancellationToken);
         Task<bool> DeleteMyAccountAsync(int userId, DeleteAccountRequest request, CancellationToken cancellationToken);
         Task<bool> AdminDeleteUserAsync(int userId, CancellationToken cancellationToken, bool IsHardDelete = false);
-
         Task<DeletedUsersResponse> GetDeletedUsersAsync(CancellationToken cancellationToken);
-
         Task<IReadOnlyList<UserResponse>> FilterAsync(
             string? firstName = null,
             string? lastName = null,

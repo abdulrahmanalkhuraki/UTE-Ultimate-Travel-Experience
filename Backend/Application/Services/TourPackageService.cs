@@ -12,6 +12,7 @@ using Domain.Entities;
 using Domain.Enums;
 using Domain.Interfaces;
 using Domain.Validators;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ValidationException = Application.Exceptions.ValidationException;
@@ -29,6 +30,7 @@ namespace Application.Services
         private readonly IMapper _mapper;
         private readonly ILogger<TourPackageService> _logger;
         private readonly IFileStorage _fileStorage;
+        private readonly ICurrentUserService _currentUser;
         private readonly TourPackageCreateValidator _createValidator;
         private readonly TourPackageUpdateValidator _updateValidator;
         private readonly INotificationService _notificationService;
@@ -41,6 +43,7 @@ namespace Application.Services
             IMapper mapper,
             ILogger<TourPackageService> logger,
             IFileStorage fileStorage,
+            ICurrentUserService currentUser,
             TourPackageCreateValidator createValidator,
             TourPackageUpdateValidator updateValidator,
             INotificationService notificationService)
@@ -49,6 +52,7 @@ namespace Application.Services
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
+            _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
             _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
             _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
@@ -527,6 +531,112 @@ namespace Application.Services
                 .CountAsync(p => p.CompanyId == companyId && p.IsPublished, cancellationToken);
         }
 
+        public async Task<bool> AddToWishlistAsync(int tourPackageId,CancellationToken cancellationToken = default)
+        {
+            if (tourPackageId <= 0)
+                throw new ArgumentException("Invalid tour package ID", nameof(tourPackageId));
+
+            _logger.LogInformation($"Attemping to add tourpackage with id = {tourPackageId} " +
+                $"to user with id {_currentUser.UserId} Wishlist");
+
+            // checking if tourpackage exists
+            var exists = await _unitOfWork.TourPackages.AnyAsync(tp => tp.Id == tourPackageId && !tp.IsDeleted);
+
+            if (!exists)
+            {
+                _logger.LogWarning($"TourPackage with Id = {tourPackageId} Not Found");
+                throw new NotFoundException($"TourPackage with Id = {tourPackageId} Not Found");
+            }
+
+            // checking if this tourpackage has been added to wishlist before
+            var isAdded = await _unitOfWork.Wishlists
+                .Query()
+                .AnyAsync(w => w.TourPackageId == tourPackageId && w.UserId == _currentUser.UserId);
+
+            if(isAdded)
+            {
+                _logger.LogWarning($"TourPackage with Id = {tourPackageId} Has been Added To Wishlist Before");
+                throw new ConflictException($"TourPackage with Id = {tourPackageId} Has been Added To Wishlist Before");
+            }
+
+            try
+            {
+                var wishlist = new Wishlist()
+                {
+                    UserId = _currentUser.UserId?? 0,
+                    TourPackageId = tourPackageId,
+                    CreatedAtUtc = DateTime.UtcNow,
+                    UpdatedAtUtc = DateTime.UtcNow,
+                };
+
+               await _unitOfWork.Wishlists.AddAsync(wishlist,cancellationToken);
+               await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                _logger.LogInformation($"Tourpackage with id = {tourPackageId} has been successfully added to user wishlist");
+                return true;
+            }
+            catch (Exception ex) when (ex is not NotFoundException and not ArgumentException)
+            {
+                _logger.LogError(ex, "Unexpected error while Adding tour package {PackageId} to user Wishlist", tourPackageId);
+                throw new ServiceException($"Failed to add tour package to user wishlist: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<bool> RemoveFromWishlistAsync(int tourPackageId, CancellationToken cancellationToken = default)
+        {
+            if (tourPackageId <= 0)
+                throw new ArgumentException("Invalid tour package ID", nameof(tourPackageId));
+
+            _logger.LogInformation($"Attemping to romove tourpackage with id = {tourPackageId} " +
+                $"from user with id {_currentUser.UserId} Wishlist");
+
+            // checking if tourpackage exists
+            var exists = await _unitOfWork.TourPackages.AnyAsync(tp => tp.Id == tourPackageId && !tp.IsDeleted);
+
+            if (!exists)
+            {
+                _logger.LogWarning($"TourPackage with Id = {tourPackageId} Not Found");
+                throw new NotFoundException($"TourPackage with Id = {tourPackageId} Not Found");
+            }
+
+            // get wishlist
+            var entity = await _unitOfWork.Wishlists
+                .Query()
+                .FirstOrDefaultAsync(w => w.TourPackageId == tourPackageId && w.UserId == _currentUser.UserId);
+
+            // check if wishlist exists
+            if (entity is null)
+            {
+                _logger.LogWarning($"TourPackage with Id = {tourPackageId} Is not On User Wishlist");
+                throw new ConflictException($"TourPackage with Id = {tourPackageId} Is not On User Wishlist");
+            }
+
+            try
+            {
+                _unitOfWork.Wishlists.Remove(entity);
+                await _unitOfWork.SaveChangesAsync();
+
+                _logger.LogInformation($"Tourpackage with id = {tourPackageId} has been successfully removed from user wishlist");
+                return true;
+            }
+            catch (Exception ex) when (ex is not NotFoundException and not ArgumentException)
+            {
+                _logger.LogError(ex, "Unexpected error while removing tour package {PackageId} from user Wishlist", tourPackageId);
+                throw new ServiceException($"Failed to remove tour package from user wishlist: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<IReadOnlyList<TourPackageResponse>> GetWishlistAsync(CancellationToken cancellationToken = default)
+        { 
+            var entities = await _unitOfWork.Wishlists.Query()
+                .Where(w => w.UserId == _currentUser.UserId)
+                .Include(w => w.TourPackage)
+                .Select(w => w.TourPackage)
+                .ToListAsync();
+
+            return _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
+        }
+
         public async Task<IReadOnlyList<TourPackageResponse>> FilterAsync(
             int? countryId = null,
             int? cityId = null,
@@ -698,6 +808,10 @@ namespace Application.Services
             if (ownedCount != distinctIds.Count)
                 throw new ForbiddenException("One or more selected guides do not belong to your company.");
         }
+
+
+
+
 
         #endregion
     }

@@ -834,6 +834,7 @@ namespace Application.Services
             }
         }
 
+
         #region Private Helper Methods
 
         private void InvalidateUserCache(int? specificUserId = null)
