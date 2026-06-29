@@ -12,19 +12,18 @@ namespace Application.Interfaces.User
     {
         Task<UserResponse> GetAsync(int id, CancellationToken cancellationToken);
         Task<IReadOnlyList<UserResponse>> GetAllAsync(CancellationToken cancellationToken);
-        Task<UserResponse> UpdateMeAsync(int userId, UpdateMeRequest request, CancellationToken cancellationToken);
-        Task<UserResponse> CompleteProfileAsync(int userId, CompleteProfileRequest request, CancellationToken cancellationToken);
-        Task<UserResponse> CompleteCompanyProfileAsync(int userId, CompleteCompanyProfileRequest request, CancellationToken cancellationToken);
+        Task<UserResponse> UpdateAsync(int userId, UserUpdateRequest request, CancellationToken cancellationToken);
+        Task<UserResponse> UpdateLocationAsync(int userId, UpdateLocationRequest request, CancellationToken cancellationToken);
+        Task<UserResponse> ChangePasswordAsync(int userId, ChangePasswordRequest request, CancellationToken cancellationToken);
+        Task<CompleteProfileResponse> CompleteProfileAsync(int userId, CompleteProfileRequest request, CancellationToken cancellationToken);
         Task<bool> DeleteMyAccountAsync(int userId, DeleteAccountRequest request, CancellationToken cancellationToken);
-        Task<bool> AdminDeleteUserAsync(int userId, CancellationToken cancellationToken);
-
-        Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default);
-
+        Task<bool> AdminDeleteUserAsync(int userId, CancellationToken cancellationToken, bool IsHardDelete = false);
+        Task<DeletedUsersResponse> GetDeletedUsersAsync(CancellationToken cancellationToken);
         Task<IReadOnlyList<UserResponse>> FilterAsync(
             string? firstName = null,
             string? lastName = null,
             string? email = null,
-            int? roleId = null,
+            string? roleName = null,
             bool? isEmailVerified = null,
             CancellationToken cancellationToken = default);
     }

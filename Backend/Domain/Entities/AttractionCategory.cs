@@ -3,13 +3,11 @@ using System.Collections.Generic;
 
 namespace Domain.Entities;
 
-public partial class AttractionCategory : BaseEntity
+public partial class AttractionCategory
 {
-    public string CategoryName { get; set; } = null!;
-
     public int CategoryId { get; set; }
 
-    public int AttractionId { get; set; }
-
-    public virtual Attraction Attraction { get; set; } = null!;
+    public string EnCategoryName { get; set; } = null!;
+    public string ArCategoryName { get; set; } = null!;
+    public virtual ICollection<Attraction> Attractions { get; set; } = new List<Attraction>();
 }

@@ -12,7 +12,10 @@ namespace Application.DTOs.TourPackage.Response
 
         public string? Description { get; set; }
 
-        /// <summary>Default/base program price per person (التكلفة الافتراضية للبرنامج).</summary>
+        /// <summary>Where the company meets the tourists (مكان الالتقاء مع السياح).</summary>
+        public string MeetingPoint { get; set; } = null!;
+
+        /// <summary>Default/base program price per person (التكلفة الافتراضية للبرنامج). Optional.</summary>
         public decimal PricePerPerson { get; set; }
 
         /// <summary>Economy flight class price (تكلفة الدرجة الاقتصادية).</summary>
@@ -48,13 +51,12 @@ namespace Application.DTOs.TourPackage.Response
         /// <summary>Service level (مستوى الخدمة).</summary>
         public ServiceLevel ServiceLevel { get; set; }
 
-        /// <summary>Arabic label for the service level (اسم مستوى الخدمة).</summary>
         public string ServiceLevelLabel => ServiceLevel switch
         {
-            ServiceLevel.Economy => "خدمة اقتصادية",
-            ServiceLevel.Standard => "خدمة عادية",
-            ServiceLevel.Premium => "خدمة مميزة",
-            ServiceLevel.FirstClass => "خدمة من الدرجة الأولى",
+            ServiceLevel.Economy => "Economy Service",
+            ServiceLevel.Standard => "Standerd Service",
+            ServiceLevel.Premium => "Premium Service",
+            ServiceLevel.FirstClass => "First class Service",
             _ => ServiceLevel.ToString()
         };
 
@@ -67,7 +69,7 @@ namespace Application.DTOs.TourPackage.Response
         public TourPackageStatus Status { get; set; }
 
         /// <summary>Admin moderation state (حالة الموافقة): Pending, Accepted, or Rejected.</summary>
-        public ProgramApprovalStatus ApprovalStatus { get; set; }
+        public PackageApprovalStatus ApprovalStatus { get; set; }
 
         /// <summary>Reason shown to the company when the program was rejected (سبب الرفض). Null unless rejected.</summary>
         public string? RejectionReason { get; set; }

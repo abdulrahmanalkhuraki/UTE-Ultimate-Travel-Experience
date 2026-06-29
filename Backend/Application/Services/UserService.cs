@@ -1,7 +1,6 @@
 using Application.DTOs.User.Request;
 using Application.DTOs.User.Response;
 using Application.Exceptions;
-using Application.Interfaces;
 using Application.Interfaces.Auth;
 using Application.Interfaces.User;
 using Application.Validators.User;
@@ -21,11 +20,13 @@ namespace Application.Services
         private readonly IMapper _mapper;
         private readonly ILogger<UserService> _logger;
         private readonly IMemoryCache _cache;
-        private readonly Interfaces.Auth.IPasswordHasher _passwordHasher;
+        private readonly IPasswordHasher _passwordHasher;
         private readonly IFileStorage _fileStorage;
-        private readonly UpdateMeValidator _updateMeValidator;
+        private readonly IJwtTokenGenerator _tokens;
+        private readonly UserUpdateValidator _userUpdateValidator;
         private readonly CompleteProfileValidator _completeProfileValidator;
-        private readonly CompleteCompanyProfileValidator _completeCompanyProfileValidator;
+        private readonly UpdateLocationValidator _updateLocationValidator;
+        private readonly ChangePasswordValidator _changePasswordValidator;
 
         // Cache constants
         private const string UserCacheKeyPrefix = "user_";
@@ -38,11 +39,13 @@ namespace Application.Services
             IMapper mapper,
             ILogger<UserService> logger,
             IMemoryCache cache,
-            Interfaces.Auth.IPasswordHasher passwordHasher,
+            IPasswordHasher passwordHasher,
             IFileStorage fileStorage,
-            UpdateMeValidator updateMeValidator,
+            IJwtTokenGenerator tokens,
+            UserUpdateValidator updateMeValidator,
             CompleteProfileValidator completeProfileValidator,
-            CompleteCompanyProfileValidator completeCompanyProfileValidator)
+            UpdateLocationValidator updateLocationValidator,
+            ChangePasswordValidator changePasswordValidator)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -50,12 +53,14 @@ namespace Application.Services
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
             _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
-            _updateMeValidator = updateMeValidator ?? throw new ArgumentNullException(nameof(updateMeValidator));
+            _tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
+            _userUpdateValidator = updateMeValidator ?? throw new ArgumentNullException(nameof(updateMeValidator));
             _completeProfileValidator = completeProfileValidator ?? throw new ArgumentNullException(nameof(completeProfileValidator));
-            _completeCompanyProfileValidator = completeCompanyProfileValidator ?? throw new ArgumentNullException(nameof(completeCompanyProfileValidator));
+            _updateLocationValidator = updateLocationValidator ?? throw new ArgumentNullException(nameof(updateLocationValidator));
+            _changePasswordValidator = changePasswordValidator ?? throw new ArgumentNullException(nameof(changePasswordValidator));
         }
 
-        public async Task<UserResponse> CompleteProfileAsync(int userId, CompleteProfileRequest request, CancellationToken cancellationToken = default)
+        public async Task<CompleteProfileResponse> CompleteProfileAsync(int userId, CompleteProfileRequest request, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
@@ -72,44 +77,30 @@ namespace Application.Services
                 throw new ValidationException(validationResult.Errors);
             }
 
+
             try
             {
-                var entity = await _unitOfWork.Users
+                var user = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Role)
-                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+                    .Include(u => u.Person)
+                    .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
 
-                if (entity == null)
+                if (user == null)
                 {
                     _logger.LogWarning("User {UserId} not found for profile completion", userId);
                     throw new NotFoundException($"User with ID '{userId}' not found");
                 }
 
-                if (!entity.IsEmailVerified)
+                if (!user.IsEmailVerified)
                     throw new ForbiddenException("Email must be verified before completing the profile.");
 
-                if (entity.IsProfileCompleted)
+                if (user.PersonId.HasValue)
                     throw new ConflictException("Profile has already been completed. Use the update endpoint to change it.");
 
-                // Resolve role: when no RoleId is provided, default to the "User" role.
-                Role role;
-                if (request.RoleId is > 0)
-                {
-                    role = await _unitOfWork.Roles
-                        .Query()
-                        .FirstOrDefaultAsync(r => r.Id == request.RoleId.Value, cancellationToken)
-                        ?? throw new NotFoundException($"Role with id {request.RoleId.Value} does not exist.");
+                if(user.Role.RoleName == "Tourist" && request.PassportImage == null)
+                    throw new ValidationException("Passport Image Is Required");
 
-                    if (role.RoleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
-                        throw new ForbiddenException("Selecting Admin role is not allowed from this endpoint.");
-                }
-                else
-                {
-                    role = await _unitOfWork.Roles
-                        .Query()
-                        .FirstOrDefaultAsync(r => r.RoleName == "User", cancellationToken)
-                        ?? throw new NotFoundException("Default 'User' role does not exist.");
-                }
 
                 // Ensure national/passport numbers are unique across other users
                 var nationalNumber = request.NationalNumber.Trim();
@@ -117,57 +108,66 @@ namespace Application.Services
 
                 var nationalTaken = await _unitOfWork.Users
                     .Query()
-                    .AnyAsync(u => u.NationalNumber == nationalNumber && u.Id != userId, cancellationToken);
+                    .Include(u => u.Person)
+                    .AnyAsync(u => u.Person != null &&
+                    u.Person.NationalNumber == nationalNumber &&
+                    u.Id != userId, cancellationToken);
 
                 if (nationalTaken)
                     throw new ConflictException("This national number is already registered.");
 
                 var passportTaken = await _unitOfWork.Users
                     .Query()
-                    .AnyAsync(u => u.PassportNumber == passportNumber && u.Id != userId, cancellationToken);
+                    .Include(u => u.Person)
+                    .AnyAsync(u => u.Person != null &&
+                    u.Person.PassportNumber == passportNumber &&
+                    u.Id != userId, cancellationToken);
 
                 if (passportTaken)
                     throw new ConflictException("This passport number is already registered.");
 
-                // Save uploaded images
+                // Save uploaded image
                 string? profileImageUrl = null;
                 if (request.Image is { Length: > 0 })
                     profileImageUrl = await _fileStorage.SaveAsync(request.Image, "profiles", cancellationToken);
 
+                // Save uploaded Passport scan
+                string? passportImageUrl = null;
+                if (request.PassportImage is { Length: > 0 })
+                    passportImageUrl = await _fileStorage.SaveAsync(request.PassportImage, "passports", cancellationToken);
+
                 var nationalIdImageUrl = await _fileStorage.SaveAsync(request.NationalIdImage, "national-ids", cancellationToken);
-                var passportImageUrl = await _fileStorage.SaveAsync(request.PassportImage, "passports", cancellationToken);
 
-                entity.FirstName          = request.FirstName.Trim();
-                entity.LastName           = request.LastName.Trim();
-                entity.PlaceOfResidence   = request.PlaceOfResidence.Trim();
-                entity.CurrentLocation    = request.CurrentLocation.Trim();
-                entity.Gender             = request.Gender;
-                entity.DateOfBirth        = request.DateOfBirth!.Value;
-                entity.NationalNumber     = nationalNumber;
-                entity.PassportNumber     = passportNumber;
-                entity.BankAccount        = request.BankAccount.Trim();
-                entity.RoleId             = role.Id;
-                entity.Phone              = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
-                if (profileImageUrl != null) entity.Image = profileImageUrl;
-                entity.NationalIdImage    = nationalIdImageUrl;
-                entity.PassportImage      = passportImageUrl;
-                entity.IsProfileCompleted = true;
-                entity.UpdatedAtUtc       = DateTime.UtcNow;
 
-                _unitOfWork.Users.Update(entity);
+                var person = _mapper.Map<Person>(request);
+                person.NationalNumber = nationalNumber;
+                person.PassportNumber = passportNumber;
+                person.NationalIdCard = nationalIdImageUrl;
+                person.ProfileImage = profileImageUrl;
+                person.PassportScan = passportImageUrl;
+
+                user.Person = person;
+                user.BankAccount = request.BankAccount.Trim();
+                user.UpdatedAtUtc = DateTime.UtcNow;
+
+                _unitOfWork.Users.Update(user);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                // Reload with role for the response
-                var refreshed = await _unitOfWork.Users
-                    .Query()
-                    .Include(u => u.Role)
-                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
                 InvalidateUserCache(userId);
 
-                var response = _mapper.Map<UserResponse>(refreshed ?? entity);
+
+                var userResponse = _mapper.Map<UserResponse>(user);
 
                 _logger.LogInformation("User {UserId} successfully completed their profile", userId);
+
+
+                var (token, expiresAt) = _tokens.GenerateToken(user);
+
+                var response = new CompleteProfileResponse()
+                {
+                    User = userResponse,
+                    Token = token
+                };
 
                 return response;
             }
@@ -200,126 +200,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<UserResponse> CompleteCompanyProfileAsync(int userId, CompleteCompanyProfileRequest request, CancellationToken cancellationToken = default)
-        {
-            ArgumentNullException.ThrowIfNull(request, nameof(request));
-
-            if (userId <= 0)
-                throw new ArgumentException("Invalid user ID", nameof(userId));
-
-            _logger.LogInformation("User {UserId} attempting to complete company profile", userId);
-
-            var validationResult = await _completeCompanyProfileValidator.ValidateAsync(request, cancellationToken);
-            if (!validationResult.IsValid)
-            {
-                _logger.LogWarning("Company profile completion validation failed for user {UserId}: {Errors}",
-                    userId, string.Join(", ", validationResult.Errors));
-                throw new ValidationException(validationResult.Errors);
-            }
-
-            try
-            {
-                var entity = await _unitOfWork.Users
-                    .Query()
-                    .Include(u => u.Role)
-                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
-                if (entity == null)
-                {
-                    _logger.LogWarning("User {UserId} not found for company profile completion", userId);
-                    throw new NotFoundException($"User with ID '{userId}' not found");
-                }
-
-                if (!entity.IsEmailVerified)
-                    throw new ForbiddenException("Email must be verified before completing the profile.");
-
-                if (entity.IsProfileCompleted)
-                    throw new ConflictException("Profile has already been completed. Use the update endpoint to change it.");
-
-                // Role is fixed to "TourCompany" for this flow; it is not chosen by the client.
-                var role = await _unitOfWork.Roles
-                    .Query()
-                    .FirstOrDefaultAsync(r => r.RoleName == "TourCompany", cancellationToken)
-                    ?? throw new NotFoundException("Default 'TourCompany' role does not exist.");
-
-                // Ensure national number is unique across other users
-                var nationalNumber = request.NationalNumber.Trim();
-
-                var nationalTaken = await _unitOfWork.Users
-                    .Query()
-                    .AnyAsync(u => u.NationalNumber == nationalNumber && u.Id != userId, cancellationToken);
-
-                if (nationalTaken)
-                    throw new ConflictException("This national number is already registered.");
-
-                // Save uploaded images
-                string? profileImageUrl = null;
-                if (request.Image is { Length: > 0 })
-                    profileImageUrl = await _fileStorage.SaveAsync(request.Image, "profiles", cancellationToken);
-
-                var nationalIdImageUrl = await _fileStorage.SaveAsync(request.NationalIdImage, "national-ids", cancellationToken);
-
-                entity.FirstName          = request.FirstName.Trim();
-                entity.LastName           = request.LastName.Trim();
-                entity.Phone              = request.Phone.Trim();
-                entity.PlaceOfResidence   = request.PlaceOfResidence.Trim();
-                entity.Gender             = request.Gender;
-                entity.DateOfBirth        = request.DateOfBirth!.Value;
-                entity.NationalNumber     = nationalNumber;
-                entity.BankAccount        = request.BankAccount.Trim();
-                entity.RoleId             = role.Id;
-                if (profileImageUrl != null) entity.Image = profileImageUrl;
-                entity.NationalIdImage    = nationalIdImageUrl;
-                entity.IsProfileCompleted = true;
-                entity.UpdatedAtUtc       = DateTime.UtcNow;
-
-                _unitOfWork.Users.Update(entity);
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                // Reload with role for the response
-                var refreshed = await _unitOfWork.Users
-                    .Query()
-                    .Include(u => u.Role)
-                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
-                InvalidateUserCache(userId);
-
-                var response = _mapper.Map<UserResponse>(refreshed ?? entity);
-
-                _logger.LogInformation("User {UserId} successfully completed their company profile", userId);
-
-                return response;
-            }
-            catch (NotFoundException)
-            {
-                throw;
-            }
-            catch (ConflictException)
-            {
-                throw;
-            }
-            catch (ForbiddenException)
-            {
-                throw;
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                _logger.LogError(ex, "Concurrency conflict while completing company profile for user {UserId}", userId);
-                throw new ConcurrencyException("The user was modified by another user. Please refresh and try again.", ex);
-            }
-            catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE") == true)
-            {
-                _logger.LogError(ex, "Unique constraint violation while completing company profile for user {UserId}", userId);
-                throw new ConflictException("A unique field value is already taken.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error while completing company profile for user {UserId}", userId);
-                throw new ServiceException($"Failed to complete company profile: {ex.Message}", ex);
-            }
-        }
-
-        public async Task<UserResponse> UpdateMeAsync(int userId, UpdateMeRequest request, CancellationToken cancellationToken = default)
+        public async Task<UserResponse> UpdateAsync(int userId, UserUpdateRequest request, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
@@ -329,7 +210,7 @@ namespace Application.Services
             _logger.LogInformation("User {UserId} attempting to update their profile", userId);
 
             // Validate request
-            var validationResult = await _updateMeValidator.ValidateAsync(request, cancellationToken);
+            var validationResult = await _userUpdateValidator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
                 _logger.LogWarning("Profile update validation failed for user {UserId}: {Errors}",
@@ -339,63 +220,40 @@ namespace Application.Services
 
             try
             {
-                var entity = await _unitOfWork.Users
+                var user = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Role)
-                    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+                    .Include(u => u.Person)
+                    .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
 
-                if (entity == null)
+                if (user == null)
                 {
                     _logger.LogWarning("User with ID {UserId} not found for self-update", userId);
                     throw new NotFoundException($"User with ID '{userId}' not found");
                 }
 
-                // Handle password change: verify CurrentPassword before applying NewPassword
-                if (!string.IsNullOrWhiteSpace(request.NewPassword))
+                if (user.Person == null)
                 {
-                    if (!_passwordHasher.Verify(request.CurrentPassword!, entity.Password))
-                    {
-                        _logger.LogWarning("Incorrect current password for user {UserId} during password change", userId);
-                        throw new AuthException("Current password is incorrect");
-                    }
-
-                    entity.Password = _passwordHasher.Hash(request.NewPassword);
+                    _logger.LogWarning("User with ID {UserId} did not complete his profile", userId);
+                    throw new ForbiddenException($"User with ID '{userId}' did not complete his profile");
                 }
 
-                // Update only fields that were provided (partial update)
-                if (!string.IsNullOrWhiteSpace(request.FirstName))
-                    entity.FirstName = request.FirstName.Trim();
 
-                if (!string.IsNullOrWhiteSpace(request.LastName))
-                    entity.LastName = request.LastName.Trim();
+                var person = user.Person;
 
-                if (!string.IsNullOrWhiteSpace(request.Phone))
-                    entity.Phone = request.Phone.Trim();
-
-                if (request.DateOfBirth.HasValue)
-                    entity.DateOfBirth = request.DateOfBirth.Value;
-
-                if (!string.IsNullOrWhiteSpace(request.Gender))
-                    entity.Gender = request.Gender;
-
-                if (!string.IsNullOrWhiteSpace(request.PlaceOfResidence))
-                    entity.PlaceOfResidence = request.PlaceOfResidence.Trim();
-
-                if (!string.IsNullOrWhiteSpace(request.CurrentLocation))
-                    entity.CurrentLocation = request.CurrentLocation.Trim();
-
-                if (!string.IsNullOrWhiteSpace(request.BankAccount))
-                    entity.BankAccount = request.BankAccount.Trim();
-
+                // check if nationalNumber exists in the system
                 if (!string.IsNullOrWhiteSpace(request.NationalNumber))
                 {
                     var newNationalNumber = request.NationalNumber.Trim();
 
-                    if (!string.Equals(entity.NationalNumber, newNationalNumber, StringComparison.OrdinalIgnoreCase))
+                    if (!string.Equals(user.Person.NationalNumber, newNationalNumber, StringComparison.OrdinalIgnoreCase))
                     {
                         var nationalTaken = await _unitOfWork.Users
                             .Query()
-                            .AnyAsync(u => u.NationalNumber == newNationalNumber && u.Id != userId, cancellationToken);
+                            .Include(u => u.Person)
+                            .AnyAsync(u => u.Person != null &&
+                            u.Person.NationalNumber == newNationalNumber &&
+                            u.Id != userId, cancellationToken);
 
                         if (nationalTaken)
                         {
@@ -403,19 +261,22 @@ namespace Application.Services
                             throw new ConflictException("This national number is already registered.");
                         }
 
-                        entity.NationalNumber = newNationalNumber;
+                        person.NationalNumber = newNationalNumber;
                     }
                 }
-
+                // check if PassportNumber exists in the system
                 if (!string.IsNullOrWhiteSpace(request.PassportNumber))
                 {
                     var newPassportNumber = request.PassportNumber.Trim();
 
-                    if (!string.Equals(entity.PassportNumber, newPassportNumber, StringComparison.OrdinalIgnoreCase))
+                    if (!string.Equals(user.Person.PassportNumber, newPassportNumber, StringComparison.OrdinalIgnoreCase))
                     {
                         var passportTaken = await _unitOfWork.Users
                             .Query()
-                            .AnyAsync(u => u.PassportNumber == newPassportNumber && u.Id != userId, cancellationToken);
+                            .Include(u => u.Person)
+                            .AnyAsync(u => u.Person != null &&
+                            u.Person.PassportNumber == newPassportNumber &&
+                            u.Id != userId, cancellationToken);
 
                         if (passportTaken)
                         {
@@ -423,35 +284,56 @@ namespace Application.Services
                             throw new ConflictException("This passport number is already registered.");
                         }
 
-                        entity.PassportNumber = newPassportNumber;
+                        person.PassportNumber = newPassportNumber;
                     }
                 }
 
+                if (request.ResidentialCityId.HasValue)
+                {
+                    if (request.ResidentialCityId.Value <= 0)
+                        throw new ValidationException("ResidentialCityId must be greater than 0.");
+
+                    var cityExists = await _unitOfWork.Cities.AnyAsync(c => c.Id == request.ResidentialCityId.Value, cancellationToken);
+                    if (!cityExists)
+                        throw new ValidationException("ResidentialCityId is invalid");
+
+                    person.ResidentialCityId = request.ResidentialCityId.Value;
+                }
+
+                _mapper.Map(request, person);
+
+
                 // Upload new images if provided
                 if (request.Image is { Length: > 0 })
-                    entity.Image = await _fileStorage.SaveAsync(request.Image, "profiles", cancellationToken);
+                    person.ProfileImage = await _fileStorage.SaveAsync(request.Image, "profiles", cancellationToken);
 
                 if (request.NationalIdImage is { Length: > 0 })
-                    entity.NationalIdImage = await _fileStorage.SaveAsync(request.NationalIdImage, "national-ids", cancellationToken);
+                    person.NationalIdCard = await _fileStorage.SaveAsync(request.NationalIdImage, "national-ids", cancellationToken);
 
                 if (request.PassportImage is { Length: > 0 })
-                    entity.PassportImage = await _fileStorage.SaveAsync(request.PassportImage, "passports", cancellationToken);
+                    person.PassportScan = await _fileStorage.SaveAsync(request.PassportImage, "passports", cancellationToken);
 
-                entity.UpdatedAtUtc = DateTime.UtcNow;
+                person.UpdatedAtUtc = DateTime.UtcNow;
+                user.Person = person;
+                user.UpdatedAtUtc = DateTime.UtcNow;
 
-                _unitOfWork.Users.Update(entity);
+                _unitOfWork.Users.Update(user);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 // Invalidate cache
                 InvalidateUserCache(userId);
 
-                var response = _mapper.Map<UserResponse>(entity);
+                var response = _mapper.Map<UserResponse>(user);
 
                 _logger.LogInformation("User {UserId} successfully updated their profile", userId);
 
                 return response;
             }
             catch (NotFoundException)
+            {
+                throw;
+            }
+            catch (ValidationException)
             {
                 throw;
             }
@@ -489,7 +371,10 @@ namespace Application.Services
 
             try
             {
-                var entity = await _unitOfWork.Users.GetByIdAsync(userId, cancellationToken);
+                var entity = await _unitOfWork.Users
+                    .Query()
+                    .Include(u => u.Person)
+                    .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
                 if (entity == null)
                 {
                     _logger.LogWarning("User with ID {UserId} not found for self-deletion", userId);
@@ -502,7 +387,8 @@ namespace Application.Services
                     throw new AuthException("Incorrect password");
                 }
 
-                _unitOfWork.Users.Remove(entity);
+                entity.IsDeleted = true;
+                _unitOfWork.Users.Update(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 // Invalidate cache
@@ -522,7 +408,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<bool> AdminDeleteUserAsync(int userId, CancellationToken cancellationToken = default)
+        public async Task<bool> AdminDeleteUserAsync(int userId, CancellationToken cancellationToken = default, bool IsHardDelete = false)
         {
             if (userId <= 0)
                 throw new ArgumentException("Invalid user ID", nameof(userId));
@@ -534,12 +420,19 @@ namespace Application.Services
                 var entity = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Role)
+                    .Include(u => u.Person)
                     .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
                 if (entity == null)
                 {
                     _logger.LogWarning("Admin delete: user with ID {UserId} not found", userId);
                     return false;
+                }
+
+                if (entity.IsDeleted && !IsHardDelete)
+                {
+                    _logger.LogWarning("Admin delete: user with ID {UserId} Has been Deleted A soft delete Before", userId);
+                    throw new ConflictException($"user with ID {userId} Has been Deleted A soft delete Before");
                 }
 
                 // Prevent deleting Admin accounts via this endpoint (safety net)
@@ -549,15 +442,28 @@ namespace Application.Services
                     throw new ForbiddenException("Admin accounts cannot be deleted from this endpoint.");
                 }
 
-                _unitOfWork.Users.Remove(entity);
+                if (IsHardDelete)
+                {
+                    if (entity.Person != null)
+                        _unitOfWork.Persons.Remove(entity.Person);
+                    _unitOfWork.Users.Remove(entity);
+                }
+                else
+                {
+                    entity.IsDeleted = true;
+                    _unitOfWork.Users.Update(entity);
+                }
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
-
                 InvalidateUserCache(userId);
 
                 _logger.LogInformation("Admin successfully deleted user {UserId}", userId);
                 return true;
             }
             catch (ForbiddenException)
+            {
+                throw;
+            }
+            catch (ConflictException)
             {
                 throw;
             }
@@ -589,7 +495,8 @@ namespace Application.Services
                     .Query()
                     .IgnoreQueryFilters()
                     .Include(u => u.Role)
-                    .Where(u => u.Id == id)
+                    .Include(u => u.Person)
+                    .Where(u => u.Id == id && !u.IsDeleted)
                     .FirstOrDefaultAsync(cancellationToken);
 
                 if (entity == null)
@@ -641,8 +548,10 @@ namespace Application.Services
                 var entities = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Role)
-                    .OrderBy(u => u.FirstName)
-                    .ThenBy(u => u.LastName)
+                    .Include(u => u.Person)
+                    .Where(u => !u.IsDeleted)
+                    .OrderBy(u => u.Person != null ? u.Person.FirstName : string.Empty)
+                    .ThenBy(u => u.Person != null ? u.Person.LastName : string.Empty)
                     .ToListAsync(cancellationToken);
 
                 var response = _mapper.Map<IReadOnlyList<UserResponse>>(entities);
@@ -665,52 +574,52 @@ namespace Application.Services
             }
         }
 
-        public async Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default)
-        {
-            if (id <= 0)
-                return false;
-
-            try
-            {
-                return await _unitOfWork.Users
-                    .Query()
-                    .AnyAsync(u => u.Id == id, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error checking existence of user {UserId}", id);
-                throw new ServiceException($"Failed to check user existence: {ex.Message}", ex);
-            }
-        }
-
         public async Task<IReadOnlyList<UserResponse>> FilterAsync(
             string? firstName = null,
             string? lastName = null,
             string? email = null,
-            int? roleId = null,
+            string? roleName = null,
             bool? isEmailVerified = null,
             CancellationToken cancellationToken = default)
         {
             _logger.LogDebug("Filtering users with parameters - FirstName: {FirstName}, LastName: {LastName}, " +
                              "Email: {Email}, RoleId: {RoleId}, IsEmailVerified: {IsEmailVerified}",
                 firstName ?? "Any", lastName ?? "Any", email ?? "Any",
-                roleId?.ToString() ?? "Any", isEmailVerified?.ToString() ?? "Any");
+                roleName ?? "Any", isEmailVerified?.ToString() ?? "Any");
+
 
             try
             {
-                var query = _unitOfWork.Users.Query().Include(u => u.Role).AsQueryable();
+                var query = _unitOfWork.Users.Query()
+                    .Where(u => !u.IsDeleted)
+                    .Include(u => u.Role)
+                    .Include(u => u.Person)
+                    .AsQueryable();
+
+                Role? role;
+                if (!string.IsNullOrWhiteSpace(roleName))
+                {
+                    role = await _unitOfWork.Roles.FirstOrDefaultAsync(r => r.RoleName.ToLower() == roleName.ToLower());
+                    if (role == null)
+                    {
+                        _logger.LogWarning($"Role '{roleName}' Not Found");
+                        throw new NotFoundException($"Role '{roleName}' Not Found, Role name Should be in ['Tourist','TourCompany','Admin']");
+                    }
+                    query = query.Where(u => u.RoleId == role.RoleId);
+                    _logger.LogDebug("Applied role filter: {RoleName}", roleName);
+                }
 
                 if (!string.IsNullOrWhiteSpace(firstName))
                 {
                     var search = firstName.ToLower();
-                    query = query.Where(u => u.FirstName != null && u.FirstName.ToLower().Contains(search));
+                    query = query.Where(u => u.Person != null && u.Person.FirstName.ToLower().Contains(search));
                     _logger.LogDebug("Applied first name filter: {FirstName}", firstName);
                 }
 
                 if (!string.IsNullOrWhiteSpace(lastName))
                 {
                     var search = lastName.ToLower();
-                    query = query.Where(u => u.LastName != null && u.LastName.ToLower().Contains(search));
+                    query = query.Where(u => u.Person != null && u.Person.LastName.ToLower().Contains(search));
                     _logger.LogDebug("Applied last name filter: {LastName}", lastName);
                 }
 
@@ -721,12 +630,6 @@ namespace Application.Services
                     _logger.LogDebug("Applied email filter: {Email}", email);
                 }
 
-                if (roleId.HasValue && roleId.Value > 0)
-                {
-                    query = query.Where(u => u.RoleId == roleId.Value);
-                    _logger.LogDebug("Applied role filter: {RoleId}", roleId.Value);
-                }
-
                 if (isEmailVerified.HasValue)
                 {
                     query = query.Where(u => u.IsEmailVerified == isEmailVerified.Value);
@@ -735,8 +638,8 @@ namespace Application.Services
 
                 var entities = await query
                     .AsNoTracking()
-                    .OrderBy(u => u.FirstName)
-                    .ThenBy(u => u.LastName)
+                    .OrderBy(u => u.Person != null ? u.Person.FirstName : string.Empty)
+                    .ThenBy(u => u.Person != null ? u.Person.LastName : string.Empty)
                     .Take(100)
                     .ToListAsync(cancellationToken);
 
@@ -750,10 +653,187 @@ namespace Application.Services
             {
                 _logger.LogError(ex, "Error filtering users with parameters - FirstName: {FirstName}, LastName: {LastName}, " +
                                      "Email: {Email}, RoleId: {RoleId}",
-                    firstName ?? "Any", lastName ?? "Any", email ?? "Any", roleId?.ToString() ?? "Any");
+                    firstName ?? "Any", lastName ?? "Any", email ?? "Any", roleName ?? "Any");
                 throw new ServiceException($"Failed to filter users: {ex.Message}", ex);
             }
         }
+
+        public async Task<UserResponse> UpdateLocationAsync(int userId, UpdateLocationRequest request, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(request, nameof(request));
+
+            if (userId <= 0)
+                throw new ArgumentException("Invalid user ID", nameof(userId));
+
+            _logger.LogInformation("User {UserId} attempting to update location", userId);
+
+            var validationResult = await _updateLocationValidator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogWarning("Location update validation failed for user {UserId}: {Errors}",
+                    userId, string.Join(", ", validationResult.Errors));
+                throw new ValidationException(validationResult.Errors);
+            }
+
+            try
+            {
+                var user = await _unitOfWork.Users
+                    .Query()
+                    .Include(u => u.Role)
+                    .Include(u => u.Person)
+                         .ThenInclude(p => p.ResidentialCity)
+                    .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("User {UserId} not found for location update", userId);
+                    throw new NotFoundException($"User with ID '{userId}' not found");
+                }
+
+                user.Longitude = request.Longitude;
+                user.Latitude = request.Latitude;
+                user.UpdatedAtUtc = DateTime.UtcNow;
+
+                _unitOfWork.Users.Update(user);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                InvalidateUserCache(userId);
+
+                var response = _mapper.Map<UserResponse>(user);
+
+                _logger.LogInformation("User {UserId} successfully updated their location", userId);
+
+                return response;
+            }
+            catch (NotFoundException)
+            {
+                throw;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(ex, "Concurrency conflict while updating location for user {UserId}", userId);
+                throw new ConcurrencyException("The user was modified by another user. Please refresh and try again.", ex);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while updating location for user {UserId}", userId);
+                throw new ServiceException($"Failed to update location: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<UserResponse> ChangePasswordAsync(int userId, ChangePasswordRequest request, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(request, nameof(request));
+
+            if (userId <= 0)
+                throw new ArgumentException("Invalid user ID", nameof(userId));
+
+            _logger.LogInformation("User {UserId} attempting to change password", userId);
+
+            var validationResult = await _changePasswordValidator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogWarning("Password change validation failed for user {UserId}: {Errors}",
+                    userId, string.Join(", ", validationResult.Errors));
+                throw new ValidationException(validationResult.Errors);
+            }
+
+            try
+            {
+                var user = await _unitOfWork.Users
+                    .Query()
+                    .Include(u => u.Role)
+                    .Include(u => u.Person)
+                    .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("User {UserId} not found for password change", userId);
+                    throw new NotFoundException($"User with ID '{userId}' not found");
+                }
+
+                if (!_passwordHasher.Verify(request.CurrentPassword, user.Password))
+                {
+                    _logger.LogWarning("Incorrect current password for user {UserId} during password change", userId);
+                    throw new AuthException("Current password is incorrect");
+                }
+
+                if (_passwordHasher.Verify(request.NewPassword, user.Password))
+                {
+                    _logger.LogWarning("User {UserId} attempted to reuse the same password", userId);
+                    throw new ValidationException("New password must be different from your current password");
+                }
+
+                user.Password = _passwordHasher.Hash(request.NewPassword);
+                user.UpdatedAtUtc = DateTime.UtcNow;
+
+                _unitOfWork.Users.Update(user);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                InvalidateUserCache(userId);
+
+                var response = _mapper.Map<UserResponse>(user);
+
+                _logger.LogInformation("User {UserId} successfully changed their password", userId);
+
+                return response;
+            }
+            catch (NotFoundException)
+            {
+                throw;
+            }
+            catch (AuthException)
+            {
+                throw;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(ex, "Concurrency conflict while changing password for user {UserId}", userId);
+                throw new ConcurrencyException("The user was modified by another user. Please refresh and try again.", ex);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while changing password for user {UserId}", userId);
+                throw new ServiceException($"Failed to change password: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<DeletedUsersResponse> GetDeletedUsersAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogDebug("Retrieving all deleted users");
+
+            try
+            {
+                var query = _unitOfWork.Users
+                    .Query()
+                    .IgnoreQueryFilters()
+                    .Include(u => u.Role)
+                    .Include(u => u.Person)
+                    .Where(u => u.IsDeleted);
+
+                var totalCount = await query.CountAsync(cancellationToken);
+
+                var entities = await query
+                    .OrderBy(u => u.UpdatedAtUtc)
+                    .ToListAsync(cancellationToken);
+
+                var users = _mapper.Map<IReadOnlyList<UserResponse>>(entities);
+
+                _logger.LogDebug("Successfully retrieved {Count} deleted users", totalCount);
+
+                return new DeletedUsersResponse
+                {
+                    Users = users,
+                    TotalCount = totalCount
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving deleted users");
+                throw new ServiceException($"Failed to retrieve deleted users: {ex.Message}", ex);
+            }
+        }
+
 
         #region Private Helper Methods
 

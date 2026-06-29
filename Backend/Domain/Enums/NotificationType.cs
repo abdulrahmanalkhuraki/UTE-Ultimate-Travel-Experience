@@ -5,12 +5,15 @@ namespace Domain.Enums
     /// </summary>
     public enum NotificationType
     {
-        General = 0,
-        CompanyApproved = 1,
-        CompanyRejected = 2,
-        ProgramAccepted = 3,
-        ProgramRejected = 4
-        CompanyRejected = 2,
-        NewBooking = 3
+        General,
+        CompanyApproved,
+        CompanyRejected,
+        PackageAccepted,
+        PackageRejected,
+        NewBooking,
+        BookingApproved, // booking approved by company
+        BookingRejected, // booking rejected by company
+        BookingConfirmed, // by tourist
+        BookingDeclined, // by tourist
     }
 }

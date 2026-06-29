@@ -6,7 +6,7 @@ namespace Application.DTOs.TourPackage.Request
     /// <summary>
     /// A single activity inside a program day (النشاط). Sent as part of a
     /// multipart/form-data request; the image is an uploaded file.
-    /// Field names look like: Days[0].Activities[1].Title, Days[0].Activities[1].Image ...
+    /// Field names look like: Days[0].Activities[1].Title, Days[0].Activities[1].ProfileImage ...
     /// </summary>
     public class TourPackageActivityRequest
     {

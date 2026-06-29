@@ -4,24 +4,27 @@ using Domain.Enums;
 
 namespace Domain.Entities;
 
-public partial class TourPackage : BaseEntity
-{
+    public partial class TourPackage : BaseEntity
+    {
     /// <summary>Program name (اسم البرنامج).</summary>
     public string PackageName { get; set; } = null!;
 
     /// <summary>Free-text description shown to tourists (وصف).</summary>
     public string? Description { get; set; }
 
-    /// <summary>Default/base program price per person (التكلفة الافتراضية للبرنامج).</summary>
+    /// <summary>Where the company meets the tourists (مكان الالتقاء مع السياح). Required.</summary>
+    public string MeetingPoint { get; set; } = null!;
+
+    /// <summary>Default/base program price per person (التكلفة الافتراضية للبرنامج). Optional.</summary>
     public decimal PricePerPerson { get; set; }
 
-    /// <summary>Economy flight class price (تكلفة الدرجة الاقتصادية).</summary>
+    /// <summary>Economy flight class price (تكلفة الدرجة الاقتصادية). Optional.</summary>
     public decimal EconomyClassPrice { get; set; }
 
-    /// <summary>Premium flight class price (تكلفة الدرجة المميزة).</summary>
+    /// <summary>Premium flight class price (تكلفة الدرجة المميزة). Optional.</summary>
     public decimal PremiumClassPrice { get; set; }
 
-    /// <summary>Business flight class price (تكلفة درجة رجال الأعمال).</summary>
+    /// <summary>Business flight class price (تكلفة درجة رجال الأعمال). Optional.</summary>
     public decimal BusinessClassPrice { get; set; }
 
     /// <summary>Currency code for <see cref="PricePerPerson"/> (العملة), e.g. USD, JOD.</summary>
@@ -35,9 +38,6 @@ public partial class TourPackage : BaseEntity
 
     /// <summary>Destination country (البلد / الوجهة).</summary>
     public int CountryId { get; set; }
-
-    /// <summary>Main cover image of the program (صورة البرنامج الرئيسية).</summary>
-    public string? MainImageUrl { get; set; }
 
     /// <summary>Trip start date (تاريخ بداية الرحلة).</summary>
     public DateOnly StartDate { get; set; }
@@ -58,7 +58,7 @@ public partial class TourPackage : BaseEntity
     public TourPackageStatus Status { get; set; } = TourPackageStatus.Active;
 
     /// <summary>Admin moderation state (حالة الموافقة). New programs start pending until an admin accepts (مقبول) or rejects (مرفوض) them.</summary>
-    public ProgramApprovalStatus ApprovalStatus { get; set; } = ProgramApprovalStatus.Pending;
+    public PackageApprovalStatus ApprovalStatus { get; set; } = PackageApprovalStatus.Pending;
 
     /// <summary>Reason shown to the company when an admin rejects the program (سبب الرفض). Set on reject, cleared on accept.</summary>
     public string? RejectionReason { get; set; }
@@ -69,31 +69,29 @@ public partial class TourPackage : BaseEntity
     /// <summary>When the program was most recently published (تاريخ آخر نشر), used to show how long it has been published (اديش صرلو منشور). Null if never published.</summary>
     public DateTime? PublishedAtUtc { get; set; }
 
-    /// <summary>Owning tour company.</summary>
-    public int CompanyId { get; set; }
+    public bool IsDeleted { get; set; }
 
-    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+    public int CompanyId { get; set; }
 
     public virtual TourCompany Company { get; set; } = null!;
 
     public virtual Country Country { get; set; } = null!;
 
-    /// <summary>Regions/cities visited by this program (المناطق اللي رح تنزار).</summary>
-    public virtual ICollection<PackageCity> PackageCities { get; set; } = new List<PackageCity>();
+    public virtual ICollection<TourPackage_Attraction> PackageAttractions { get; set; } = new List<TourPackage_Attraction>();
 
-    /// <summary>Guides assigned to this program (المرشدون المختارون).</summary>
-    public virtual ICollection<TourPackageGuide> TourPackageGuides { get; set; } = new List<TourPackageGuide>();
+    public virtual ICollection<TourPackage_TouristGuide> TourPackageGuides { get; set; } = new List<TourPackage_TouristGuide>();
 
-    /// <summary>Flight cabin classes made available (تذاكر الطيران المتاحة). Optional.</summary>
     public virtual ICollection<TourPackageCabinClass> CabinClasses { get; set; } = new List<TourPackageCabinClass>();
 
-    public virtual ICollection<PackageItinerary> PackageItineraries { get; set; } = new List<PackageItinerary>();
+    public virtual ICollection<Itinerary> PackageItineraries { get; set; } = new List<Itinerary>();
 
-    public virtual ICollection<TourPackageFlight> TourPackageFlights { get; set; } = new List<TourPackageFlight>();
+    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
-    public virtual ICollection<TourPackageHotel> TourPackageHotels { get; set; } = new List<TourPackageHotel>();
+    public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
 
     public virtual ICollection<Rate> Rates { get; set; } = new List<Rate>();
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+
+    public virtual ICollection<TourPackageMedia> Media { get; set; } = new List<TourPackageMedia>();
 }

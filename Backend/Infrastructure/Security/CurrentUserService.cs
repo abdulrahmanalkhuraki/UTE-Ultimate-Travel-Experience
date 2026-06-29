@@ -22,10 +22,14 @@ namespace Infrastructure.Security
         public bool IsAuthenticated =>
             User?.Identity?.IsAuthenticated ?? false;
 
-        public int? UserId =>
-            int.TryParse(User?.FindFirst("sub")?.Value, out var id)
-                ? id
-                : null;
+        public int? UserId
+        {
+            get
+            {
+                var Claim = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+                return int.TryParse(Claim, out int id) && id > 0 ? id : null;
+            }
+        }
 
         public string? Email =>
             User?.FindFirst(ClaimTypes.Email)?.Value;

@@ -20,4 +20,8 @@ public class RegisterRequest
     [Compare(nameof(Password), ErrorMessage = "Password and confirmation do not match.")]
     [DataType(DataType.Password)]
     public string ConfirmPassword { get; set; } = null!;
+
+    [Required(ErrorMessage = "Role is required.")]
+    [RegularExpression("^(Tourist|TourCompany)$", ErrorMessage = "Role must be either 'Tourist' or 'TourCompany'.")]
+    public string RoleName { get; set; } = null!;
 }

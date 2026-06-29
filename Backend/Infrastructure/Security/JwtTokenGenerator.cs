@@ -19,8 +19,8 @@ public class JwtTokenGenerator : IJwtTokenGenerator
     {
         var expiresAt = DateTime.UtcNow.AddMinutes(_settings.ExpiresInMinutes);
 
-        var firstName = user.FirstName ?? string.Empty;
-        var lastName  = user.LastName ?? string.Empty;
+        var firstName = user.Person?.FirstName ?? string.Empty;
+        var lastName  = user.Person?.LastName ?? string.Empty;
         var fullName  = $"{firstName} {lastName}".Trim();
         var roleName  = user.Role?.RoleName ?? string.Empty;
 
@@ -36,7 +36,8 @@ public class JwtTokenGenerator : IJwtTokenGenerator
             new(ClaimTypes.GivenName, firstName),
             new(ClaimTypes.Surname, lastName),
             new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.Role, roleName)
+            new(ClaimTypes.Role, roleName),
+            new("isprofilecompleted", (user.PersonId is not null).ToString().ToLowerInvariant())
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));

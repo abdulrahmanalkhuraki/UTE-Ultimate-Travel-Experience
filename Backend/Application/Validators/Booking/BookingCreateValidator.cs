@@ -11,17 +11,14 @@ namespace Application.Validators.Booking
             RuleFor(x => x.PackageId)
                 .GreaterThan(0).WithMessage("PackageId must be a positive number");
 
-            RuleFor(x => x.Payment)
-                .NotNull().WithMessage("Payment information is required");
-
             RuleFor(x => x.CompanionIds)
                 .NotNull().WithMessage("Companion list is required");
 
             RuleForEach(x => x.CompanionIds)
                 .GreaterThan(0).WithMessage("Each companion ID must be a positive number");
 
-            RuleFor(x => x.FlightType)
-                .IsInEnum().WithMessage("Invalid flight type");
+            RuleFor(x => x.FlightCabinClass)
+                .IsInEnum().WithMessage("Invalid Flight Cabin Class");
 
             RuleFor(x => x.RoomTypePreference)
                 .MaximumLength(200).WithMessage("Room type preference cannot exceed 200 characters")

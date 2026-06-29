@@ -36,12 +36,12 @@ public partial class TourCompany : BaseEntity
 
     public int UserId { get; set; }
 
+    public virtual User User { get; set; } = null!;
+
     public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 
     public virtual ICollection<TourPackage> TourPackages { get; set; } = new List<TourPackage>();
 
-    /// <summary>Guides that work for this company (مرشدو الشركة).</summary>
-    public virtual ICollection<CompanyGuide> CompanyGuides { get; set; } = new List<CompanyGuide>();
+    public virtual ICollection<Company_TouristGuide> CompanyGuides { get; set; } = new List<Company_TouristGuide>();
 
-    public virtual User User { get; set; } = null!;
 }

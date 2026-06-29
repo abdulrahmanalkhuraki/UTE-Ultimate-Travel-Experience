@@ -5,7 +5,7 @@ namespace Domain.Validators
 {
     /// <summary>
     /// Validates a single activity. Shared by create and update: an image is
-    /// required either as a new upload (<c>Image</c>) or as an existing URL
+    /// required either as a new upload (<c>ProfileImage</c>) or as an existing URL
     /// (<c>ImageUrl</c>, used on update).
     /// </summary>
     public class TourPackageActivityValidator : AbstractValidator<TourPackageActivityRequest>

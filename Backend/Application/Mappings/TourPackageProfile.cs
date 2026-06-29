@@ -14,21 +14,22 @@ namespace Application.Mappings
     {
         public TourPackageProfile()
         {
-            CreateMap<PackageItineraryAttraction, TourPackageActivityResponse>();
+            CreateMap<Activity, TourPackageActivityResponse>();
 
-            CreateMap<PackageItinerary, TourPackageDayResponse>()
+            CreateMap<Itinerary, TourPackageDayResponse>()
                 .ForMember(dest => dest.Activities,
-                    opt => opt.MapFrom(src => src.PackageItineraryAttractions
+                    opt => opt.MapFrom(src => src.Activities
                         .OrderBy(a => a.OrderNumber)));
 
-            CreateMap<PackageCity, PackageCityResponse>()
-                .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.CityId))
-                .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City.CityName));
+            //CreateMap<TourPackage_Attraction, PackageCityResponse>()
+            //    .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.CityId))
+            //    .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City.CityName));
 
             // A program's assigned guide (المرشد المختار) shown on the program.
             CreateMap<TouristGuide, TourPackageGuideResponse>()
-                .ForMember(dest => dest.FullName,
-                    opt => opt.MapFrom(src => (src.Firstname + " " + src.Lastname).Trim()));
+                //.ForMember(dest => dest.FullName,
+                //    opt => opt.MapFrom(src => (src.Firstname + " " + src.Lastname).Trim()))
+                ;
 
             CreateMap<TourPackageCabinClass, TourPackageCabinClassResponse>();
 
@@ -38,7 +39,7 @@ namespace Application.Mappings
                 .ForMember(dest => dest.CompanyName,
                     opt => opt.MapFrom(src => src.Company != null ? src.Company.Name : null))
                 .ForMember(dest => dest.Cities,
-                    opt => opt.MapFrom(src => src.PackageCities))
+                    opt => opt.MapFrom(src => src.PackageAttractions))
                 .ForMember(dest => dest.Guides,
                     opt => opt.MapFrom(src => src.TourPackageGuides.Select(g => g.TouristGuide)))
                 .ForMember(dest => dest.AvailableCabinClasses,

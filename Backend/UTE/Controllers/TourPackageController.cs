@@ -5,6 +5,7 @@ using Application.DTOs.TourPackage.Request;
 using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
 using Application.Interfaces.TourPackage;
+using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -77,7 +78,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMineCurrent(CancellationToken cancellationToken = default)
-            => GetMineByTimeline(ProgramTimeline.Current, cancellationToken);
+            => GetMineByTimeline(TimeLine.Current, cancellationToken);
 
         /// <summary>Lists the signed-in company's past (finished) programs (السابقة).</summary>
         [HttpGet("mine/previous")]
@@ -85,7 +86,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMinePrevious(CancellationToken cancellationToken = default)
-            => GetMineByTimeline(ProgramTimeline.Previous, cancellationToken);
+            => GetMineByTimeline(TimeLine.Previous, cancellationToken);
 
         /// <summary>Lists the signed-in company's cancelled programs (الملغاة).</summary>
         [HttpGet("mine/cancelled")]
@@ -93,7 +94,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMineCancelled(CancellationToken cancellationToken = default)
-            => GetMineByTimeline(ProgramTimeline.Cancelled, cancellationToken);
+            => GetMineByTimeline(TimeLine.Cancelled, cancellationToken);
 
         /// <summary>Aggregate counts of the signed-in company's programs for the dashboard stats card (إحصائيات البرامج).</summary>
         [HttpGet("mine/stats")]
@@ -123,7 +124,35 @@ namespace UTE.Controllers
             }
         }
 
-        private async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMineByTimeline(ProgramTimeline timeline, CancellationToken cancellationToken)
+        /// <summary>Returns just the number of the signed-in company's published programs (عدد البرامج المنشورة).</summary>
+        [HttpGet("mine/published/count")]
+        [Authorize]
+        [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult<int>> GetMyPublishedCount(CancellationToken cancellationToken = default)
+        {
+            var userId = GetCurrentUserId();
+            if (userId is null)
+                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
+
+            try
+            {
+                return Ok(await _service.GetMyPublishedCountAsync(userId.Value, cancellationToken));
+            }
+            catch (ForbiddenException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
+            }
+            catch (ServiceException ex)
+            {
+                _logger.LogError(ex, "Error retrieving company's published program count");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    CreateProblemDetails("Internal Server Error", ex.Message));
+            }
+        }
+
+        private async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMineByTimeline(TimeLine timeline, CancellationToken cancellationToken)
         {
             var userId = GetCurrentUserId();
             if (userId is null)
@@ -172,6 +201,57 @@ namespace UTE.Controllers
             }
         }
 
+
+        [HttpGet("MyWishlist")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "Tourist")]
+        [ProducesResponseType(typeof(ActionResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetWishlist(CancellationToken cancellationToken = default)
+        {
+            return Ok(await _service.GetWishlistAsync(cancellationToken));
+        }
+
+
+        [HttpPost("addToWishlist/{id:int:min(1)}")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "Tourist")]
+        [ProducesResponseType(typeof(ActionResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<ActionResult> AddToWishlist(int id,CancellationToken cancellationToken = default)
+        {
+            var success = await _service.AddToWishlistAsync(id,cancellationToken);
+
+            if (success)
+            {
+                return Ok(new { message = $"Tour Package With Id {id} Has been Added To Your Wishlist Successfully." });
+            }
+
+            return BadRequest();
+        }
+
+        [HttpPost("removeFromWishlist/{id:int:min(1)}")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "Tourist")]
+        [ProducesResponseType(typeof(ActionResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<ActionResult> RemoveFromWishlist(int id,CancellationToken cancellationToken = default)
+        {
+            var success = await _service.RemoveFromWishlistAsync(id,cancellationToken);
+
+            if (success)
+            {
+                return Ok(new { message = $"Tour Package With Id {id} Has been Removed From Your Wishlist Successfully." });
+            }
+
+            return BadRequest();
+        }
+
+
         /// <summary>Filters published programs.</summary>
         [HttpGet("filter")]
         [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
@@ -203,7 +283,7 @@ namespace UTE.Controllers
         /// image and each activity image). The owning company comes from the JWT.
         /// </summary>
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "TourCompany")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(TourPackageResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -223,7 +303,9 @@ namespace UTE.Controllers
             }
             catch (ValidationException ex)
             {
-                return BadRequest(CreateProblemDetails("Validation Error", ex.Message, StatusCodes.Status400BadRequest));
+                var problem = CreateProblemDetails("Validation Error", "One or more validation errors occurred", StatusCodes.Status400BadRequest);
+                problem.Extensions["errors"] = ex.Errors;
+                return BadRequest(problem);
             }
             catch (ForbiddenException ex)
             {
@@ -270,7 +352,9 @@ namespace UTE.Controllers
             }
             catch (ValidationException ex)
             {
-                return BadRequest(CreateProblemDetails("Validation Error", ex.Message, StatusCodes.Status400BadRequest));
+                var problem = CreateProblemDetails("Validation Error", "One or more validation errors occurred", StatusCodes.Status400BadRequest);
+                problem.Extensions["errors"] = ex.Errors;
+                return BadRequest(problem);
             }
             catch (ArgumentException ex)
             {

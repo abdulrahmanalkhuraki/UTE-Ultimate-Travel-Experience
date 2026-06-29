@@ -9,13 +9,13 @@ namespace Application.Common
     public static class TourCompanyStatusMessages
     {
         public const string Pending =
-            "قمنا بإرسال طلبك إلى مدير التطبيق وبانتظار موافقته على طلبك. سنقوم بإعلامك مباشرة عند الاجابة ونشكرك على حسن انتظارك.";
+            "Your registration request has been successfully received and is currently under review by our team. We will notify you as soon as a decision is made. Thank you for your patience and understanding.";
 
         public const string Approved =
-            "تم قبول طلبك من قبل مدير التطبيق. نتطلع لنشرك المزيد من البرامج. يمكنك رؤية المعلومات الخاصة في البرنامج من تبويبة برامجي في الشريط السفلي.";
+            "Good news! Your registration has been successfully approved. You can now log in to your account and start managing your services and their details.";
 
         public const string Rejected =
-            "تم رفض طلبك من قبل مدير التطبيق.";
+            "Update on your submission: Your registration request as a tour company has been reviewed and was not approved at this time.";
 
         public static string For(TourCompanyStatus status) => status switch
         {

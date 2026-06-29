@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain.Enums;
 
 namespace Application.DTOs.Payment.Response
 {
     public sealed class PaymentResponse
     {
+        public decimal Amount { get; set; }
+
+        public PaymentStatus PaymentStatus { get; set; }
+
+        public DateTime PaymentDate { get; set; }
     }
 }

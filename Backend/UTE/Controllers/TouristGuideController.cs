@@ -12,6 +12,8 @@ using ValidationException = Application.Exceptions.ValidationException;
 namespace UTE.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize(Policy = "RequireCompletedProfile")]
+    [Authorize(Roles = "TourCompany")]
     [ApiController]
     [Produces(MediaTypeNames.Application.Json)]
     public class TouristGuideController : ControllerBase
@@ -30,7 +32,6 @@ namespace UTE.Controllers
         /// in the program "اختر مرشدك" picker.
         /// </summary>
         [HttpGet("mine")]
-        [Authorize]
         [ProducesResponseType(typeof(IReadOnlyList<TouristGuideResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<IReadOnlyList<TouristGuideResponse>>> GetMine(CancellationToken cancellationToken = default)
@@ -58,7 +59,6 @@ namespace UTE.Controllers
 
         /// <summary>Gets a single guide owned by the signed-in company.</summary>
         [HttpGet("{id:int:min(1)}")]
-        [Authorize]
         [ProducesResponseType(typeof(TouristGuideResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -98,7 +98,6 @@ namespace UTE.Controllers
         /// multipart/form-data (carries the profile/ID/passport images).
         /// </summary>
         [HttpPost]
-        [Authorize]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(TouristGuideResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -118,7 +117,9 @@ namespace UTE.Controllers
             }
             catch (ValidationException ex)
             {
-                return BadRequest(CreateProblemDetails("Validation Error", ex.Message, StatusCodes.Status400BadRequest));
+                var problem = CreateProblemDetails("Validation Error", "One or more validation errors occurred", StatusCodes.Status400BadRequest);
+                problem.Extensions["errors"] = ex.Errors;
+                return BadRequest(problem);
             }
             catch (ForbiddenException ex)
             {
@@ -139,7 +140,6 @@ namespace UTE.Controllers
 
         /// <summary>Updates a guide (multipart/form-data). Company that owns the guide only.</summary>
         [HttpPut("{id:int:min(1)}")]
-        [Authorize]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(TouristGuideResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -160,7 +160,9 @@ namespace UTE.Controllers
             }
             catch (ValidationException ex)
             {
-                return BadRequest(CreateProblemDetails("Validation Error", ex.Message, StatusCodes.Status400BadRequest));
+                var problem = CreateProblemDetails("Validation Error", "One or more validation errors occurred", StatusCodes.Status400BadRequest);
+                problem.Extensions["errors"] = ex.Errors;
+                return BadRequest(problem);
             }
             catch (ArgumentException ex)
             {
@@ -185,7 +187,6 @@ namespace UTE.Controllers
 
         /// <summary>Removes a guide from the signed-in company. Owner only.</summary>
         [HttpDelete("{id:int:min(1)}")]
-        [Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]

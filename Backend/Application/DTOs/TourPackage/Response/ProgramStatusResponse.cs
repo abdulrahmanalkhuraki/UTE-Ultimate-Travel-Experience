@@ -17,7 +17,7 @@ namespace Application.DTOs.TourPackage.Response
         public TourPackageStatus Status { get; set; }
 
         /// <summary>Admin moderation state (حالة الموافقة): Pending, Accepted, or Rejected.</summary>
-        public ProgramApprovalStatus ApprovalStatus { get; set; }
+        public PackageApprovalStatus ApprovalStatus { get; set; }
 
         /// <summary>Reason shown to the company when rejected (سبب الرفض). Null otherwise.</summary>
         public string? RejectionReason { get; set; }

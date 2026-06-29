@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\SeedData\**" />
+    <EmbeddedResource Remove="Data\SeedData\**" />
+    <None Remove="Data\SeedData\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="FirebaseAdmin" Version="3.1.0" />
     <PackageReference Include="MailKit" Version="4.10.0" />

@@ -22,8 +22,8 @@ namespace Application.Validators.Booking
             RuleForEach(x => x.CompanionIds)
                 .GreaterThan(0).WithMessage("Each companion ID must be a positive number");
 
-            RuleFor(x => x.FlightType)
-                .IsInEnum().WithMessage("Invalid flight type");
+            RuleFor(x => x.FlightCabinClass)
+                .IsInEnum().WithMessage("Invalid Flight Cabin Class");
         }
     }
 }

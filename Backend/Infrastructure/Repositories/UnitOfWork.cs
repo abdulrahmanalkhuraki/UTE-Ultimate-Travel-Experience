@@ -3,11 +3,6 @@ using Domain.Entities;
 using Domain.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore.Storage;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
@@ -19,36 +14,37 @@ namespace Infrastructure.Repositories
         public UnitOfWork(AppDbContext context)
         {
             _context = context;
-            Hotels = new GenericRepository<Hotel>(_context);
-            Flights = new GenericRepository<Flight>(_context);
             Bookings = new GenericRepository<Booking>(_context);
             Companions = new GenericRepository<Companion>(_context);
             Payments = new GenericRepository<Payment>(_context);
+            Persons = new GenericRepository<Person>(_context);
             Users = new GenericRepository<User>(_context);
             Roles = new GenericRepository<Role>(_context);
             TourCompanies = new GenericRepository<TourCompany>(_context);
             TourPackages = new GenericRepository<TourPackage>(_context);
-            PackageItineraries = new GenericRepository<PackageItinerary>(_context);
-            PackageItineraryAttractions = new GenericRepository<PackageItineraryAttraction>(_context);
-            PackageCities = new GenericRepository<PackageCity>(_context);
+            Itineraries = new GenericRepository<Itinerary>(_context);
+            Activities = new GenericRepository<Activity>(_context);
+            TourPackage_Attraction = new GenericRepository<TourPackage_Attraction>(_context);
             TouristGuides = new GenericRepository<TouristGuide>(_context);
-            CompanyGuides = new GenericRepository<CompanyGuide>(_context);
-            TourPackageGuides = new GenericRepository<TourPackageGuide>(_context);
+            Company_TouristGuide = new GenericRepository<Company_TouristGuide>(_context);
+            TourPackage_TouristGuide = new GenericRepository<TourPackage_TouristGuide>(_context);
             TourPackageCabinClasses = new GenericRepository<TourPackageCabinClass>(_context);
             Countries = new GenericRepository<Country>(_context);
             Cities = new GenericRepository<City>(_context);
             Notifications = new GenericRepository<Notification>(_context);
+            Wishlists = new GenericRepository<Wishlist>(_context);
             DeviceTokens = new GenericRepository<DeviceToken>(_context);
         }
-
-        public IGenericRepository<Hotel> Hotels { get; }
-
-        public IGenericRepository<Flight> Flights { get; }
 
         public IGenericRepository<Booking> Bookings { get; }
 
         public IGenericRepository<Companion> Companions { get; }
+
         public IGenericRepository<Payment> Payments { get; }
+
+        public IGenericRepository<Person> Persons { get; }
+
+        public IGenericRepository<Wishlist> Wishlists { get; }
 
         public IGenericRepository<User> Users { get; }
 
@@ -58,17 +54,17 @@ namespace Infrastructure.Repositories
 
         public IGenericRepository<TourPackage> TourPackages { get; }
 
-        public IGenericRepository<PackageItinerary> PackageItineraries { get; }
+        public IGenericRepository<Itinerary> Itineraries { get; }
 
-        public IGenericRepository<PackageItineraryAttraction> PackageItineraryAttractions { get; }
+        public IGenericRepository<Activity> Activities { get; }
 
-        public IGenericRepository<PackageCity> PackageCities { get; }
+        public IGenericRepository<TourPackage_Attraction> TourPackage_Attraction { get; }
 
         public IGenericRepository<TouristGuide> TouristGuides { get; }
 
-        public IGenericRepository<CompanyGuide> CompanyGuides { get; }
+        public IGenericRepository<Company_TouristGuide> Company_TouristGuide { get; }
 
-        public IGenericRepository<TourPackageGuide> TourPackageGuides { get; }
+        public IGenericRepository<TourPackage_TouristGuide> TourPackage_TouristGuide { get; }
 
         public IGenericRepository<TourPackageCabinClass> TourPackageCabinClasses { get; }
 

@@ -1,11 +1,4 @@
 ﻿using Application.DTOs.City.Response;
-using Application.DTOs.Hotel.Request;
-using Application.DTOs.Hotel.Response;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Interfaces.City
 {

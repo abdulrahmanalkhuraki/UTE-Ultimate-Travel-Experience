@@ -1,17 +1,15 @@
-using Application.Common;
 using Application.Interfaces;
 using Application.Interfaces.Booking;
-using Application.Interfaces.Flight;
-using Application.Interfaces.Hotel;
+using Application.Interfaces.Companion;
 using Application.Interfaces.Notifications;
 using Application.Interfaces.TourCompany;
-using Application.Interfaces.TourPackage;
 using Application.Interfaces.TouristGuide;
+using Application.Interfaces.TourPackage;
 using Application.Interfaces.User;
 using Application.Mappings;
 using Application.Services;
 using Application.Validators.Booking;
-using Application.Validators.Hotel;
+using Application.Validators.Companion;
 using Application.Validators.TourCompany;
 using Application.Validators.TouristGuide;
 using Application.Validators.User;
@@ -21,18 +19,20 @@ using Infrastructure;
 using Infrastructure.Repositories;
 using Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using System.ComponentModel.DataAnnotations;
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using UTE.Middleware;
+using UTE.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,7 +67,20 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireCompletedProfile", policy =>
+    {
+        // Ensure the user is logged in
+        policy.RequireAuthenticatedUser();
+
+        // Ensure the token/cookie contains the specific claim
+        policy.RequireClaim("IsProfileCompleted", "true");
+    });
+});
+
+// Register the custom authorization result handler
+builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, CustomAuthorizationResponseHandler>();
 
 // ==========================================
 // 3. ADD CONTROLLERS
@@ -266,20 +279,15 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-// Hotel
-builder.Services.AddScoped<HotelCreateValidator>();
-builder.Services.AddScoped<HotelUpdateValidator>();
-builder.Services.AddScoped<IHotelService, HotelService>();
-
-// Flight
-builder.Services.AddScoped<FlightCreateValidator>();
-builder.Services.AddScoped<FlightUpdateValidator>();
-builder.Services.AddScoped<IFlightService, FlightService>();
+// Country / City
+builder.Services.AddScoped<Application.Interfaces.Country.ICountryService, CountryService>();
+builder.Services.AddScoped<Application.Interfaces.City.ICityService, CityService>();
 
 // User
-builder.Services.AddScoped<UpdateMeValidator>();
+builder.Services.AddScoped<UserUpdateValidator>();
 builder.Services.AddScoped<CompleteProfileValidator>();
-builder.Services.AddScoped<CompleteCompanyProfileValidator>();
+builder.Services.AddScoped<UpdateLocationValidator>();
+builder.Services.AddScoped<ChangePasswordValidator>();
 builder.Services.AddScoped<IUserService, UserService>();
 
 // Booking
@@ -303,6 +311,11 @@ builder.Services.AddScoped<TouristGuideCreateValidator>();
 builder.Services.AddScoped<TouristGuideUpdateValidator>();
 builder.Services.AddScoped<ITouristGuideService, TouristGuideService>();
 
+// Companion
+builder.Services.AddScoped<CompanionCreateValidator>();
+builder.Services.AddScoped<CompanionUpdateValidator>();
+builder.Services.AddScoped<ICompanionService, CompanionService>();
+
 // Notifications (IRealtimeNotifier/Firebase is registered in AddInfrastructure)
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
@@ -317,13 +330,17 @@ builder.Services.AddMemoryCache();
 // ==========================================
 builder.Services.AddAutoMapper(cfg =>
 {
-    cfg.AddProfile<HotelProfile>();
-    cfg.AddProfile<FlightProfile>();
+    cfg.AddProfile<BookingProfile>();
+    cfg.AddProfile<PaymentProfile>();
     cfg.AddProfile<UserProfile>();
     cfg.AddProfile<TourCompanyProfile>();
     cfg.AddProfile<TourPackageProfile>();
     cfg.AddProfile<TouristGuideProfile>();
     cfg.AddProfile<NotificationProfile>();
+    cfg.AddProfile<CountryProfile>();
+    cfg.AddProfile<CityProfile>();
+    cfg.AddProfile<PersonProfile>();
+    cfg.AddProfile<CompanionProfile>();
 });
 
 // ==========================================

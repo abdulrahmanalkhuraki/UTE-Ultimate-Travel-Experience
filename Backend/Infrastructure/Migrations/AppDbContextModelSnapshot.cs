@@ -33,29 +33,41 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                        .HasDefaultValueSql("(getutcdate())");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("Duration")
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time(0)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ItineraryId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<int>("OrderNumber")
+                        .HasColumnType("int");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(10, 2)");
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time(0)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("UpdatedAtUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                        .HasDefaultValueSql("(getutcdate())");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ItineraryId");
 
                     b.ToTable("Activities");
                 });
@@ -68,6 +80,9 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AttractionCategoryId")
+                        .HasColumnType("int");
+
                     b.Property<string>("AttractionName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -76,7 +91,7 @@ namespace Infrastructure.Migrations
                     b.Property<int>("CityId")
                         .HasColumnType("int");
 
-                    b.Property<TimeOnly>("ClosedAt")
+                    b.Property<TimeOnly?>("ClosedAt")
                         .HasColumnType("time");
 
                     b.Property<DateTime>("CreatedAtUtc")
@@ -93,12 +108,12 @@ namespace Infrastructure.Migrations
                         .HasColumnName("Entry_Fee");
 
                     b.Property<decimal>("Latitude")
-                        .HasColumnType("decimal(10, 6)");
+                        .HasColumnType("decimal(18, 8)");
 
                     b.Property<decimal>("Longitude")
-                        .HasColumnType("decimal(10, 6)");
+                        .HasColumnType("decimal(18, 8)");
 
-                    b.Property<TimeOnly>("OpenAt")
+                    b.Property<TimeOnly?>("OpenAt")
                         .HasColumnType("time");
 
                     b.Property<DateTime>("UpdatedAtUtc")
@@ -108,78 +123,180 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AttractionCategoryId");
+
                     b.HasIndex("CityId");
 
                     b.ToTable("Attractions");
                 });
 
-            modelBuilder.Entity("Domain.Entities.AttractionActivity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ActivityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AttractionId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getutcdate())");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getutcdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ActivityId");
-
-                    b.HasIndex("AttractionId");
-
-                    b.ToTable("AttractionActivities");
-                });
-
             modelBuilder.Entity("Domain.Entities.AttractionCategory", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AttractionId")
-                        .HasColumnType("int");
-
                     b.Property<int>("CategoryId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("CategoryName")
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryId"));
+
+                    b.Property<string>("ArCategoryName")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                    b.Property<string>("EnCategoryName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AttractionId");
+                    b.HasKey("CategoryId");
 
                     b.ToTable("AttractionCategories");
+
+                    b.HasData(
+                        new
+                        {
+                            CategoryId = 1,
+                            ArCategoryName = "متاحف",
+                            EnCategoryName = "Museums"
+                        },
+                        new
+                        {
+                            CategoryId = 2,
+                            ArCategoryName = "مواقع تاريخية",
+                            EnCategoryName = "Historical Sites"
+                        },
+                        new
+                        {
+                            CategoryId = 3,
+                            ArCategoryName = "حدائق وطبيعة",
+                            EnCategoryName = "Parks & Nature"
+                        },
+                        new
+                        {
+                            CategoryId = 4,
+                            ArCategoryName = "مدن ملاهي",
+                            EnCategoryName = "Amusement Parks"
+                        },
+                        new
+                        {
+                            CategoryId = 5,
+                            ArCategoryName = "شواطئ",
+                            EnCategoryName = "Beaches"
+                        },
+                        new
+                        {
+                            CategoryId = 6,
+                            ArCategoryName = "مراكز تسوق",
+                            EnCategoryName = "Shopping Malls"
+                        },
+                        new
+                        {
+                            CategoryId = 7,
+                            ArCategoryName = "حدائق حيوان وأحواض أسماك",
+                            EnCategoryName = "Zoos & Aquariums"
+                        },
+                        new
+                        {
+                            CategoryId = 8,
+                            ArCategoryName = "مواقع دينية",
+                            EnCategoryName = "Religious Sites"
+                        },
+                        new
+                        {
+                            CategoryId = 9,
+                            ArCategoryName = "مسارح وعروض",
+                            EnCategoryName = "Theaters & Shows"
+                        },
+                        new
+                        {
+                            CategoryId = 10,
+                            ArCategoryName = "معارض فنية",
+                            EnCategoryName = "Art Galleries"
+                        },
+                        new
+                        {
+                            CategoryId = 11,
+                            ArCategoryName = "معالم ونصب تذكارية",
+                            EnCategoryName = "Landmarks & Monuments"
+                        },
+                        new
+                        {
+                            CategoryId = 12,
+                            ArCategoryName = "قلاع وقصور",
+                            EnCategoryName = "Castles & Palaces"
+                        },
+                        new
+                        {
+                            CategoryId = 13,
+                            ArCategoryName = "جبال ومسارات مشي",
+                            EnCategoryName = "Mountains & Hiking Trails"
+                        },
+                        new
+                        {
+                            CategoryId = 14,
+                            ArCategoryName = "حدائق مائية",
+                            EnCategoryName = "Water Parks"
+                        },
+                        new
+                        {
+                            CategoryId = 15,
+                            ArCategoryName = "ملاعب رياضية",
+                            EnCategoryName = "Sports Arenas"
+                        },
+                        new
+                        {
+                            CategoryId = 16,
+                            ArCategoryName = "مهرجانات وفعاليات",
+                            EnCategoryName = "Festivals & Events"
+                        },
+                        new
+                        {
+                            CategoryId = 17,
+                            ArCategoryName = "منتجعات صحية",
+                            EnCategoryName = "Spas & Wellness"
+                        },
+                        new
+                        {
+                            CategoryId = 18,
+                            ArCategoryName = "أسواق محلية وبازارات",
+                            EnCategoryName = "Local Markets & Bazaars"
+                        },
+                        new
+                        {
+                            CategoryId = 19,
+                            ArCategoryName = "محميات طبيعية",
+                            EnCategoryName = "Nature Reserves"
+                        },
+                        new
+                        {
+                            CategoryId = 20,
+                            ArCategoryName = "منصات مشاهدة",
+                            EnCategoryName = "Observation Decks"
+                        },
+                        new
+                        {
+                            CategoryId = 21,
+                            ArCategoryName = "كهوف",
+                            EnCategoryName = "Caves"
+                        },
+                        new
+                        {
+                            CategoryId = 22,
+                            ArCategoryName = "منتجعات تزلج",
+                            EnCategoryName = "Ski Resorts"
+                        },
+                        new
+                        {
+                            CategoryId = 23,
+                            ArCategoryName = "جزر",
+                            EnCategoryName = "Islands"
+                        },
+                        new
+                        {
+                            CategoryId = 24,
+                            ArCategoryName = "شلالات",
+                            EnCategoryName = "Waterfalls"
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.Booking", b =>
@@ -195,6 +312,11 @@ namespace Infrastructure.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
+                    b.Property<string>("BookingNumber")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("varchar(20)")
+                        .HasComputedColumnSql("CONVERT(varchar(8), [BookingDate], 112) + RIGHT('000000' + CAST([Id] AS varchar(6)), 6)", true);
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
@@ -204,7 +326,7 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<int>("FlightType")
+                    b.Property<int>("FlightCabinClass")
                         .HasColumnType("int");
 
                     b.Property<int>("NumberOfAdults")
@@ -217,11 +339,12 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
-                    b.Property<int>("PackageId")
-                        .HasColumnType("int");
-
                     b.Property<int>("PaymentId")
                         .HasColumnType("int");
+
+                    b.Property<string>("RejectReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("RoomTypePreference")
                         .HasMaxLength(200)
@@ -231,13 +354,15 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
+                    b.Property<int>("Status")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("Pending");
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
-                    b.Property<int?>("TourPackageId")
+                    b.Property<decimal?>("TotalCost")
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.Property<int>("TourPackageId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAtUtc")
@@ -259,9 +384,9 @@ namespace Infrastructure.Migrations
 
                     b.ToTable("Bookings", t =>
                         {
-                            t.HasCheckConstraint("CK_Booking_BookingStatus", "[Status] IN ('Pending', 'Confirmed', 'In_Progress', 'Completed', 'Cancelled', 'No_Show')");
+                            t.HasCheckConstraint("CK_Booking_BookingStatus", "[Status] IN (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)");
 
-                            t.HasCheckConstraint("CK_Booking_FlightType", "[FlightType] IN ('Economy', 'Premium_Economy', 'Business_Class', 'First_Class')");
+                            t.HasCheckConstraint("CK_Booking_FlightCabinClass", "[FlightCabinClass] IN (0, 1, 2, 3)");
                         });
                 });
 
@@ -280,9 +405,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<int>("CountryId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Image")
                         .HasMaxLength(500)
@@ -303,53 +425,14 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<DateOnly>("DateOfBirth")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Firstname")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("Gender")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("IdCard")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Lastname")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<int>("NationalityCountryId")
                         .HasColumnType("int");
 
-                    b.Property<string>("PassportScan")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasMaxLength(25)
-                        .HasColumnType("nvarchar(25)");
+                    b.Property<int>("PersonId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Relationship")
                         .HasColumnType("int");
-
-                    b.Property<int>("ResidentialCountryId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -358,17 +441,18 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("NationalityCountryId");
 
-                    b.HasIndex("ResidentialCountryId");
+                    b.HasIndex("PersonId")
+                        .IsUnique();
 
                     b.HasIndex("UserId");
 
                     b.ToTable("Companions", t =>
                         {
-                            t.HasCheckConstraint("CHK_Companion_Relationship", "[Relationship] IN ('Spouse', 'Child', 'Parent', 'Sibling', 'Friend', 'Relative', 'Colleague', 'Guardian', 'Partner', 'Other')");
+                            t.HasCheckConstraint("CHK_Companion_Relationship", "[Relationship] IN (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)");
                         });
                 });
 
-            modelBuilder.Entity("Domain.Entities.CompanionBooking", b =>
+            modelBuilder.Entity("Domain.Entities.Companion_Booking", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -388,10 +472,10 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CompanionId");
 
-                    b.ToTable("CompanionBookings");
+                    b.ToTable("Companion_Booking", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.CompanyGuide", b =>
+            modelBuilder.Entity("Domain.Entities.Company_TouristGuide", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -422,7 +506,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("CompanyId", "TouristGuideId")
                         .IsUnique();
 
-                    b.ToTable("CompanyGuides", (string)null);
+                    b.ToTable("Company_TouristGuide", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Country", b =>
@@ -443,13 +527,1469 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Flag")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.HasKey("Id");
 
                     b.ToTable("Countries");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CountryCode = "AF",
+                            CountryName = "Afghanistan"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CountryCode = "AX",
+                            CountryName = "Åland Islands"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CountryCode = "AL",
+                            CountryName = "Albania"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CountryCode = "DZ",
+                            CountryName = "Algeria"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CountryCode = "AS",
+                            CountryName = "American Samoa"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CountryCode = "AD",
+                            CountryName = "AndorrA"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CountryCode = "AO",
+                            CountryName = "Angola"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CountryCode = "AI",
+                            CountryName = "Anguilla"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CountryCode = "AQ",
+                            CountryName = "Antarctica"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CountryCode = "AG",
+                            CountryName = "Antigua and Barbuda"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CountryCode = "AR",
+                            CountryName = "Argentina"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            CountryCode = "AM",
+                            CountryName = "Armenia"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            CountryCode = "AW",
+                            CountryName = "Aruba"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            CountryCode = "AU",
+                            CountryName = "Australia"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            CountryCode = "AT",
+                            CountryName = "Austria"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            CountryCode = "AZ",
+                            CountryName = "Azerbaijan"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            CountryCode = "BS",
+                            CountryName = "Bahamas"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            CountryCode = "BH",
+                            CountryName = "Bahrain"
+                        },
+                        new
+                        {
+                            Id = 19,
+                            CountryCode = "BD",
+                            CountryName = "Bangladesh"
+                        },
+                        new
+                        {
+                            Id = 20,
+                            CountryCode = "BB",
+                            CountryName = "Barbados"
+                        },
+                        new
+                        {
+                            Id = 21,
+                            CountryCode = "BY",
+                            CountryName = "Belarus"
+                        },
+                        new
+                        {
+                            Id = 22,
+                            CountryCode = "BE",
+                            CountryName = "Belgium"
+                        },
+                        new
+                        {
+                            Id = 23,
+                            CountryCode = "BZ",
+                            CountryName = "Belize"
+                        },
+                        new
+                        {
+                            Id = 24,
+                            CountryCode = "BJ",
+                            CountryName = "Benin"
+                        },
+                        new
+                        {
+                            Id = 25,
+                            CountryCode = "BM",
+                            CountryName = "Bermuda"
+                        },
+                        new
+                        {
+                            Id = 26,
+                            CountryCode = "BT",
+                            CountryName = "Bhutan"
+                        },
+                        new
+                        {
+                            Id = 27,
+                            CountryCode = "BO",
+                            CountryName = "Bolivia"
+                        },
+                        new
+                        {
+                            Id = 28,
+                            CountryCode = "BA",
+                            CountryName = "Bosnia and Herzegovina"
+                        },
+                        new
+                        {
+                            Id = 29,
+                            CountryCode = "BW",
+                            CountryName = "Botswana"
+                        },
+                        new
+                        {
+                            Id = 30,
+                            CountryCode = "BV",
+                            CountryName = "Bouvet Island"
+                        },
+                        new
+                        {
+                            Id = 31,
+                            CountryCode = "BR",
+                            CountryName = "Brazil"
+                        },
+                        new
+                        {
+                            Id = 32,
+                            CountryCode = "IO",
+                            CountryName = "British Indian Ocean Territory"
+                        },
+                        new
+                        {
+                            Id = 33,
+                            CountryCode = "BN",
+                            CountryName = "Brunei Darussalam"
+                        },
+                        new
+                        {
+                            Id = 34,
+                            CountryCode = "BG",
+                            CountryName = "Bulgaria"
+                        },
+                        new
+                        {
+                            Id = 35,
+                            CountryCode = "BF",
+                            CountryName = "Burkina Faso"
+                        },
+                        new
+                        {
+                            Id = 36,
+                            CountryCode = "BI",
+                            CountryName = "Burundi"
+                        },
+                        new
+                        {
+                            Id = 37,
+                            CountryCode = "KH",
+                            CountryName = "Cambodia"
+                        },
+                        new
+                        {
+                            Id = 38,
+                            CountryCode = "CM",
+                            CountryName = "Cameroon"
+                        },
+                        new
+                        {
+                            Id = 39,
+                            CountryCode = "CA",
+                            CountryName = "Canada"
+                        },
+                        new
+                        {
+                            Id = 40,
+                            CountryCode = "CV",
+                            CountryName = "Cape Verde"
+                        },
+                        new
+                        {
+                            Id = 41,
+                            CountryCode = "KY",
+                            CountryName = "Cayman Islands"
+                        },
+                        new
+                        {
+                            Id = 42,
+                            CountryCode = "CF",
+                            CountryName = "Central African Republic"
+                        },
+                        new
+                        {
+                            Id = 43,
+                            CountryCode = "TD",
+                            CountryName = "Chad"
+                        },
+                        new
+                        {
+                            Id = 44,
+                            CountryCode = "CL",
+                            CountryName = "Chile"
+                        },
+                        new
+                        {
+                            Id = 45,
+                            CountryCode = "CN",
+                            CountryName = "China"
+                        },
+                        new
+                        {
+                            Id = 46,
+                            CountryCode = "CX",
+                            CountryName = "Christmas Island"
+                        },
+                        new
+                        {
+                            Id = 47,
+                            CountryCode = "CC",
+                            CountryName = "Cocos (Keeling) Islands"
+                        },
+                        new
+                        {
+                            Id = 48,
+                            CountryCode = "CO",
+                            CountryName = "Colombia"
+                        },
+                        new
+                        {
+                            Id = 49,
+                            CountryCode = "KM",
+                            CountryName = "Comoros"
+                        },
+                        new
+                        {
+                            Id = 50,
+                            CountryCode = "CG",
+                            CountryName = "Congo"
+                        },
+                        new
+                        {
+                            Id = 51,
+                            CountryCode = "CD",
+                            CountryName = "Congo, The Democratic Republic of the"
+                        },
+                        new
+                        {
+                            Id = 52,
+                            CountryCode = "CK",
+                            CountryName = "Cook Islands"
+                        },
+                        new
+                        {
+                            Id = 53,
+                            CountryCode = "CR",
+                            CountryName = "Costa Rica"
+                        },
+                        new
+                        {
+                            Id = 54,
+                            CountryCode = "CI",
+                            CountryName = "Cote D\"Ivoire"
+                        },
+                        new
+                        {
+                            Id = 55,
+                            CountryCode = "HR",
+                            CountryName = "Croatia"
+                        },
+                        new
+                        {
+                            Id = 56,
+                            CountryCode = "CU",
+                            CountryName = "Cuba"
+                        },
+                        new
+                        {
+                            Id = 57,
+                            CountryCode = "CY",
+                            CountryName = "Cyprus"
+                        },
+                        new
+                        {
+                            Id = 58,
+                            CountryCode = "CZ",
+                            CountryName = "Czech Republic"
+                        },
+                        new
+                        {
+                            Id = 59,
+                            CountryCode = "DK",
+                            CountryName = "Denmark"
+                        },
+                        new
+                        {
+                            Id = 60,
+                            CountryCode = "DJ",
+                            CountryName = "Djibouti"
+                        },
+                        new
+                        {
+                            Id = 61,
+                            CountryCode = "DM",
+                            CountryName = "Dominica"
+                        },
+                        new
+                        {
+                            Id = 62,
+                            CountryCode = "DO",
+                            CountryName = "Dominican Republic"
+                        },
+                        new
+                        {
+                            Id = 63,
+                            CountryCode = "EC",
+                            CountryName = "Ecuador"
+                        },
+                        new
+                        {
+                            Id = 64,
+                            CountryCode = "EG",
+                            CountryName = "Egypt"
+                        },
+                        new
+                        {
+                            Id = 65,
+                            CountryCode = "SV",
+                            CountryName = "El Salvador"
+                        },
+                        new
+                        {
+                            Id = 66,
+                            CountryCode = "GQ",
+                            CountryName = "Equatorial Guinea"
+                        },
+                        new
+                        {
+                            Id = 67,
+                            CountryCode = "ER",
+                            CountryName = "Eritrea"
+                        },
+                        new
+                        {
+                            Id = 68,
+                            CountryCode = "EE",
+                            CountryName = "Estonia"
+                        },
+                        new
+                        {
+                            Id = 69,
+                            CountryCode = "ET",
+                            CountryName = "Ethiopia"
+                        },
+                        new
+                        {
+                            Id = 70,
+                            CountryCode = "FK",
+                            CountryName = "Falkland Islands (Malvinas)"
+                        },
+                        new
+                        {
+                            Id = 71,
+                            CountryCode = "FO",
+                            CountryName = "Faroe Islands"
+                        },
+                        new
+                        {
+                            Id = 72,
+                            CountryCode = "FJ",
+                            CountryName = "Fiji"
+                        },
+                        new
+                        {
+                            Id = 73,
+                            CountryCode = "FI",
+                            CountryName = "Finland"
+                        },
+                        new
+                        {
+                            Id = 74,
+                            CountryCode = "FR",
+                            CountryName = "France"
+                        },
+                        new
+                        {
+                            Id = 75,
+                            CountryCode = "GF",
+                            CountryName = "French Guiana"
+                        },
+                        new
+                        {
+                            Id = 76,
+                            CountryCode = "PF",
+                            CountryName = "French Polynesia"
+                        },
+                        new
+                        {
+                            Id = 77,
+                            CountryCode = "TF",
+                            CountryName = "French Southern Territories"
+                        },
+                        new
+                        {
+                            Id = 78,
+                            CountryCode = "GA",
+                            CountryName = "Gabon"
+                        },
+                        new
+                        {
+                            Id = 79,
+                            CountryCode = "GM",
+                            CountryName = "Gambia"
+                        },
+                        new
+                        {
+                            Id = 80,
+                            CountryCode = "GE",
+                            CountryName = "Georgia"
+                        },
+                        new
+                        {
+                            Id = 81,
+                            CountryCode = "DE",
+                            CountryName = "Germany"
+                        },
+                        new
+                        {
+                            Id = 82,
+                            CountryCode = "GH",
+                            CountryName = "Ghana"
+                        },
+                        new
+                        {
+                            Id = 83,
+                            CountryCode = "GI",
+                            CountryName = "Gibraltar"
+                        },
+                        new
+                        {
+                            Id = 84,
+                            CountryCode = "GR",
+                            CountryName = "Greece"
+                        },
+                        new
+                        {
+                            Id = 85,
+                            CountryCode = "GL",
+                            CountryName = "Greenland"
+                        },
+                        new
+                        {
+                            Id = 86,
+                            CountryCode = "GD",
+                            CountryName = "Grenada"
+                        },
+                        new
+                        {
+                            Id = 87,
+                            CountryCode = "GP",
+                            CountryName = "Guadeloupe"
+                        },
+                        new
+                        {
+                            Id = 88,
+                            CountryCode = "GU",
+                            CountryName = "Guam"
+                        },
+                        new
+                        {
+                            Id = 89,
+                            CountryCode = "GT",
+                            CountryName = "Guatemala"
+                        },
+                        new
+                        {
+                            Id = 90,
+                            CountryCode = "GG",
+                            CountryName = "Guernsey"
+                        },
+                        new
+                        {
+                            Id = 91,
+                            CountryCode = "GN",
+                            CountryName = "Guinea"
+                        },
+                        new
+                        {
+                            Id = 92,
+                            CountryCode = "GW",
+                            CountryName = "Guinea-Bissau"
+                        },
+                        new
+                        {
+                            Id = 93,
+                            CountryCode = "GY",
+                            CountryName = "Guyana"
+                        },
+                        new
+                        {
+                            Id = 94,
+                            CountryCode = "HT",
+                            CountryName = "Haiti"
+                        },
+                        new
+                        {
+                            Id = 95,
+                            CountryCode = "HM",
+                            CountryName = "Heard Island and Mcdonald Islands"
+                        },
+                        new
+                        {
+                            Id = 96,
+                            CountryCode = "VA",
+                            CountryName = "Holy See (Vatican City State)"
+                        },
+                        new
+                        {
+                            Id = 97,
+                            CountryCode = "HN",
+                            CountryName = "Honduras"
+                        },
+                        new
+                        {
+                            Id = 98,
+                            CountryCode = "HK",
+                            CountryName = "Hong Kong"
+                        },
+                        new
+                        {
+                            Id = 99,
+                            CountryCode = "HU",
+                            CountryName = "Hungary"
+                        },
+                        new
+                        {
+                            Id = 100,
+                            CountryCode = "IS",
+                            CountryName = "Iceland"
+                        },
+                        new
+                        {
+                            Id = 101,
+                            CountryCode = "IN",
+                            CountryName = "India"
+                        },
+                        new
+                        {
+                            Id = 102,
+                            CountryCode = "ID",
+                            CountryName = "Indonesia"
+                        },
+                        new
+                        {
+                            Id = 103,
+                            CountryCode = "IR",
+                            CountryName = "Iran, Islamic Republic Of"
+                        },
+                        new
+                        {
+                            Id = 104,
+                            CountryCode = "IQ",
+                            CountryName = "Iraq"
+                        },
+                        new
+                        {
+                            Id = 105,
+                            CountryCode = "IE",
+                            CountryName = "Ireland"
+                        },
+                        new
+                        {
+                            Id = 106,
+                            CountryCode = "IM",
+                            CountryName = "Isle of Man"
+                        },
+                        new
+                        {
+                            Id = 107,
+                            CountryCode = "IL",
+                            CountryName = "Israel"
+                        },
+                        new
+                        {
+                            Id = 108,
+                            CountryCode = "IT",
+                            CountryName = "Italy"
+                        },
+                        new
+                        {
+                            Id = 109,
+                            CountryCode = "JM",
+                            CountryName = "Jamaica"
+                        },
+                        new
+                        {
+                            Id = 110,
+                            CountryCode = "JP",
+                            CountryName = "Japan"
+                        },
+                        new
+                        {
+                            Id = 111,
+                            CountryCode = "JE",
+                            CountryName = "Jersey"
+                        },
+                        new
+                        {
+                            Id = 112,
+                            CountryCode = "JO",
+                            CountryName = "Jordan"
+                        },
+                        new
+                        {
+                            Id = 113,
+                            CountryCode = "KZ",
+                            CountryName = "Kazakhstan"
+                        },
+                        new
+                        {
+                            Id = 114,
+                            CountryCode = "KE",
+                            CountryName = "Kenya"
+                        },
+                        new
+                        {
+                            Id = 115,
+                            CountryCode = "KI",
+                            CountryName = "Kiribati"
+                        },
+                        new
+                        {
+                            Id = 116,
+                            CountryCode = "KP",
+                            CountryName = "Korea, Democratic People\"S Republic of"
+                        },
+                        new
+                        {
+                            Id = 117,
+                            CountryCode = "KR",
+                            CountryName = "Korea, Republic of"
+                        },
+                        new
+                        {
+                            Id = 118,
+                            CountryCode = "KW",
+                            CountryName = "Kuwait"
+                        },
+                        new
+                        {
+                            Id = 119,
+                            CountryCode = "KG",
+                            CountryName = "Kyrgyzstan"
+                        },
+                        new
+                        {
+                            Id = 120,
+                            CountryCode = "LA",
+                            CountryName = "Lao People\"S Democratic Republic"
+                        },
+                        new
+                        {
+                            Id = 121,
+                            CountryCode = "LV",
+                            CountryName = "Latvia"
+                        },
+                        new
+                        {
+                            Id = 122,
+                            CountryCode = "LB",
+                            CountryName = "Lebanon"
+                        },
+                        new
+                        {
+                            Id = 123,
+                            CountryCode = "LS",
+                            CountryName = "Lesotho"
+                        },
+                        new
+                        {
+                            Id = 124,
+                            CountryCode = "LR",
+                            CountryName = "Liberia"
+                        },
+                        new
+                        {
+                            Id = 125,
+                            CountryCode = "LY",
+                            CountryName = "Libyan Arab Jamahiriya"
+                        },
+                        new
+                        {
+                            Id = 126,
+                            CountryCode = "LI",
+                            CountryName = "Liechtenstein"
+                        },
+                        new
+                        {
+                            Id = 127,
+                            CountryCode = "LT",
+                            CountryName = "Lithuania"
+                        },
+                        new
+                        {
+                            Id = 128,
+                            CountryCode = "LU",
+                            CountryName = "Luxembourg"
+                        },
+                        new
+                        {
+                            Id = 129,
+                            CountryCode = "MO",
+                            CountryName = "Macao"
+                        },
+                        new
+                        {
+                            Id = 130,
+                            CountryCode = "MK",
+                            CountryName = "Macedonia, The Former Yugoslav Republic of"
+                        },
+                        new
+                        {
+                            Id = 131,
+                            CountryCode = "MG",
+                            CountryName = "Madagascar"
+                        },
+                        new
+                        {
+                            Id = 132,
+                            CountryCode = "MW",
+                            CountryName = "Malawi"
+                        },
+                        new
+                        {
+                            Id = 133,
+                            CountryCode = "MY",
+                            CountryName = "Malaysia"
+                        },
+                        new
+                        {
+                            Id = 134,
+                            CountryCode = "MV",
+                            CountryName = "Maldives"
+                        },
+                        new
+                        {
+                            Id = 135,
+                            CountryCode = "ML",
+                            CountryName = "Mali"
+                        },
+                        new
+                        {
+                            Id = 136,
+                            CountryCode = "MT",
+                            CountryName = "Malta"
+                        },
+                        new
+                        {
+                            Id = 137,
+                            CountryCode = "MH",
+                            CountryName = "Marshall Islands"
+                        },
+                        new
+                        {
+                            Id = 138,
+                            CountryCode = "MQ",
+                            CountryName = "Martinique"
+                        },
+                        new
+                        {
+                            Id = 139,
+                            CountryCode = "MR",
+                            CountryName = "Mauritania"
+                        },
+                        new
+                        {
+                            Id = 140,
+                            CountryCode = "MU",
+                            CountryName = "Mauritius"
+                        },
+                        new
+                        {
+                            Id = 141,
+                            CountryCode = "YT",
+                            CountryName = "Mayotte"
+                        },
+                        new
+                        {
+                            Id = 142,
+                            CountryCode = "MX",
+                            CountryName = "Mexico"
+                        },
+                        new
+                        {
+                            Id = 143,
+                            CountryCode = "FM",
+                            CountryName = "Micronesia, Federated States of"
+                        },
+                        new
+                        {
+                            Id = 144,
+                            CountryCode = "MD",
+                            CountryName = "Moldova, Republic of"
+                        },
+                        new
+                        {
+                            Id = 145,
+                            CountryCode = "MC",
+                            CountryName = "Monaco"
+                        },
+                        new
+                        {
+                            Id = 146,
+                            CountryCode = "MN",
+                            CountryName = "Mongolia"
+                        },
+                        new
+                        {
+                            Id = 147,
+                            CountryCode = "MS",
+                            CountryName = "Montserrat"
+                        },
+                        new
+                        {
+                            Id = 148,
+                            CountryCode = "MA",
+                            CountryName = "Morocco"
+                        },
+                        new
+                        {
+                            Id = 149,
+                            CountryCode = "MZ",
+                            CountryName = "Mozambique"
+                        },
+                        new
+                        {
+                            Id = 150,
+                            CountryCode = "MM",
+                            CountryName = "Myanmar"
+                        },
+                        new
+                        {
+                            Id = 151,
+                            CountryCode = "NA",
+                            CountryName = "Namibia"
+                        },
+                        new
+                        {
+                            Id = 152,
+                            CountryCode = "NR",
+                            CountryName = "Nauru"
+                        },
+                        new
+                        {
+                            Id = 153,
+                            CountryCode = "NP",
+                            CountryName = "Nepal"
+                        },
+                        new
+                        {
+                            Id = 154,
+                            CountryCode = "NL",
+                            CountryName = "Netherlands"
+                        },
+                        new
+                        {
+                            Id = 155,
+                            CountryCode = "AN",
+                            CountryName = "Netherlands Antilles"
+                        },
+                        new
+                        {
+                            Id = 156,
+                            CountryCode = "NC",
+                            CountryName = "New Caledonia"
+                        },
+                        new
+                        {
+                            Id = 157,
+                            CountryCode = "NZ",
+                            CountryName = "New Zealand"
+                        },
+                        new
+                        {
+                            Id = 158,
+                            CountryCode = "NI",
+                            CountryName = "Nicaragua"
+                        },
+                        new
+                        {
+                            Id = 159,
+                            CountryCode = "NE",
+                            CountryName = "Niger"
+                        },
+                        new
+                        {
+                            Id = 160,
+                            CountryCode = "NG",
+                            CountryName = "Nigeria"
+                        },
+                        new
+                        {
+                            Id = 161,
+                            CountryCode = "NU",
+                            CountryName = "Niue"
+                        },
+                        new
+                        {
+                            Id = 162,
+                            CountryCode = "NF",
+                            CountryName = "Norfolk Island"
+                        },
+                        new
+                        {
+                            Id = 163,
+                            CountryCode = "MP",
+                            CountryName = "Northern Mariana Islands"
+                        },
+                        new
+                        {
+                            Id = 164,
+                            CountryCode = "NO",
+                            CountryName = "Norway"
+                        },
+                        new
+                        {
+                            Id = 165,
+                            CountryCode = "OM",
+                            CountryName = "Oman"
+                        },
+                        new
+                        {
+                            Id = 166,
+                            CountryCode = "PK",
+                            CountryName = "Pakistan"
+                        },
+                        new
+                        {
+                            Id = 167,
+                            CountryCode = "PW",
+                            CountryName = "Palau"
+                        },
+                        new
+                        {
+                            Id = 168,
+                            CountryCode = "PS",
+                            CountryName = "Palestinian Territory, Occupied"
+                        },
+                        new
+                        {
+                            Id = 169,
+                            CountryCode = "PA",
+                            CountryName = "Panama"
+                        },
+                        new
+                        {
+                            Id = 170,
+                            CountryCode = "PG",
+                            CountryName = "Papua New Guinea"
+                        },
+                        new
+                        {
+                            Id = 171,
+                            CountryCode = "PY",
+                            CountryName = "Paraguay"
+                        },
+                        new
+                        {
+                            Id = 172,
+                            CountryCode = "PE",
+                            CountryName = "Peru"
+                        },
+                        new
+                        {
+                            Id = 173,
+                            CountryCode = "PH",
+                            CountryName = "Philippines"
+                        },
+                        new
+                        {
+                            Id = 174,
+                            CountryCode = "PN",
+                            CountryName = "Pitcairn"
+                        },
+                        new
+                        {
+                            Id = 175,
+                            CountryCode = "PL",
+                            CountryName = "Poland"
+                        },
+                        new
+                        {
+                            Id = 176,
+                            CountryCode = "PT",
+                            CountryName = "Portugal"
+                        },
+                        new
+                        {
+                            Id = 177,
+                            CountryCode = "PR",
+                            CountryName = "Puerto Rico"
+                        },
+                        new
+                        {
+                            Id = 178,
+                            CountryCode = "QA",
+                            CountryName = "Qatar"
+                        },
+                        new
+                        {
+                            Id = 179,
+                            CountryCode = "RE",
+                            CountryName = "Reunion"
+                        },
+                        new
+                        {
+                            Id = 180,
+                            CountryCode = "RO",
+                            CountryName = "Romania"
+                        },
+                        new
+                        {
+                            Id = 181,
+                            CountryCode = "RU",
+                            CountryName = "Russian Federation"
+                        },
+                        new
+                        {
+                            Id = 182,
+                            CountryCode = "RW",
+                            CountryName = "RWANDA"
+                        },
+                        new
+                        {
+                            Id = 183,
+                            CountryCode = "SH",
+                            CountryName = "Saint Helena"
+                        },
+                        new
+                        {
+                            Id = 184,
+                            CountryCode = "KN",
+                            CountryName = "Saint Kitts and Nevis"
+                        },
+                        new
+                        {
+                            Id = 185,
+                            CountryCode = "LC",
+                            CountryName = "Saint Lucia"
+                        },
+                        new
+                        {
+                            Id = 186,
+                            CountryCode = "PM",
+                            CountryName = "Saint Pierre and Miquelon"
+                        },
+                        new
+                        {
+                            Id = 187,
+                            CountryCode = "VC",
+                            CountryName = "Saint Vincent and the Grenadines"
+                        },
+                        new
+                        {
+                            Id = 188,
+                            CountryCode = "WS",
+                            CountryName = "Samoa"
+                        },
+                        new
+                        {
+                            Id = 189,
+                            CountryCode = "SM",
+                            CountryName = "San Marino"
+                        },
+                        new
+                        {
+                            Id = 190,
+                            CountryCode = "ST",
+                            CountryName = "Sao Tome and Principe"
+                        },
+                        new
+                        {
+                            Id = 191,
+                            CountryCode = "SA",
+                            CountryName = "Saudi Arabia"
+                        },
+                        new
+                        {
+                            Id = 192,
+                            CountryCode = "SN",
+                            CountryName = "Senegal"
+                        },
+                        new
+                        {
+                            Id = 193,
+                            CountryCode = "CS",
+                            CountryName = "Serbia and Montenegro"
+                        },
+                        new
+                        {
+                            Id = 194,
+                            CountryCode = "SC",
+                            CountryName = "Seychelles"
+                        },
+                        new
+                        {
+                            Id = 195,
+                            CountryCode = "SL",
+                            CountryName = "Sierra Leone"
+                        },
+                        new
+                        {
+                            Id = 196,
+                            CountryCode = "SG",
+                            CountryName = "Singapore"
+                        },
+                        new
+                        {
+                            Id = 197,
+                            CountryCode = "SK",
+                            CountryName = "Slovakia"
+                        },
+                        new
+                        {
+                            Id = 198,
+                            CountryCode = "SI",
+                            CountryName = "Slovenia"
+                        },
+                        new
+                        {
+                            Id = 199,
+                            CountryCode = "SB",
+                            CountryName = "Solomon Islands"
+                        },
+                        new
+                        {
+                            Id = 200,
+                            CountryCode = "SO",
+                            CountryName = "Somalia"
+                        },
+                        new
+                        {
+                            Id = 201,
+                            CountryCode = "ZA",
+                            CountryName = "South Africa"
+                        },
+                        new
+                        {
+                            Id = 202,
+                            CountryCode = "GS",
+                            CountryName = "South Georgia and the South Sandwich Islands"
+                        },
+                        new
+                        {
+                            Id = 203,
+                            CountryCode = "ES",
+                            CountryName = "Spain"
+                        },
+                        new
+                        {
+                            Id = 204,
+                            CountryCode = "LK",
+                            CountryName = "Sri Lanka"
+                        },
+                        new
+                        {
+                            Id = 205,
+                            CountryCode = "SD",
+                            CountryName = "Sudan"
+                        },
+                        new
+                        {
+                            Id = 206,
+                            CountryCode = "SR",
+                            CountryName = "Suri"
+                        },
+                        new
+                        {
+                            Id = 207,
+                            CountryCode = "SJ",
+                            CountryName = "Svalbard and Jan Mayen"
+                        },
+                        new
+                        {
+                            Id = 208,
+                            CountryCode = "SZ",
+                            CountryName = "Swaziland"
+                        },
+                        new
+                        {
+                            Id = 209,
+                            CountryCode = "SE",
+                            CountryName = "Sweden"
+                        },
+                        new
+                        {
+                            Id = 210,
+                            CountryCode = "CH",
+                            CountryName = "Switzerland"
+                        },
+                        new
+                        {
+                            Id = 211,
+                            CountryCode = "SY",
+                            CountryName = "Syrian Arab Republic"
+                        },
+                        new
+                        {
+                            Id = 212,
+                            CountryCode = "TW",
+                            CountryName = "Taiwan, Province of China"
+                        },
+                        new
+                        {
+                            Id = 213,
+                            CountryCode = "TJ",
+                            CountryName = "Tajikistan"
+                        },
+                        new
+                        {
+                            Id = 214,
+                            CountryCode = "TZ",
+                            CountryName = "Tanzania, United Republic of"
+                        },
+                        new
+                        {
+                            Id = 215,
+                            CountryCode = "TH",
+                            CountryName = "Thailand"
+                        },
+                        new
+                        {
+                            Id = 216,
+                            CountryCode = "TL",
+                            CountryName = "Timor-Leste"
+                        },
+                        new
+                        {
+                            Id = 217,
+                            CountryCode = "TG",
+                            CountryName = "Togo"
+                        },
+                        new
+                        {
+                            Id = 218,
+                            CountryCode = "TK",
+                            CountryName = "Tokelau"
+                        },
+                        new
+                        {
+                            Id = 219,
+                            CountryCode = "TO",
+                            CountryName = "Tonga"
+                        },
+                        new
+                        {
+                            Id = 220,
+                            CountryCode = "TT",
+                            CountryName = "Trinidad and Tobago"
+                        },
+                        new
+                        {
+                            Id = 221,
+                            CountryCode = "TN",
+                            CountryName = "Tunisia"
+                        },
+                        new
+                        {
+                            Id = 222,
+                            CountryCode = "TR",
+                            CountryName = "Turkey"
+                        },
+                        new
+                        {
+                            Id = 223,
+                            CountryCode = "TM",
+                            CountryName = "Turkmenistan"
+                        },
+                        new
+                        {
+                            Id = 224,
+                            CountryCode = "TC",
+                            CountryName = "Turks and Caicos Islands"
+                        },
+                        new
+                        {
+                            Id = 225,
+                            CountryCode = "TV",
+                            CountryName = "Tuvalu"
+                        },
+                        new
+                        {
+                            Id = 226,
+                            CountryCode = "UG",
+                            CountryName = "Uganda"
+                        },
+                        new
+                        {
+                            Id = 227,
+                            CountryCode = "UA",
+                            CountryName = "Ukraine"
+                        },
+                        new
+                        {
+                            Id = 228,
+                            CountryCode = "AE",
+                            CountryName = "United Arab Emirates"
+                        },
+                        new
+                        {
+                            Id = 229,
+                            CountryCode = "GB",
+                            CountryName = "United Kingdom"
+                        },
+                        new
+                        {
+                            Id = 230,
+                            CountryCode = "US",
+                            CountryName = "United States"
+                        },
+                        new
+                        {
+                            Id = 231,
+                            CountryCode = "UM",
+                            CountryName = "United States Minor Outlying Islands"
+                        },
+                        new
+                        {
+                            Id = 232,
+                            CountryCode = "UY",
+                            CountryName = "Uruguay"
+                        },
+                        new
+                        {
+                            Id = 233,
+                            CountryCode = "UZ",
+                            CountryName = "Uzbekistan"
+                        },
+                        new
+                        {
+                            Id = 234,
+                            CountryCode = "VU",
+                            CountryName = "Vanuatu"
+                        },
+                        new
+                        {
+                            Id = 235,
+                            CountryCode = "VE",
+                            CountryName = "Venezuela"
+                        },
+                        new
+                        {
+                            Id = 236,
+                            CountryCode = "VN",
+                            CountryName = "Viet Nam"
+                        },
+                        new
+                        {
+                            Id = 237,
+                            CountryCode = "VG",
+                            CountryName = "Virgin Islands, British"
+                        },
+                        new
+                        {
+                            Id = 238,
+                            CountryCode = "VI",
+                            CountryName = "Virgin Islands, U.S."
+                        },
+                        new
+                        {
+                            Id = 239,
+                            CountryCode = "WF",
+                            CountryName = "Wallis and Futuna"
+                        },
+                        new
+                        {
+                            Id = 240,
+                            CountryCode = "EH",
+                            CountryName = "Western Sahara"
+                        },
+                        new
+                        {
+                            Id = 241,
+                            CountryCode = "YE",
+                            CountryName = "Yemen"
+                        },
+                        new
+                        {
+                            Id = 242,
+                            CountryCode = "ZM",
+                            CountryName = "Zambia"
+                        },
+                        new
+                        {
+                            Id = 243,
+                            CountryCode = "ZW",
+                            CountryName = "Zimbabwe"
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.DeviceToken", b =>
@@ -580,7 +2120,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("Favorites");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Flight", b =>
+            modelBuilder.Entity("Domain.Entities.Itinerary", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -588,85 +2128,24 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Airline")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("Arrival")
-                        .HasColumnType("datetime");
-
-                    b.Property<int>("ArrivalCityId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAtUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
-                    b.Property<DateTime>("Departure")
-                        .HasColumnType("datetime");
-
-                    b.Property<int>("DepartureCityId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("FlightNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(10, 2)");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ArrivalCityId");
-
-                    b.HasIndex("DepartureCityId");
-
-                    b.ToTable("Flights");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Hotel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CityId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<string>("Description")
+                    b.Property<string>("DayDescription")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("HotelName")
+                    b.Property<int>("DayNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DayTitle")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<decimal>("Latitude")
-                        .HasColumnType("decimal(10, 6)");
-
-                    b.Property<decimal>("Longitude")
-                        .HasColumnType("decimal(10, 6)");
-
-                    b.Property<decimal>("PricePerNight")
-                        .HasColumnType("decimal(10, 2)");
-
-                    b.Property<int>("StarRating")
+                    b.Property<int>("PackageId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAtUtc")
@@ -676,43 +2155,9 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CityId");
+                    b.HasIndex("PackageId");
 
-                    b.ToTable("Hotels");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Image", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AttractionId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("ImageURL");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AttractionId");
-
-                    b.ToTable("Images");
+                    b.ToTable("Itineraries");
                 });
 
             modelBuilder.Entity("Domain.Entities.Notification", b =>
@@ -759,135 +2204,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("Domain.Entities.PackageCity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CityId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<int>("PackageId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CityId");
-
-                    b.HasIndex("PackageId", "CityId")
-                        .IsUnique();
-
-                    b.ToTable("PackageCities", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Entities.PackageItinerary", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<string>("DayDescription")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("DayNumber")
-                        .HasColumnType("int");
-
-                    b.Property<string>("DayTitle")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("PackageId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PackageId");
-
-                    b.ToTable("PackageItineraries");
-                });
-
-            modelBuilder.Entity("Domain.Entities.PackageItineraryAttraction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("AttractionId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getutcdate())");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<TimeOnly>("EndTime")
-                        .HasColumnType("time(0)");
-
-                    b.Property<string>("ImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("ItineraryId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OrderNumber")
-                        .HasColumnType("int");
-
-                    b.Property<TimeOnly>("StartTime")
-                        .HasColumnType("time(0)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getutcdate())");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AttractionId");
-
-                    b.HasIndex("ItineraryId");
-
-                    b.ToTable("PackageItineraryAttractions");
-                });
-
             modelBuilder.Entity("Domain.Entities.Payment", b =>
                 {
                     b.Property<int>("Id")
@@ -907,9 +2223,6 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("PaymentMethod")
-                        .HasColumnType("int");
-
                     b.Property<int>("PaymentStatus")
                         .HasColumnType("int");
 
@@ -927,10 +2240,87 @@ namespace Infrastructure.Migrations
 
                     b.ToTable("Payments", t =>
                         {
-                            t.HasCheckConstraint("CHK_PaymentMethods", "[PaymentMethod] IN ('Credit','Bank_Transfer','Digital_Wallet')");
-
-                            t.HasCheckConstraint("CHK_PaymentStatuses", "[PaymentStatus] IN ('Pending','Completed','Failed','Cancelled')");
+                            t.HasCheckConstraint("CHK_PaymentStatuses", "[PaymentStatus] IN (0, 1, 2, 3)");
                         });
+                });
+
+            modelBuilder.Entity("Domain.Entities.Person", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<DateOnly>("DateOfBirth")
+                        .HasColumnType("date");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("NationalIdCard")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("NationalNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("NationalityCountryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PassportNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PassportScan")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ProfileImage")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ResidencyCard")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ResidentialCityId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NationalityCountryId");
+
+                    b.HasIndex("ResidentialCityId");
+
+                    b.ToTable("Persons");
                 });
 
             modelBuilder.Entity("Domain.Entities.Rate", b =>
@@ -977,10 +2367,8 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AttractionId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Comment")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -989,7 +2377,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
-                    b.Property<int?>("PackageId")
+                    b.Property<int>("PackageId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAtUtc")
@@ -1002,8 +2390,6 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AttractionId");
-
                     b.HasIndex("PackageId");
 
                     b.HasIndex("UserId");
@@ -1013,34 +2399,113 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Role", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("RoleId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoleId"));
 
                     b.Property<string>("RoleName")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<DateTime>("UpdatedAtUtc")
+                    b.HasKey("RoleId");
+
+                    b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            RoleId = 1,
+                            RoleName = "Admin"
+                        },
+                        new
+                        {
+                            RoleId = 2,
+                            RoleName = "Tourist"
+                        },
+                        new
+                        {
+                            RoleId = 3,
+                            RoleName = "TourCompany"
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entities.SupportReply", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AdminId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
+                    b.Property<string>("ReplyContent")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Roles");
+                    b.HasIndex("AdminId");
+
+                    b.HasIndex("TicketId")
+                        .IsUnique();
+
+                    b.ToTable("SupportReplies");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Ticket", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Tickets");
                 });
 
             modelBuilder.Entity("Domain.Entities.TourCompany", b =>
@@ -1119,7 +2584,8 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("TourCompanies");
                 });
@@ -1172,12 +2638,16 @@ namespace Infrastructure.Migrations
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
-                    b.Property<string>("MainImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                    b.Property<string>("MeetingPoint")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("PackageName")
                         .IsRequired()
@@ -1264,7 +2734,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("TourPackageCabinClasses", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.TourPackageFlight", b =>
+            modelBuilder.Entity("Domain.Entities.TourPackageMedia", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1272,22 +2742,70 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("FlightId")
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisplayOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("MediaType")
                         .HasColumnType("int");
+
+                    b.Property<string>("MediaUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("TourPackageId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
 
-                    b.HasIndex("FlightId");
+                    b.HasKey("Id");
 
                     b.HasIndex("TourPackageId");
 
-                    b.ToTable("TourPackageFlights");
+                    b.ToTable("TourPackageMedias");
                 });
 
-            modelBuilder.Entity("Domain.Entities.TourPackageGuide", b =>
+            modelBuilder.Entity("Domain.Entities.TourPackage_Attraction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AttractionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int>("PackageId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttractionId");
+
+                    b.HasIndex("PackageId", "AttractionId")
+                        .IsUnique();
+
+                    b.ToTable("PackageAttractions", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.TourPackage_TouristGuide", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1318,41 +2836,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("PackageId", "TouristGuideId")
                         .IsUnique();
 
-                    b.ToTable("TourPackageGuides", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Entities.TourPackageHotel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CheckIn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("CheckOut")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("HotelId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TourPackageId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HotelId");
-
-                    b.HasIndex("TourPackageId");
-
-                    b.ToTable("TourPackageHotels", t =>
-                        {
-                            t.HasCheckConstraint("CHK_CheckIn_CheckOut", "[CheckOut] > [CheckIn]");
-
-                            t.HasCheckConstraint("CHK_Future_CheckIn", "[CheckIn] > GETDATE()");
-                        });
+                    b.ToTable("TourPackage_TouristGuide", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.TouristGuide", b =>
@@ -1368,34 +2852,10 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<string>("CurrentLocation")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateOnly>("DateOfBirth")
-                        .HasColumnType("date");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Firstname")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("Gender")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("IdCard")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("IsAvailable")
                         .ValueGeneratedOnAdd()
@@ -1406,55 +2866,25 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
-                    b.Property<string>("Lastname")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<string>("LicenseScan")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("NationalNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("NationalityCountryId")
+                    b.Property<int>("NatinalityCountryId")
                         .HasColumnType("int");
 
-                    b.Property<string>("PassportNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("PassportScan")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasMaxLength(25)
-                        .HasColumnType("nvarchar(25)");
-
-                    b.Property<string>("PlaceOfResidence")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("ProfileImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                    b.Property<int>("PersonId")
+                        .HasColumnType("int");
 
                     b.Property<int>("YearsOfExperiance")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NationalityCountryId");
+                    b.HasIndex("NatinalityCountryId");
+
+                    b.HasIndex("PersonId")
+                        .IsUnique();
 
                     b.ToTable("TouristGuides", t =>
                         {
@@ -1479,74 +2909,35 @@ namespace Infrastructure.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
-                    b.Property<string>("CurrentLocation")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateOnly?>("DateOfBirth")
-                        .HasColumnType("date")
-                        .HasColumnName("Date_Of_Birth");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(75)
                         .HasColumnType("nvarchar(75)");
 
-                    b.Property<string>("FirstName")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Gender")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("Image")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsEmailVerified")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsProfileCompleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                    b.Property<decimal?>("Latitude")
+                        .HasColumnType("decimal(18, 8)");
 
-                    b.Property<string>("LastName")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("NationalIdImage")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("NationalNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("PassportImage")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("PassportNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<decimal?>("Longitude")
+                        .HasColumnType("decimal(18, 8)");
 
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<string>("Phone")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("PlaceOfResidence")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int?>("RoleId")
+                    b.Property<int?>("PersonId")
                         .HasColumnType("int");
+
+                    b.Property<int>("RoleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<DateTime>("UpdatedAtUtc")
                         .ValueGeneratedOnAdd()
@@ -1554,6 +2945,10 @@ namespace Infrastructure.Migrations
                         .HasDefaultValueSql("(getdate())");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PersonId")
+                        .IsUnique()
+                        .HasFilter("[PersonId] IS NOT NULL");
 
                     b.HasIndex("RoleId");
 
@@ -1568,13 +2963,13 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AttractionId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAtUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int>("TourPackageId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAtUtc")
                         .ValueGeneratedOnAdd()
@@ -1586,52 +2981,41 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AttractionId");
+                    b.HasIndex("TourPackageId");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("Wishlists");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Activity", b =>
+                {
+                    b.HasOne("Domain.Entities.Itinerary", "Itinerary")
+                        .WithMany("Activities")
+                        .HasForeignKey("ItineraryId")
+                        .IsRequired()
+                        .HasConstraintName("FK__PackageIt__Itine__2645B050");
+
+                    b.Navigation("Itinerary");
+                });
+
             modelBuilder.Entity("Domain.Entities.Attraction", b =>
                 {
+                    b.HasOne("Domain.Entities.AttractionCategory", "AttractionCategory")
+                        .WithMany("Attractions")
+                        .HasForeignKey("AttractionCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Domain.Entities.City", "City")
                         .WithMany("Attractions")
                         .HasForeignKey("CityId")
-                        .IsRequired()
-                        .HasConstraintName("FK__Attractio__CityI__6EF57B66");
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AttractionCategory");
 
                     b.Navigation("City");
-                });
-
-            modelBuilder.Entity("Domain.Entities.AttractionActivity", b =>
-                {
-                    b.HasOne("Domain.Entities.Activity", "Activity")
-                        .WithMany("AttractionActivities")
-                        .HasForeignKey("ActivityId")
-                        .IsRequired()
-                        .HasConstraintName("FK__Attractio__Activ__2180FB33");
-
-                    b.HasOne("Domain.Entities.Attraction", "Attraction")
-                        .WithMany("AttractionActivities")
-                        .HasForeignKey("AttractionId")
-                        .IsRequired()
-                        .HasConstraintName("FK__Attractio__Attra__22751F6C");
-
-                    b.Navigation("Activity");
-
-                    b.Navigation("Attraction");
-                });
-
-            modelBuilder.Entity("Domain.Entities.AttractionCategory", b =>
-                {
-                    b.HasOne("Domain.Entities.Attraction", "Attraction")
-                        .WithMany("AttractionCategories")
-                        .HasForeignKey("AttractionId")
-                        .IsRequired()
-                        .HasConstraintName("FK__Attractio__Attra__73BA3083");
-
-                    b.Navigation("Attraction");
                 });
 
             modelBuilder.Entity("Domain.Entities.Booking", b =>
@@ -1643,9 +3027,11 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Bookings_payments");
 
-                    b.HasOne("Domain.Entities.TourPackage", null)
+                    b.HasOne("Domain.Entities.TourPackage", "TourPackage")
                         .WithMany("Bookings")
-                        .HasForeignKey("TourPackageId");
+                        .HasForeignKey("TourPackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany("Bookings")
@@ -1655,6 +3041,8 @@ namespace Infrastructure.Migrations
                         .HasConstraintName("FK__Bookings__UserId__0F624AF8");
 
                     b.Navigation("Payment");
+
+                    b.Navigation("TourPackage");
 
                     b.Navigation("User");
                 });
@@ -1673,15 +3061,15 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Companion", b =>
                 {
                     b.HasOne("Domain.Entities.Country", "NationalityCountry")
-                        .WithMany("NatinalityCompanions")
+                        .WithMany()
                         .HasForeignKey("NationalityCountryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.Country", "ResidentialCountry")
-                        .WithMany("ResidentialCompanions")
-                        .HasForeignKey("ResidentialCountryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("Domain.Entities.Person", "Person")
+                        .WithOne("Companion")
+                        .HasForeignKey("Domain.Entities.Companion", "PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.User", "User")
@@ -1692,12 +3080,12 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("NationalityCountry");
 
-                    b.Navigation("ResidentialCountry");
+                    b.Navigation("Person");
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.CompanionBooking", b =>
+            modelBuilder.Entity("Domain.Entities.Companion_Booking", b =>
                 {
                     b.HasOne("Domain.Entities.Booking", "Booking")
                         .WithMany("CompanionBookings")
@@ -1716,19 +3104,19 @@ namespace Infrastructure.Migrations
                     b.Navigation("Companion");
                 });
 
-            modelBuilder.Entity("Domain.Entities.CompanyGuide", b =>
+            modelBuilder.Entity("Domain.Entities.Company_TouristGuide", b =>
                 {
                     b.HasOne("Domain.Entities.TourCompany", "Company")
                         .WithMany("CompanyGuides")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_CompanyGuides_TourCompanies");
 
                     b.HasOne("Domain.Entities.TouristGuide", "TouristGuide")
                         .WithMany("CompanyGuides")
                         .HasForeignKey("TouristGuideId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_CompanyGuides_TouristGuides");
 
@@ -1779,45 +3167,15 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Flight", b =>
+            modelBuilder.Entity("Domain.Entities.Itinerary", b =>
                 {
-                    b.HasOne("Domain.Entities.City", "ArrivalCity")
-                        .WithMany("ArrivalFlights")
-                        .HasForeignKey("ArrivalCityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.City", "DepartureCity")
-                        .WithMany("DepartureFlights")
-                        .HasForeignKey("DepartureCityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ArrivalCity");
-
-                    b.Navigation("DepartureCity");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Hotel", b =>
-                {
-                    b.HasOne("Domain.Entities.City", "City")
-                        .WithMany("Hotels")
-                        .HasForeignKey("CityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("City");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Image", b =>
-                {
-                    b.HasOne("Domain.Entities.Attraction", "Attraction")
-                        .WithMany("Images")
-                        .HasForeignKey("AttractionId")
+                    b.HasOne("Domain.Entities.TourPackage", "Package")
+                        .WithMany("PackageItineraries")
+                        .HasForeignKey("PackageId")
                         .IsRequired()
-                        .HasConstraintName("FK__Images__Attracti__09A971A2");
+                        .HasConstraintName("FK__PackageIt__Packa__6A30C649");
 
-                    b.Navigation("Attraction");
+                    b.Navigation("Package");
                 });
 
             modelBuilder.Entity("Domain.Entities.Notification", b =>
@@ -1838,52 +3196,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.PackageCity", b =>
-                {
-                    b.HasOne("Domain.Entities.City", "City")
-                        .WithMany()
-                        .HasForeignKey("CityId")
-                        .IsRequired()
-                        .HasConstraintName("FK_PackageCities_Cities");
-
-                    b.HasOne("Domain.Entities.TourPackage", "Package")
-                        .WithMany("PackageCities")
-                        .HasForeignKey("PackageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_PackageCities_TourPackages");
-
-                    b.Navigation("City");
-
-                    b.Navigation("Package");
-                });
-
-            modelBuilder.Entity("Domain.Entities.PackageItinerary", b =>
-                {
-                    b.HasOne("Domain.Entities.TourPackage", "Package")
-                        .WithMany("PackageItineraries")
-                        .HasForeignKey("PackageId")
-                        .IsRequired()
-                        .HasConstraintName("FK__PackageIt__Packa__6A30C649");
-
-                    b.Navigation("Package");
-                });
-
-            modelBuilder.Entity("Domain.Entities.PackageItineraryAttraction", b =>
-                {
-                    b.HasOne("Domain.Entities.Attraction", null)
-                        .WithMany("PackageItineraryAttractions")
-                        .HasForeignKey("AttractionId");
-
-                    b.HasOne("Domain.Entities.PackageItinerary", "Itinerary")
-                        .WithMany("PackageItineraryAttractions")
-                        .HasForeignKey("ItineraryId")
-                        .IsRequired()
-                        .HasConstraintName("FK__PackageIt__Itine__2645B050");
-
-                    b.Navigation("Itinerary");
-                });
-
             modelBuilder.Entity("Domain.Entities.Payment", b =>
                 {
                     b.HasOne("Domain.Entities.User", "User")
@@ -1893,6 +3205,25 @@ namespace Infrastructure.Migrations
                         .HasConstraintName("FK__payments__UserId__756D6ECB");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Person", b =>
+                {
+                    b.HasOne("Domain.Entities.Country", "NationalityCountry")
+                        .WithMany("Persons")
+                        .HasForeignKey("NationalityCountryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.City", "ResidentialCity")
+                        .WithMany("Persons")
+                        .HasForeignKey("ResidentialCityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("NationalityCountry");
+
+                    b.Navigation("ResidentialCity");
                 });
 
             modelBuilder.Entity("Domain.Entities.Rate", b =>
@@ -1916,14 +3247,11 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Review", b =>
                 {
-                    b.HasOne("Domain.Entities.Attraction", "Attraction")
-                        .WithMany("Reviews")
-                        .HasForeignKey("AttractionId")
-                        .HasConstraintName("FK__Reviews__Attract__1DB06A4F");
-
                     b.HasOne("Domain.Entities.TourPackage", "Package")
                         .WithMany("Reviews")
                         .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("FK__Reviews__Package__1EA48E88");
 
                     b.HasOne("Domain.Entities.User", "User")
@@ -1932,9 +3260,39 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK__Reviews__UserId__1CBC4616");
 
-                    b.Navigation("Attraction");
-
                     b.Navigation("Package");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SupportReply", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "Admin")
+                        .WithMany("SupportReplies")
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_SupportReplies_Admins");
+
+                    b.HasOne("Domain.Entities.Ticket", "Ticket")
+                        .WithOne("SupportReply")
+                        .HasForeignKey("Domain.Entities.SupportReply", "TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_SupportReplies_Tickets");
+
+                    b.Navigation("Admin");
+
+                    b.Navigation("Ticket");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Ticket", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany("Tickets")
+                        .HasForeignKey("UserId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Tickets_Users");
 
                     b.Navigation("User");
                 });
@@ -1942,8 +3300,9 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.TourCompany", b =>
                 {
                     b.HasOne("Domain.Entities.User", "User")
-                        .WithMany("TourCompanies")
-                        .HasForeignKey("UserId")
+                        .WithOne("TourCompany")
+                        .HasForeignKey("Domain.Entities.TourCompany", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK__TourCompa__UserI__5812160E");
 
@@ -1981,26 +3340,39 @@ namespace Infrastructure.Migrations
                     b.Navigation("Package");
                 });
 
-            modelBuilder.Entity("Domain.Entities.TourPackageFlight", b =>
+            modelBuilder.Entity("Domain.Entities.TourPackageMedia", b =>
                 {
-                    b.HasOne("Domain.Entities.Flight", "Flight")
-                        .WithMany("TourPackageFlights")
-                        .HasForeignKey("FlightId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Domain.Entities.TourPackage", "TourPackage")
-                        .WithMany("TourPackageFlights")
+                        .WithMany("Media")
                         .HasForeignKey("TourPackageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Flight");
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_TourPackageMedia_TourPackages");
 
                     b.Navigation("TourPackage");
                 });
 
-            modelBuilder.Entity("Domain.Entities.TourPackageGuide", b =>
+            modelBuilder.Entity("Domain.Entities.TourPackage_Attraction", b =>
+                {
+                    b.HasOne("Domain.Entities.Attraction", "Attraction")
+                        .WithMany()
+                        .HasForeignKey("AttractionId")
+                        .IsRequired()
+                        .HasConstraintName("FK_PackageCities_Attractions");
+
+                    b.HasOne("Domain.Entities.TourPackage", "Package")
+                        .WithMany("PackageAttractions")
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PackageCities_TourPackages");
+
+                    b.Navigation("Attraction");
+
+                    b.Navigation("Package");
+                });
+
+            modelBuilder.Entity("Domain.Entities.TourPackage_TouristGuide", b =>
                 {
                     b.HasOne("Domain.Entities.TourPackage", "Package")
                         .WithMany("TourPackageGuides")
@@ -2020,83 +3392,68 @@ namespace Infrastructure.Migrations
                     b.Navigation("TouristGuide");
                 });
 
-            modelBuilder.Entity("Domain.Entities.TourPackageHotel", b =>
-                {
-                    b.HasOne("Domain.Entities.Hotel", "Hotel")
-                        .WithMany("TourPackageHotels")
-                        .HasForeignKey("HotelId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.TourPackage", "TourPackage")
-                        .WithMany("TourPackageHotels")
-                        .HasForeignKey("TourPackageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Hotel");
-
-                    b.Navigation("TourPackage");
-                });
-
             modelBuilder.Entity("Domain.Entities.TouristGuide", b =>
                 {
                     b.HasOne("Domain.Entities.Country", "NatinalityCountry")
                         .WithMany()
-                        .HasForeignKey("NationalityCountryId")
+                        .HasForeignKey("NatinalityCountryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Person", "Person")
+                        .WithOne("TouristGuide")
+                        .HasForeignKey("Domain.Entities.TouristGuide", "PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("NatinalityCountry");
+
+                    b.Navigation("Person");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
+                    b.HasOne("Domain.Entities.Person", "Person")
+                        .WithOne("User")
+                        .HasForeignKey("Domain.Entities.User", "PersonId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("Domain.Entities.Role", "Role")
                         .WithMany("Users")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("FK__Users__RoleId__4F7CD00D");
+
+                    b.Navigation("Person");
 
                     b.Navigation("Role");
                 });
 
             modelBuilder.Entity("Domain.Entities.Wishlist", b =>
                 {
-                    b.HasOne("Domain.Entities.Attraction", "Attraction")
+                    b.HasOne("Domain.Entities.TourPackage", "TourPackage")
                         .WithMany("Wishlists")
-                        .HasForeignKey("AttractionId")
+                        .HasForeignKey("TourPackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK__Wishlists__Attra__2FCF1A8A");
 
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany("Wishlists")
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK__Wishlists__UserI__2EDAF651");
 
-                    b.Navigation("Attraction");
+                    b.Navigation("TourPackage");
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Activity", b =>
+            modelBuilder.Entity("Domain.Entities.AttractionCategory", b =>
                 {
-                    b.Navigation("AttractionActivities");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Attraction", b =>
-                {
-                    b.Navigation("AttractionActivities");
-
-                    b.Navigation("AttractionCategories");
-
-                    b.Navigation("Images");
-
-                    b.Navigation("PackageItineraryAttractions");
-
-                    b.Navigation("Reviews");
-
-                    b.Navigation("Wishlists");
+                    b.Navigation("Attractions");
                 });
 
             modelBuilder.Entity("Domain.Entities.Booking", b =>
@@ -2108,13 +3465,9 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.City", b =>
                 {
-                    b.Navigation("ArrivalFlights");
-
                     b.Navigation("Attractions");
 
-                    b.Navigation("DepartureFlights");
-
-                    b.Navigation("Hotels");
+                    b.Navigation("Persons");
                 });
 
             modelBuilder.Entity("Domain.Entities.Companion", b =>
@@ -2126,26 +3479,14 @@ namespace Infrastructure.Migrations
                 {
                     b.Navigation("Cities");
 
-                    b.Navigation("NatinalityCompanions");
-
-                    b.Navigation("ResidentialCompanions");
+                    b.Navigation("Persons");
 
                     b.Navigation("TourPackages");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Flight", b =>
+            modelBuilder.Entity("Domain.Entities.Itinerary", b =>
                 {
-                    b.Navigation("TourPackageFlights");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Hotel", b =>
-                {
-                    b.Navigation("TourPackageHotels");
-                });
-
-            modelBuilder.Entity("Domain.Entities.PackageItinerary", b =>
-                {
-                    b.Navigation("PackageItineraryAttractions");
+                    b.Navigation("Activities");
                 });
 
             modelBuilder.Entity("Domain.Entities.Payment", b =>
@@ -2154,9 +3495,26 @@ namespace Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Domain.Entities.Person", b =>
+                {
+                    b.Navigation("Companion")
+                        .IsRequired();
+
+                    b.Navigation("TouristGuide")
+                        .IsRequired();
+
+                    b.Navigation("User")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Domain.Entities.Role", b =>
                 {
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Ticket", b =>
+                {
+                    b.Navigation("SupportReply");
                 });
 
             modelBuilder.Entity("Domain.Entities.TourCompany", b =>
@@ -2174,7 +3532,9 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("CabinClasses");
 
-                    b.Navigation("PackageCities");
+                    b.Navigation("Media");
+
+                    b.Navigation("PackageAttractions");
 
                     b.Navigation("PackageItineraries");
 
@@ -2182,11 +3542,9 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Reviews");
 
-                    b.Navigation("TourPackageFlights");
-
                     b.Navigation("TourPackageGuides");
 
-                    b.Navigation("TourPackageHotels");
+                    b.Navigation("Wishlists");
                 });
 
             modelBuilder.Entity("Domain.Entities.TouristGuide", b =>
@@ -2214,7 +3572,11 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Reviews");
 
-                    b.Navigation("TourCompanies");
+                    b.Navigation("SupportReplies");
+
+                    b.Navigation("Tickets");
+
+                    b.Navigation("TourCompany");
 
                     b.Navigation("Wishlists");
                 });

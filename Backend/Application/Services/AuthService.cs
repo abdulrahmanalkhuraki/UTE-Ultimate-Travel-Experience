@@ -21,6 +21,7 @@ public class AuthService : IAuthService
 
     private readonly IUserRepository _users;
     private readonly IGenericRepository<EmailVerification> _verifications;
+    private readonly IGenericRepository<Role> _roles;
     private readonly IPasswordHasher _hasher;
     private readonly IJwtTokenGenerator _tokens;
     private readonly IEmailSender _email;
@@ -29,6 +30,7 @@ public class AuthService : IAuthService
     public AuthService(
         IUserRepository users,
         IGenericRepository<EmailVerification> verifications,
+        IGenericRepository<Role> roles,
         IPasswordHasher hasher,
         IJwtTokenGenerator tokens,
         IEmailSender email,
@@ -36,6 +38,7 @@ public class AuthService : IAuthService
     {
         _users = users;
         _verifications = verifications;
+        _roles = roles;
         _hasher = hasher;
         _tokens = tokens;
         _email = email;
@@ -49,15 +52,19 @@ public class AuthService : IAuthService
         if (await _users.EmailExistsAsync(email, ct))
             throw new ConflictException("This email is already registered.");
 
+        var role = await _roles.Query()
+            .FirstOrDefaultAsync(r => r.RoleName == request.RoleName, ct)
+            ?? throw new NotFoundException($"Role '{request.RoleName}' does not exist. Contact support.");
+
         var now = DateTime.UtcNow;
         var user = new User
         {
             Email              = email,
             Password           = _hasher.Hash(request.Password),
+            RoleId             = role.RoleId,
             CreatedAtUtc       = now,
             UpdatedAtUtc       = now,
             IsEmailVerified    = false,
-            IsProfileCompleted = false
         };
 
         await _users.AddAsync(user, ct);
@@ -117,17 +124,14 @@ public class AuthService : IAuthService
         await _users.SaveChangesAsync(ct);
 
         var (token, expiresAt) = _tokens.GenerateToken(user);
+
         return new AuthResponse
         {
             UserId             = user.Id,
-            FirstName          = user.FirstName,
-            LastName           = user.LastName,
             Email              = user.Email,
-            Image              = user.Image,
-            DateOfBirth        = user.DateOfBirth,
             Role               = user.Role?.RoleName,
             IsEmailVerified    = true,
-            IsProfileCompleted = user.IsProfileCompleted,
+            IsProfileCompleted = user.PersonId.HasValue,
             Token              = token,
             ExpiresAt          = expiresAt
         };
@@ -168,14 +172,14 @@ public class AuthService : IAuthService
         return new AuthResponse
         {
             UserId             = user.Id,
-            FirstName          = user.FirstName,
-            LastName           = user.LastName,
+            FirstName          = user.Person?.FirstName,
+            LastName           = user.Person?.LastName,
             Email              = user.Email,
-            Image              = user.Image,
-            DateOfBirth        = user.DateOfBirth,
+            Image              = user.Person?.ProfileImage,
+            DateOfBirth        = user.Person?.DateOfBirth,
             Role               = user.Role?.RoleName,
             IsEmailVerified    = true,
-            IsProfileCompleted = user.IsProfileCompleted,
+            IsProfileCompleted = user.PersonId.HasValue,
             Token              = token,
             ExpiresAt          = expiresAt
         };
@@ -300,10 +304,10 @@ public class AuthService : IAuthService
 
     private async Task SendOtpEmailAsync(User user, string code, string purpose, CancellationToken ct)
     {
-        var displayName = !string.IsNullOrWhiteSpace(user.FirstName)
-            ? $"{user.FirstName} {user.LastName}".Trim()
+        var displayName = !string.IsNullOrWhiteSpace(user.Person?.FirstName)
+            ? $"{user.Person?.FirstName} {user.Person?.LastName}".Trim()
             : user.Email;
-        var greetingName = !string.IsNullOrWhiteSpace(user.FirstName) ? user.FirstName! : "there";
+        var greetingName = !string.IsNullOrWhiteSpace(user.Person?.FirstName) ? user.Person?.FirstName! : "there";
 
         var subject = purpose == PurposePasswordReset
             ? "Your UTE Tourism password reset code"

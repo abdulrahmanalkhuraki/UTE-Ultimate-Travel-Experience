@@ -1,10 +1,14 @@
 ﻿using Domain.Enums;
+using System.Numerics;
 
 namespace Domain.Entities;
 
-public partial class Booking : BaseEntity
-{
+    public partial class Booking : BaseEntity
+    {
     public DateTime BookingDate { get; set; }
+
+
+    public string? BookingNumber { get; set; }
 
     public int NumberOfAdults { get; set; }
 
@@ -15,12 +19,16 @@ public partial class Booking : BaseEntity
     public string? DietaryRequirements { get; set; }
 
     public string? SpecialRequests { get; set; }
+    // if the company reject the tourist booking it should provide reject reason
+    public string? RejectReason { get; set; }
 
-    public int PackageId { get; set; }
+    public decimal? TotalCost { get; set; } 
+
+    public int TourPackageId { get; set; }
 
     public BookingStatus Status { get; set; }
 
-    public FlightType FlightType { get; set; }
+    public FlightCabinClass FlightCabinClass { get; set; }
 
     public int UserId { get; set; }
 
@@ -30,7 +38,9 @@ public partial class Booking : BaseEntity
 
     public virtual User User { get; set; } = null!;
 
-    public virtual ICollection<CompanionBooking> CompanionBookings { get; set; } = new List<CompanionBooking>();
+    public virtual TourPackage TourPackage { get; set; } = null!;
+
+    public virtual ICollection<Companion_Booking> CompanionBookings { get; set; } = new List<Companion_Booking>();
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }

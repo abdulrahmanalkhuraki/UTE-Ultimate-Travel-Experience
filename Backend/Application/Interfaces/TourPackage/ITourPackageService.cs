@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Application.DTOs.TourPackage;
 using Application.DTOs.TourPackage.Request;
 using Application.DTOs.TourPackage.Response;
+using Domain.Enums;
 
 namespace Application.Interfaces.TourPackage
 {
@@ -23,10 +24,13 @@ namespace Application.Interfaces.TourPackage
         /// Lists the company's own programs filtered to one dashboard tab:
         /// current (الحالية), previous (السابقة), or cancelled (الملغاة).
         /// </summary>
-        Task<IReadOnlyList<TourPackageResponse>> GetMineByTimelineAsync(int ownerUserId, ProgramTimeline timeline, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<TourPackageResponse>> GetMineByTimelineAsync(int ownerUserId, TimeLine timeline, CancellationToken cancellationToken = default);
 
         /// <summary>Aggregate counts of the company's own programs for the dashboard stats card.</summary>
         Task<CompanyProgramStatsResponse> GetMyStatsAsync(int ownerUserId, CancellationToken cancellationToken = default);
+
+        /// <summary>Counts the company's own published programs (عدد البرامج المنشورة).</summary>
+        Task<int> GetMyPublishedCountAsync(int ownerUserId, CancellationToken cancellationToken = default);
 
         /// <summary>Updates a program; only its owning company may do so.</summary>
         Task<TourPackageResponse> UpdateAsync(int id, int ownerUserId, TourPackageUpdateRequest request, CancellationToken cancellationToken = default);
@@ -45,6 +49,12 @@ namespace Application.Interfaces.TourPackage
 
         /// <summary>Deletes a program; only its owning company may do so.</summary>
         Task<bool> DeleteAsync(int id, int ownerUserId, CancellationToken cancellationToken = default);
+
+        Task<bool> AddToWishlistAsync(int tourPackageId, CancellationToken cancellationToken = default);
+
+        Task<bool> RemoveFromWishlistAsync(int tourPackageId, CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyList<TourPackageResponse>> GetWishlistAsync(CancellationToken cancellationToken = default);
 
         Task<IReadOnlyList<TourPackageResponse>> FilterAsync(
             int? countryId = null,
