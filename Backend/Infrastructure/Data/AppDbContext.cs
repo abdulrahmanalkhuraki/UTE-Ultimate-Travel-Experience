@@ -999,6 +999,7 @@ namespace Infrastructure.Data;
             entity.Property(e => e.Subject).HasMaxLength(200);
             entity.Property(e => e.Description).HasMaxLength(2000);
             entity.Property(e => e.ImageUrl).HasMaxLength(500);
+            
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -1009,13 +1010,13 @@ namespace Infrastructure.Data;
 
             entity.HasOne(d => d.User).WithMany(p => p.Tickets)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_Tickets_Users");
 
 
             entity.HasOne(d => d.SupportReply).WithOne(r => r.Ticket)
                 .HasForeignKey<SupportReply>(r => r.TicketId)
-                .OnDelete(DeleteBehavior.Cascade)
+                .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK_SupportReplies_Tickets");
         });
 

@@ -4,9 +4,9 @@ using Infrastructure.Data;
 
 namespace Infrastructure.Repositories
 {
-    public class BookingRepository : GenericRepository<Booking>, IBookingRepository
+    public class ReviewRepository : GenericRepository<Review>, IReviewRepository
     {
-        public BookingRepository(AppDbContext db) : base(db)
+        public ReviewRepository(AppDbContext db) : base(db)
         {
         }
     }

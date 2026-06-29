@@ -33,6 +33,8 @@ namespace Infrastructure.Repositories
             Cities = new GenericRepository<City>(_context);
             Notifications = new GenericRepository<Notification>(_context);
             Wishlists = new GenericRepository<Wishlist>(_context);
+            Reviews = new GenericRepository<Review>(_context);
+            Rates = new GenericRepository<Rate>(_context);
             DeviceTokens = new GenericRepository<DeviceToken>(_context);
         }
 
@@ -71,6 +73,10 @@ namespace Infrastructure.Repositories
         public IGenericRepository<Country> Countries { get; }
 
         public IGenericRepository<City> Cities { get; }
+
+        public IGenericRepository<Review> Reviews { get; }
+
+        public IGenericRepository<Rate> Rates { get; }
 
         public IGenericRepository<Notification> Notifications { get; }
 
