@@ -15,5 +15,6 @@ namespace Domain.Enums
         BookingRejected, // booking rejected by company
         BookingConfirmed, // by tourist
         BookingDeclined, // by tourist
+        NewPackage,
     }
 }

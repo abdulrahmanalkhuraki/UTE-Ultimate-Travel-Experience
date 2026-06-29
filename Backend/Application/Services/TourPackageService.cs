@@ -120,6 +120,8 @@ namespace Application.Services
                 _logger.LogInformation("Created tour package {PackageId} ({PackageName}) for company {CompanyId}",
                     entity.Id, entity.PackageName, companyId);
 
+                await NotifyFavoritingUsersAsync(companyId, entity, cancellationToken);
+
                 return await BuildResponseAsync(entity.Id, cancellationToken);
             }
             catch (Exception ex) when (ex is not ValidationException and not NotFoundException and not ForbiddenException and not ConflictException)
@@ -812,6 +814,49 @@ namespace Application.Services
 
 
 
+
+        private async Task NotifyFavoritingUsersAsync(int companyId, TourPackage package, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var favoritingUserIds = await _unitOfWork.Favorites
+                    .Query()
+                    .AsNoTracking()
+                    .Where(f => f.CompanyId == companyId)
+                    .Select(f => f.UserId)
+                    .ToListAsync(cancellationToken);
+
+                if (favoritingUserIds.Count == 0)
+                {
+                    _logger.LogDebug("No favoriting users to notify for company {CompanyId}", companyId);
+                    return;
+                }
+
+                var message = $"New package '{package.PackageName}' has been published by a company you follow!";
+                var notifiedCount = 0;
+
+                foreach (var userId in favoritingUserIds)
+                {
+                    try
+                    {
+                        await _notificationService.NotifyAsync(userId, message, NotificationType.NewPackage, cancellationToken);
+                        notifiedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to send notification to user {UserId} about new package {PackageId}",
+                            userId, package.Id);
+                    }
+                }
+
+                _logger.LogInformation("Successfully notified {NotifiedCount}/{TotalCount} users about new package {PackageId}",
+                    notifiedCount, favoritingUserIds.Count, package.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error notifying favoriting users about new package {PackageId}", package.Id);
+            }
+        }
 
         #endregion
     }

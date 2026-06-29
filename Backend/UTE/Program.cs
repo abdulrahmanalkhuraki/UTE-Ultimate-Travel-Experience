@@ -1,6 +1,7 @@
 using Application.Interfaces;
 using Application.Interfaces.Booking;
 using Application.Interfaces.Companion;
+using Application.Interfaces.Favorite;
 using Application.Interfaces.Notifications;
 using Application.Interfaces.Rate;
 using Application.Interfaces.Review;
@@ -343,6 +344,9 @@ builder.Services.AddScoped<ITicketService, TicketService>();
 // SupportReply
 builder.Services.AddScoped<SupportReplyCreateValidator>();
 builder.Services.AddScoped<ISupportReplyService, SupportReplyService>();
+
+// Favorite
+builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 
 builder.Services.AddMemoryCache();
 // ==========================================
