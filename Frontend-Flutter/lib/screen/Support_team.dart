@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'app_constants.dart';
+import 'bottomNavigationBar.dart';
 
 class SupportTeam extends StatefulWidget {
   const SupportTeam({super.key});
@@ -227,13 +228,13 @@ class _SupportTeamState extends State<SupportTeam> {
                               height: 259 * context.scale,
                               fit: BoxFit.fill,
                             ),
-                          /*  Center(
+                            Center(
                               child: SvgPicture.asset(
-                                'assets/icons/Add.svg',
-                                width: 50 * context.scale,
-                                height: 50 * context.scale,
+                                'assets/icons/addpic.svg',
+                                width: 80 * context.scale,
+                                height: 80 * context.scale,
                               ),
-                            ),*/
+                            ),
                           ],
                         ),
                       ),
@@ -282,12 +283,17 @@ class _SupportTeamState extends State<SupportTeam> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 30 * context.scale),
+                  SizedBox(height: 120 * context.scale),
 
                 ],
               ),
             ),
-
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: const AppBottomNavBar(selectedIndex: 4),
+            ),
           ],
         ),
       ),
