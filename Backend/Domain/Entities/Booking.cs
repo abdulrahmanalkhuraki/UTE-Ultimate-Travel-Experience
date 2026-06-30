@@ -7,7 +7,6 @@ namespace Domain.Entities;
     {
     public DateTime BookingDate { get; set; }
 
-
     public string? BookingNumber { get; set; }
 
     public int NumberOfAdults { get; set; }
