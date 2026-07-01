@@ -215,8 +215,12 @@ export default function Users() {
               onClick={() => setIsDeletedExpanded(!isDeletedExpanded)}
               className="w-full p-5 flex justify-between items-center bg-[#202022] hover:bg-[#252528] transition"
             >
-              <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isDeletedExpanded ? 'rotate-180' : ''}`} />
-              <h3 className="text-base font-semibold text-white">Deleted Accounts</h3>
+              <div className="flex items-center gap-4">
+              <UserRoundX className="w-8 h-8 text-red-400 ml-5" />
+              <h3 className="text-base text-lg font-semibold text-red-400">Deleted Accounts</h3>
+              </div>
+              <ChevronDown className={`w-5 h-5 text-gray-400 mr-10 transition-transform duration-300 ${isDeletedExpanded ? 'rotate-180' : ''}`} />
+              
             </button>
             {isDeletedExpanded && (
               <div className="p-5 space-y-4 max-h-[350px] overflow-y-auto custom-scrollbar border-t border-[#333]">
@@ -230,7 +234,7 @@ export default function Users() {
 
         <div className="lg:col-span-5">
           <div className="bg-[#1C1C1E] border border-[#D4AF37]/30 rounded-2xl shadow-lg p-6 h-full flex flex-col">
-            <h3 className="text-lg font-semibold text-white mb-6 text-right border-b border-[#333] pb-4">
+            <h3 className="text-lg font-semibold text-white mb-6 text-left ml-5 border-b border-[#333] pb-4">
               Active Users
             </h3>
 
