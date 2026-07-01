@@ -114,6 +114,10 @@ namespace Domain.Validators
                 .WithName(nameof(TourPackageUpdateRequest.Days))
                 .WithMessage("The number of days must match the trip duration")
                 .When(x => x.Days != null && x.DurationInDays is > 0);
+
+            RuleForEach(x => x.NewMedia)
+                .SetValidator(new TourPackageMediaValidator())
+                .When(x => x.NewMedia != null);
         }
     }
 }

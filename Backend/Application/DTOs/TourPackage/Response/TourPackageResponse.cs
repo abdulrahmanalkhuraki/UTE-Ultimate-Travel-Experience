@@ -37,7 +37,7 @@ namespace Application.DTOs.TourPackage.Response
 
         public string? CountryName { get; set; }
 
-        public string? MainImageUrl { get; set; }
+        public List<TourPackageMediaResponse> Media { get; set; } = new();
 
         public DateOnly StartDate { get; set; }
 

@@ -39,6 +39,7 @@ namespace Infrastructure.Repositories
             Tickets = new GenericRepository<Ticket>(_context);
             SupportReplies = new GenericRepository<SupportReply>(_context);
             Favorites = new GenericRepository<Favorite>(_context);
+            Media = new GenericRepository<TourPackageMedia>(_context);
         }
 
         public IGenericRepository<Booking> Bookings { get; }
@@ -90,6 +91,8 @@ namespace Infrastructure.Repositories
         public IGenericRepository<SupportReply> SupportReplies { get; }
 
         public IGenericRepository<Favorite> Favorites { get; }
+
+        public IGenericRepository<TourPackageMedia> Media { get; }
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

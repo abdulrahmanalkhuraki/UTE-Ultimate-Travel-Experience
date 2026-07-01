@@ -66,11 +66,11 @@ namespace Application.DTOs.TourPackage.Request
 
         public bool? IsPublished { get; set; }
 
-        /// <summary>New cover image to upload. Optional.</summary>
-        public IFormFile? MainImage { get; set; }
+        /// <summary>New media files to add (صور/فيديو جديدة). Optional.</summary>
+        public List<MediaCreateRequest>? NewMedia { get; set; }
 
-        /// <summary>Existing cover image URL to keep when no new file is uploaded.</summary>
-        public string? MainImageUrl { get; set; }
+        /// <summary>Existing media to keep/update. Omitted items will be deleted. Optional.</summary>
+        public List<MediaUpdateRequest>? ExistingMedia { get; set; }
 
         /// <summary>Full day-by-day itinerary. Optional; when sent it replaces the whole itinerary.</summary>
         public List<TourPackageDayRequest>? Days { get; set; }

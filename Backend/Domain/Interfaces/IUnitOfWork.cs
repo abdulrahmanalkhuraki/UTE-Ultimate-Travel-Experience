@@ -35,6 +35,7 @@ namespace Domain.Interfaces
         IGenericRepository<Ticket> Tickets { get; }
         IGenericRepository<SupportReply> SupportReplies { get; }
         IGenericRepository<Favorite> Favorites { get; }
+        IGenericRepository<TourPackageMedia> Media { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         Task BeginTransactionAsync(CancellationToken cancellationToken = default);
