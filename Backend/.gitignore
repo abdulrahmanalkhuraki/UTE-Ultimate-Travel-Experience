@@ -21,6 +21,7 @@ bin/
 ## .NET Core user secrets & local configuration
 appsettings.Development.json
 appsettings.local.json
+firebase-service-account.json
 .microsoft.dotnet.secretmanager/
 secrets.json
 
