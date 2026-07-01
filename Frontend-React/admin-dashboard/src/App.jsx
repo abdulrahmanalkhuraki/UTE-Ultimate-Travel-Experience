@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 
 // استدعاء واجهات النظام الداخلي
-// import Home from './home';
+ import Home from './screens/home';
 // //import Users from './users';س
 // //import Companies from './companies';
 // import Companies from './companies2';
@@ -117,8 +117,8 @@ export default function App() {
         </header>
 
         {/* عرض المحتوى الديناميكي هنا بناءً على القائمة الجانبية */}
-        {/* {activeMenu === 'Home' && <Home />}
-        {activeMenu === 'Users' && <Users />}
+         {activeMenu === 'Home' && <Home />}
+        {/*{activeMenu === 'Users' && <Users />}
         {activeMenu === 'Companies' && <Companies />}
         {activeMenu === 'Group Trips' && <GroupTrip />}
         {activeMenu === 'Support' && <UserDetails />}
