@@ -68,7 +68,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(IReadOnlyList<RateResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IReadOnlyList<RateResponse>>> Get([FromBody] int? userId, [FromBody] int? packageId,CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IReadOnlyList<RateResponse>>> Get([FromQuery] int? userId, [FromQuery] int? packageId,CancellationToken cancellationToken = default)
         {
             return Ok(await _rateService.GetAsync(userId, packageId, cancellationToken));
         }

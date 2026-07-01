@@ -9,6 +9,7 @@ using Infrastructure.Data;
 using Infrastructure.Email;
 using Infrastructure.Notifications;
 using Infrastructure.Repositories;
+using Infrastructure.Seed;
 using Infrastructure.Security;
 using Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +43,8 @@ public static class DependencyInjection
         services.Configure<FirebaseSettings>(configuration.GetSection(FirebaseSettings.SectionName));
         InitializeFirebase(configuration);
         services.AddScoped<IRealtimeNotifier, FirebaseNotifier>();
+
+        services.AddScoped<IDbSeedService, DbSeedService>();
 
         return services;
     }

@@ -17,14 +17,14 @@ namespace Application.Mappings
                 .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.Person != null ? src.Person.DateOfBirth : (DateOnly?)null))
                 .ForMember(dest => dest.ResidentialCityId, opt => opt.MapFrom(src => src.Person != null ? src.Person.ResidentialCityId : 0))
                 .ForMember(dest => dest.ResidentialCityName, opt => opt.MapFrom(src =>
-                    src.Person != null && src.Person.ResidentialCity != null ? src.Person.ResidentialCity.CityName : null))
+                    src.Person != null && src.Person.ResidentialCity != null ? src.Person.ResidentialCity.EnCityName : null))
                 .ForMember(dest => dest.NationalNumber, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalNumber : null))
                 .ForMember(dest => dest.PassportNumber, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportNumber : null))
                 .ForMember(dest => dest.ProfileImageUrl, opt => opt.MapFrom(src => src.Person != null ? src.Person.ProfileImage : null))
                 .ForMember(dest => dest.NationalIdCard, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalIdCard : null))
                 .ForMember(dest => dest.PassportScan, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportScan : null))
                 .ForMember(dest => dest.NationalityCountryName,
-                    opt => opt.MapFrom(src => src.NatinalityCountry != null ? src.NatinalityCountry.CountryName : null));
+                    opt => opt.MapFrom(src => src.NatinalityCountry != null ? src.NatinalityCountry.EnCountryName : null));
 
             CreateMap<TouristGuideUpdateRequest, TouristGuide>()
                 .ForMember(dest => dest.Email, opt =>

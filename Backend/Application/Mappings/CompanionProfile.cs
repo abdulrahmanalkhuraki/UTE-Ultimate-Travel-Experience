@@ -42,10 +42,10 @@ public class CompanionProfile : Profile
             .ForMember(dest => dest.PassportScan, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportScan : null))
             .ForMember(dest => dest.ResidentialCityId, opt => opt.MapFrom(src => src.Person != null ? src.Person.ResidentialCityId : 0))
             .ForMember(dest => dest.ResidentialCityName, opt => opt.MapFrom(src =>
-                src.Person != null && src.Person.ResidentialCity != null ? src.Person.ResidentialCity.CityName : null))
+                src.Person != null && src.Person.ResidentialCity != null ? src.Person.ResidentialCity.EnCityName : null))
             .ForMember(dest => dest.ResidencyCard, opt => opt.MapFrom(s => s.Person.ResidencyCard))
             .ForMember(dest => dest.NationalityCountryName, opt => opt.MapFrom(src =>
-                src.NationalityCountry != null ? src.NationalityCountry.CountryName : null))
+                src.NationalityCountry != null ? src.NationalityCountry.EnCountryName : null))
             .ForMember(dest => dest.Relationship, opt => opt.MapFrom(src => src.Relationship.ToString()))
             .ForMember(dest => dest.RegistrationDate, opt => opt.Ignore())
             .ForMember(dest => dest.JoinedPackagesCount, opt => opt.Ignore())

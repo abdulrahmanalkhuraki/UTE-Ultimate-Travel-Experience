@@ -65,7 +65,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(IReadOnlyList<ReviewResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IReadOnlyList<ReviewResponse>>> Get([FromBody] int? userId, [FromBody] int? tourPackageId, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IReadOnlyList<ReviewResponse>>> Get([FromQuery] int? userId, [FromQuery] int? tourPackageId, CancellationToken cancellationToken = default)
         {
             return Ok(await _reviewService.GetAsync(userId, tourPackageId, cancellationToken));
         }

@@ -19,7 +19,7 @@ namespace Application.Mappings
                 .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.Person != null ? src.Person.DateOfBirth : (DateOnly?)null))
                 .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Person != null ? src.Person.Gender : null))
                 .ForMember(dest => dest.PlaceOfResidence, opt => opt.MapFrom(src =>
-                    src.Person != null && src.Person.ResidentialCity != null ? src.Person.ResidentialCity.CityName : null))
+                    src.Person != null && src.Person.ResidentialCity != null ? src.Person.ResidentialCity.EnCityName : null))
                 .ForMember(dest => dest.NationalNumber, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalNumber : null))
                 .ForMember(dest => dest.NationalIdImage, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalIdCard : null))
                 .ForMember(dest => dest.PassportNumber, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportNumber : null))
