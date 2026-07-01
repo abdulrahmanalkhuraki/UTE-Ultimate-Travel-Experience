@@ -13,40 +13,33 @@ namespace Domain.Validators
     {
         public TourPackageUpdateValidator()
         {
-            When(x => x.PackageName != null, () =>
-            {
-                RuleFor(x => x.PackageName)
-                    .NotEmpty().WithMessage("Program name cannot be empty")
-                    .MaximumLength(100).WithMessage("Program name must not exceed 100 characters");
-            });
+            RuleFor(x => x.PackageName)
+                .NotEmpty().WithMessage("Program name cannot be empty")
+                .MaximumLength(100).WithMessage("Program name must not exceed 100 characters")
+                .When(x => x.PackageName != null);
 
-            When(x => x.Description != null, () =>
-            {
-                RuleFor(x => x.Description)
-                    .NotEmpty().WithMessage("Description cannot be empty")
-                    .MaximumLength(1000).WithMessage("Description must not exceed 1000 characters");
-            });
+            RuleFor(x => x.Description)
+                .NotEmpty().WithMessage("Description cannot be empty")
+                .MaximumLength(1000).WithMessage("Description must not exceed 1000 characters")
+                .When(x => x.Description != null);
 
-            When(x => x.MeetingPoint != null, () =>
-            {
-                RuleFor(x => x.MeetingPoint)
-                    .NotEmpty().WithMessage("Meeting point cannot be empty")
-                    .MaximumLength(200).WithMessage("Meeting point must not exceed 200 characters");
-            });
+            RuleFor(x => x.MeetingPoint)
+                .NotEmpty().WithMessage("Meeting point cannot be empty")
+                .MaximumLength(200).WithMessage("Meeting point must not exceed 200 characters")
+                .When(x => x.MeetingPoint != null);
 
             RuleFor(x => x.CountryId)
                 .GreaterThan(0).WithMessage("A destination country is required")
                 .When(x => x.CountryId.HasValue);
 
-            When(x => x.CityIds != null, () =>
-            {
-                RuleFor(x => x.CityIds)
-                    .NotEmpty().WithMessage("At least one region/city is required");
-                RuleForEach(x => x.CityIds)
-                    .GreaterThan(0).WithMessage("City id must be greater than 0");
-            });
+            RuleFor(x => x.CityIds)
+                .NotEmpty().WithMessage("At least one region/city is required")
+                .When(x => x.CityIds != null);
 
-            // التكلفة الأربعة — optional: when sent, non-negative and below the ceiling.
+            RuleForEach(x => x.CityIds)
+                .GreaterThan(0).WithMessage("City id must be greater than 0")
+                .When(x => x.CityIds != null);
+
             RuleFor(x => x.PricePerPerson)
                 .GreaterThanOrEqualTo(0).WithMessage("Price per person must not be negative")
                 .LessThan(1000000).WithMessage("Price per person must be less than 1,000,000")
@@ -67,18 +60,15 @@ namespace Domain.Validators
                 .LessThan(1000000).WithMessage("Business class price must be less than 1,000,000")
                 .When(x => x.BusinessClassPrice.HasValue);
 
-            When(x => x.Currency != null, () =>
-            {
-                RuleFor(x => x.Currency)
-                    .NotEmpty().WithMessage("Currency cannot be empty")
-                    .MaximumLength(10).WithMessage("Currency must not exceed 10 characters");
-            });
+            RuleFor(x => x.Currency)
+                .NotEmpty().WithMessage("Currency cannot be empty")
+                .MaximumLength(10).WithMessage("Currency must not exceed 10 characters")
+                .When(x => x.Currency != null);
 
             RuleFor(x => x.DurationInDays)
                 .GreaterThan(0).WithMessage("Duration must be greater than 0")
                 .When(x => x.DurationInDays.HasValue);
 
-            // Cross-field date rules: only when both dates involved are sent.
             RuleFor(x => x)
                 .Must(x => x.EndDate!.Value >= x.StartDate!.Value)
                 .WithName(nameof(TourPackageUpdateRequest.EndDate))
@@ -95,39 +85,39 @@ namespace Domain.Validators
                 .GreaterThan(0).WithMessage("Number of seats must be greater than 0")
                 .When(x => x.AvailableSeats.HasValue);
 
-            When(x => x.TouristGuideIds != null, () =>
-            {
-                RuleFor(x => x.TouristGuideIds)
-                    .NotEmpty().WithMessage("At least one tour guide is required");
-                RuleForEach(x => x.TouristGuideIds)
-                    .GreaterThan(0).WithMessage("Tour guide id must be greater than 0");
-            });
+            RuleFor(x => x.TouristGuideIds)
+                .NotEmpty().WithMessage("At least one tour guide is required")
+                .When(x => x.TouristGuideIds != null);
+
+            RuleForEach(x => x.TouristGuideIds)
+                .GreaterThan(0).WithMessage("Tour guide id must be greater than 0")
+                .When(x => x.TouristGuideIds != null);
 
             RuleFor(x => x.ServiceLevel)
                 .IsInEnum().WithMessage("Invalid service level")
                 .When(x => x.ServiceLevel.HasValue);
 
-            // Flight cabin classes are optional, but any provided must be valid.
-            When(x => x.AvailableCabinClasses != null, () =>
-            {
-                RuleForEach(x => x.AvailableCabinClasses)
-                    .IsInEnum().WithMessage("Invalid flight cabin class");
-            });
+            RuleForEach(x => x.AvailableCabinClasses)
+                .IsInEnum().WithMessage("Invalid flight cabin class")
+                .When(x => x.AvailableCabinClasses != null);
 
-            // When the itinerary is sent it must be non-empty and each day valid.
-            When(x => x.Days != null, () =>
-            {
-                RuleFor(x => x.Days)
-                    .NotEmpty().WithMessage("At least one day is required");
-                RuleForEach(x => x.Days).SetValidator(new TourPackageDayValidator());
-            });
+            RuleFor(x => x.Days)
+                .NotEmpty().WithMessage("At least one day is required")
+                .When(x => x.Days != null);
 
-            // If both the itinerary and the duration are sent, they must match.
+            RuleForEach(x => x.Days)
+                .SetValidator(new TourPackageDayValidator())
+                .When(x => x.Days != null);
+
             RuleFor(x => x)
                 .Must(x => x.Days!.Count == x.DurationInDays!.Value)
                 .WithName(nameof(TourPackageUpdateRequest.Days))
                 .WithMessage("The number of days must match the trip duration")
                 .When(x => x.Days != null && x.DurationInDays is > 0);
+
+            RuleForEach(x => x.NewMedia)
+                .SetValidator(new TourPackageMediaValidator())
+                .When(x => x.NewMedia != null);
         }
     }
 }

@@ -1,40 +1,36 @@
 using Application.DTOs.TouristGuide.Request;
 using FluentValidation;
+using Microsoft.AspNetCore.Http;
 
 namespace Application.Validators.TouristGuide
 {
     public sealed class TouristGuideUpdateValidator : AbstractValidator<TouristGuideUpdateRequest>
     {
+        private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
+        private const long MaxImageBytes = 5 * 1024 * 1024;
+
         public TouristGuideUpdateValidator()
         {
-            When(x => x.FirstName != null, () =>
-            {
-                RuleFor(x => x.FirstName)
-                    .NotEmpty().WithMessage("First name cannot be empty")
-                    .MaximumLength(100).WithMessage("First name must not exceed 100 characters");
-            });
+            RuleFor(x => x.FirstName)
+                .NotEmpty().WithMessage("First name cannot be empty")
+                .MaximumLength(100).WithMessage("First name must not exceed 100 characters")
+                .When(x => x.FirstName != null);
 
-            When(x => x.LastName != null, () =>
-            {
-                RuleFor(x => x.LastName)
-                    .NotEmpty().WithMessage("Last name cannot be empty")
-                    .MaximumLength(100).WithMessage("Last name must not exceed 100 characters");
-            });
+            RuleFor(x => x.LastName)
+                .NotEmpty().WithMessage("Last name cannot be empty")
+                .MaximumLength(100).WithMessage("Last name must not exceed 100 characters")
+                .When(x => x.LastName != null);
 
-            When(x => x.Phone != null, () =>
-            {
-                RuleFor(x => x.Phone)
-                    .NotEmpty().WithMessage("Phone cannot be empty")
-                    .MaximumLength(25).WithMessage("Phone must not exceed 25 characters");
-            });
+            RuleFor(x => x.Phone)
+                .NotEmpty().WithMessage("Phone cannot be empty")
+                .MaximumLength(25).WithMessage("Phone must not exceed 25 characters")
+                .When(x => x.Phone != null);
 
-            When(x => x.Email != null, () =>
-            {
-                RuleFor(x => x.Email)
-                    .NotEmpty().WithMessage("Email cannot be empty")
-                    .EmailAddress().WithMessage("Email is not valid")
-                    .MaximumLength(50).WithMessage("Email must not exceed 50 characters");
-            });
+            RuleFor(x => x.Email)
+                .NotEmpty().WithMessage("Email cannot be empty")
+                .EmailAddress().WithMessage("Email is not valid")
+                .MaximumLength(50).WithMessage("Email must not exceed 50 characters")
+                .When(x => x.Email != null);
 
             RuleFor(x => x.NationalityCountryId)
                 .GreaterThan(0).WithMessage("Nationality (country) is required")
@@ -53,19 +49,15 @@ namespace Application.Validators.TouristGuide
                 .InclusiveBetween(0, 70).WithMessage("Years of experience must be between 0 and 70")
                 .When(x => x.YearsOfExperiance.HasValue);
 
-            When(x => x.Bio != null, () =>
-            {
-                RuleFor(x => x.Bio)
-                    .NotEmpty().WithMessage("Bio cannot be empty")
-                    .MaximumLength(1000).WithMessage("Bio must not exceed 1000 characters");
-            });
+            RuleFor(x => x.Bio)
+                .NotEmpty().WithMessage("Bio cannot be empty")
+                .MaximumLength(1000).WithMessage("Bio must not exceed 1000 characters")
+                .When(x => x.Bio != null);
 
-            When(x => x.NationalNumber != null, () =>
-            {
-                RuleFor(x => x.NationalNumber)
-                    .NotEmpty().WithMessage("National number cannot be empty")
-                    .MaximumLength(50).WithMessage("National number must not exceed 50 characters");
-            });
+            RuleFor(x => x.NationalNumber)
+                .NotEmpty().WithMessage("National number cannot be empty")
+                .MaximumLength(50).WithMessage("National number must not exceed 50 characters")
+                .When(x => x.NationalNumber != null);
 
             RuleFor(x => x.PassportNumber)
                 .MaximumLength(50).WithMessage("Passport number must not exceed 50 characters")
@@ -74,6 +66,31 @@ namespace Application.Validators.TouristGuide
             RuleFor(x => x.Languages)
                 .MaximumLength(250).WithMessage("Languages must not exceed 250 characters")
                 .When(x => x.Languages != null);
+
+            RuleFor(x => x.ProfileImage)
+                .Must(IsValidImage).WithMessage("Profile image must be JPG/PNG/WEBP and at most 5 MB")
+                .When(x => x.ProfileImage != null);
+
+            RuleFor(x => x.NationalIdImage)
+                .Must(IsValidImage).WithMessage("National ID image must be JPG/PNG/WEBP and at most 5 MB")
+                .When(x => x.NationalIdImage != null);
+
+            RuleFor(x => x.PassportImage)
+                .Must(IsValidImage).WithMessage("Passport image must be JPG/PNG/WEBP and at most 5 MB")
+                .When(x => x.PassportImage != null);
+
+            RuleFor(x => x.ResidencyCard)
+                .Must(IsValidImage).WithMessage("Residency card must be JPG/PNG/WEBP and at most 5 MB")
+                .When(x => x.ResidencyCard != null);
+        }
+
+        private static bool IsValidImage(IFormFile? file)
+        {
+            if (file == null || file.Length == 0) return false;
+            if (file.Length > MaxImageBytes) return false;
+
+            var ext = Path.GetExtension(file.FileName)?.ToLowerInvariant();
+            return ext != null && AllowedImageExtensions.Contains(ext);
         }
     }
 }

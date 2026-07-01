@@ -4,7 +4,9 @@ public partial class Country
 {
     public int Id { get; set; }
 
-    public string CountryName { get; set; } = null!;
+    public string EnCountryName { get; set; } = null!;
+
+    public string? ArCountryName { get; set; }
 
     public string CountryCode { get; set; } = null!;
 

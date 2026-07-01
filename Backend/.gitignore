@@ -21,6 +21,7 @@ bin/
 ## .NET Core user secrets & local configuration
 appsettings.Development.json
 appsettings.local.json
+firebase-service-account.json
 .microsoft.dotnet.secretmanager/
 secrets.json
 
@@ -76,4 +77,4 @@ PublishScripts/
 
 ## Node.js (If used inside ASP.NET for SPA)
 node_modules/
-.ntvs_analysis.dat
+.ntvs_analysis.dat.env

@@ -15,12 +15,6 @@ namespace Application.DTOs.Country.Response
 
         public string CountryCode { get; set; } = null!;
 
-        public string? Flag { get; set; }
-
-        public decimal Longitude { get; set; }
-
-        public decimal Latitude { get; set; }
-
         public virtual ICollection<CityResponse> Cities { get; set; } = new List<CityResponse>();
     }
 }

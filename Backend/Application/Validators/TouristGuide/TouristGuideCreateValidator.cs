@@ -1,10 +1,14 @@
 using Application.DTOs.TouristGuide.Request;
 using FluentValidation;
+using Microsoft.AspNetCore.Http;
 
 namespace Application.Validators.TouristGuide
 {
     public sealed class TouristGuideCreateValidator : AbstractValidator<TouristGuideCreateRequest>
     {
+        private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
+        private const long MaxImageBytes = 5 * 1024 * 1024;
+
         public TouristGuideCreateValidator()
         {
             RuleFor(x => x.FirstName)
@@ -52,13 +56,33 @@ namespace Application.Validators.TouristGuide
                 .MaximumLength(250).WithMessage("Languages must not exceed 250 characters");
 
             RuleFor(x => x.ProfileImage)
-                .NotNull().WithMessage("Profile image is required");
+                .NotNull().WithMessage("Profile image is required")
+                .Must(IsValidImage).WithMessage("Profile image must be JPG/PNG/WEBP and at most 5 MB")
+                .When(x => x.ProfileImage != null);
 
             RuleFor(x => x.NationalIdCard)
-                .NotNull().WithMessage("National ID image is required");
+                .NotNull().WithMessage("National ID image is required")
+                .Must(IsValidImage).WithMessage("National ID image must be JPG/PNG/WEBP and at most 5 MB")
+                .When(x => x.NationalIdCard != null);
 
             RuleFor(x => x.PassportScan)
-                .NotNull().WithMessage("Passport image is required");
+                .NotNull().WithMessage("Passport image is required")
+                .Must(IsValidImage).WithMessage("Passport image must be JPG/PNG/WEBP and at most 5 MB")
+                .When(x => x.PassportScan != null);
+
+            RuleFor(x => x.ResidencyCard)
+                .NotNull().WithMessage("Residency card is required")
+                .Must(IsValidImage).WithMessage("Residency card must be JPG/PNG/WEBP and at most 5 MB")
+                .When(x => x.ResidencyCard != null);
+        }
+
+        private static bool IsValidImage(IFormFile? file)
+        {
+            if (file == null || file.Length == 0) return false;
+            if (file.Length > MaxImageBytes) return false;
+
+            var ext = Path.GetExtension(file.FileName)?.ToLowerInvariant();
+            return ext != null && AllowedImageExtensions.Contains(ext);
         }
     }
 }

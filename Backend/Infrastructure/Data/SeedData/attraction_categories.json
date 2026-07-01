@@ -1,0 +1,122 @@
+[
+    {
+        "CategoryId": 1,
+        "EnCategoryName": "Museums",
+        "ArCategoryName": "متاحف"
+    },
+    {
+        "CategoryId": 2,
+        "EnCategoryName": "Historical Sites",
+        "ArCategoryName": "مواقع تاريخية"
+    },
+    {
+        "CategoryId": 3,
+        "EnCategoryName": "Parks & Nature",
+        "ArCategoryName": "حدائق وطبيعة"
+    },
+    {
+        "CategoryId": 4,
+        "EnCategoryName": "Amusement Parks",
+        "ArCategoryName": "مدن ملاهي"
+    },
+    {
+        "CategoryId": 5,
+        "EnCategoryName": "Beaches",
+        "ArCategoryName": "شواطئ"
+    },
+    {
+        "CategoryId": 6,
+        "EnCategoryName": "Shopping Malls",
+        "ArCategoryName": "مراكز تسوق"
+    },
+    {
+        "CategoryId": 7,
+        "EnCategoryName": "Zoos & Aquariums",
+        "ArCategoryName": "حدائق حيوان وأحواض أسماك"
+    },
+    {
+        "CategoryId": 8,
+        "EnCategoryName": "Religious Sites",
+        "ArCategoryName": "مواقع دينية"
+    },
+    {
+        "CategoryId": 9,
+        "EnCategoryName": "Theaters & Shows",
+        "ArCategoryName": "مسارح وعروض"
+    },
+    {
+        "CategoryId": 10,
+        "EnCategoryName": "Art Galleries",
+        "ArCategoryName": "معارض فنية"
+    },
+    {
+        "CategoryId": 11,
+        "EnCategoryName": "Landmarks & Monuments",
+        "ArCategoryName": "معالم ونصب تذكارية"
+    },
+    {
+        "CategoryId": 12,
+        "EnCategoryName": "Castles & Palaces",
+        "ArCategoryName": "قلاع وقصور"
+    },
+    {
+        "CategoryId": 13,
+        "EnCategoryName": "Mountains & Hiking Trails",
+        "ArCategoryName": "جبال ومسارات مشي"
+    },
+    {
+        "CategoryId": 14,
+        "EnCategoryName": "Water Parks",
+        "ArCategoryName": "حدائق مائية"
+    },
+    {
+        "CategoryId": 15,
+        "EnCategoryName": "Sports Arenas",
+        "ArCategoryName": "ملاعب رياضية"
+    },
+    {
+        "CategoryId": 16,
+        "EnCategoryName": "Festivals & Events",
+        "ArCategoryName": "مهرجانات وفعاليات"
+    },
+    {
+        "CategoryId": 17,
+        "EnCategoryName": "Spas & Wellness",
+        "ArCategoryName": "منتجعات صحية"
+    },
+    {
+        "CategoryId": 18,
+        "EnCategoryName": "Local Markets & Bazaars",
+        "ArCategoryName": "أسواق محلية وبازارات"
+    },
+    {
+        "CategoryId": 19,
+        "EnCategoryName": "Nature Reserves",
+        "ArCategoryName": "محميات طبيعية"
+    },
+    {
+        "CategoryId": 20,
+        "EnCategoryName": "Observation Decks",
+        "ArCategoryName": "منصات مشاهدة"
+    },
+    {
+        "CategoryId": 21,
+        "EnCategoryName": "Caves",
+        "ArCategoryName": "كهوف"
+    },
+    {
+        "CategoryId": 22,
+        "EnCategoryName": "Ski Resorts",
+        "ArCategoryName": "منتجعات تزلج"
+    },
+    {
+        "CategoryId": 23,
+        "EnCategoryName": "Islands",
+        "ArCategoryName": "جزر"
+    },
+    {
+        "CategoryId": 24,
+        "EnCategoryName": "Waterfalls",
+        "ArCategoryName": "شلالات"
+    }
+]

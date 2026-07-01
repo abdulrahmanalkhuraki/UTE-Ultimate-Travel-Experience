@@ -5,12 +5,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Application.DTOs.TourPackage.Request
 {
-    /// <summary>
-    /// Create request for a tour program ("نشر البرنامج" form).
-    /// Sent as multipart/form-data because it carries the main image and the
-    /// per-activity images. The owning company is resolved from the JWT,
-    /// never from the client. All fields are required (see the validator).
-    /// </summary>
+
     public class TourPackageCreateRequest
     {
         /// <summary>Program name (اسم البرنامج).</summary>
@@ -76,8 +71,8 @@ namespace Application.DTOs.TourPackage.Request
         /// <summary>Publish immediately (نشر البرنامج).</summary>
         public bool IsPublished { get; set; }
 
-        /// <summary>Main cover image (صورة البرنامج الرئيسية).</summary>
-        public IFormFile? MainImage { get; set; }
+        /// <summary>Media files (images/videos) for the package (صور وفيديوهات البرنامج).</summary>
+        public List<MediaCreateRequest> Media { get; set; } = new();
 
         /// <summary>Full day-by-day itinerary (التفاصيل الكاملة للرحلة).</summary>
         public List<TourPackageDayRequest> Days { get; set; } = new();

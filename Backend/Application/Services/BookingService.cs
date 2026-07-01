@@ -330,7 +330,6 @@ namespace Application.Services
             }
         }
 
-
         public async Task<IReadOnlyList<BookingResponse>> FilterAsync(BookingStatus? status, CancellationToken cancellationToken)
         {
             _logger.LogDebug("Retrieving bookings with status filter");

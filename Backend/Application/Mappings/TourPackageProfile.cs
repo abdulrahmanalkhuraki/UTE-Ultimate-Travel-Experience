@@ -23,7 +23,7 @@ namespace Application.Mappings
 
             //CreateMap<TourPackage_Attraction, PackageCityResponse>()
             //    .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.CityId))
-            //    .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City.CityName));
+            //    .ForMember(dest => dest.EnCityName, opt => opt.MapFrom(src => src.City.EnCityName));
 
             // A program's assigned guide (المرشد المختار) shown on the program.
             CreateMap<TouristGuide, TourPackageGuideResponse>()
@@ -33,9 +33,11 @@ namespace Application.Mappings
 
             CreateMap<TourPackageCabinClass, TourPackageCabinClassResponse>();
 
+            CreateMap<TourPackageMedia, TourPackageMediaResponse>();
+
             CreateMap<TourPackage, TourPackageResponse>()
                 .ForMember(dest => dest.CountryName,
-                    opt => opt.MapFrom(src => src.Country != null ? src.Country.CountryName : null))
+                    opt => opt.MapFrom(src => src.Country != null ? src.Country.EnCountryName : null))
                 .ForMember(dest => dest.CompanyName,
                     opt => opt.MapFrom(src => src.Company != null ? src.Company.Name : null))
                 .ForMember(dest => dest.Cities,
@@ -46,7 +48,10 @@ namespace Application.Mappings
                     opt => opt.MapFrom(src => src.CabinClasses))
                 .ForMember(dest => dest.Days,
                     opt => opt.MapFrom(src => src.PackageItineraries
-                        .OrderBy(d => d.DayNumber)));
+                        .OrderBy(d => d.DayNumber)))
+                .ForMember(dest => dest.Media,
+                    opt => opt.MapFrom(src => src.Media
+                        .OrderBy(m => m.DisplayOrder)));
         }
     }
 }

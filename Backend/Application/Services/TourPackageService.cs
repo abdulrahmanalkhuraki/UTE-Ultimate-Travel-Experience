@@ -19,11 +19,6 @@ using ValidationException = Application.Exceptions.ValidationException;
 
 namespace Application.Services
 {
-    /// <summary>
-    /// CRUD for tour programs (TourPackage). A program is created/updated as one
-    /// nested graph: the program, its visited cities, and a day-by-day itinerary
-    /// whose activities each carry an uploaded image.
-    /// </summary>
     public class TourPackageService : ITourPackageService
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -35,7 +30,7 @@ namespace Application.Services
         private readonly TourPackageUpdateValidator _updateValidator;
         private readonly INotificationService _notificationService;
 
-        private const string MainImageFolder = "package-images";
+        private const string MediaFolder = "package-media";
         private const string ActivityImageFolder = "package-activities";
 
         public TourPackageService(
@@ -99,11 +94,15 @@ namespace Application.Services
                     UpdatedAtUtc = DateTime.UtcNow,
                 };
 
-                if (request.MainImage is not null)
-                    //entity.MainImageUrl = await _fileStorage.SaveAsync(request.MainImage, MainImageFolder, cancellationToken);
-
-                //foreach (var cityId in request.CityIds.Distinct())
-                //    entity.PackageAttractions.Add(new TourPackage_Attraction { CityId = cityId });
+                foreach (var mediaRequest in request.Media)
+                    entity.Media.Add(new TourPackageMedia
+                    {
+                        MediaUrl = await _fileStorage.SaveAsync(mediaRequest.Media, MediaFolder, cancellationToken),
+                        MediaType = mediaRequest.Type,
+                        DisplayOrder = mediaRequest.DisplayOrder,
+                        CreatedAtUtc = DateTime.UtcNow,
+                        UpdatedAtUtc = DateTime.UtcNow,
+                    });
 
                 foreach (var guideId in request.TouristGuideIds.Distinct())
                     entity.TourPackageGuides.Add(new TourPackage_TouristGuide { TouristGuideId = guideId });
@@ -158,6 +157,7 @@ namespace Application.Services
                     .Include(p => p.PackageAttractions)
                     .Include(p => p.TourPackageGuides)
                     .Include(p => p.CabinClasses)
+                    .Include(p => p.Media)
                     .Include(p => p.PackageItineraries)
                         .ThenInclude(d => d.Activities)
                     .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
@@ -200,9 +200,44 @@ namespace Application.Services
 
                 entity.UpdatedAtUtc = DateTime.UtcNow;
 
-                if (request.MainImage is not null)
-                    //entity.MainImageUrl = await _fileStorage.SaveAsync(request.MainImage, MainImageFolder, cancellationToken);
-                // else: keep the existing MainImageUrl.
+                // Handle media updates (only when sent).
+                if (request.ExistingMedia is not null || request.NewMedia is not null)
+                {
+                    var updatedIds = request.ExistingMedia?
+                        .Where(m => m.Id.HasValue && m.Id.Value > 0)
+                        .Select(m => m.Id!.Value)
+                        .ToHashSet() ?? new HashSet<int>();
+
+                    var toRemove = entity.Media.Where(m => !updatedIds.Contains(m.Id)).ToList();
+                    _unitOfWork.Media.RemoveRange(toRemove);
+
+                    foreach (var existing in request.ExistingMedia ?? Enumerable.Empty<MediaUpdateRequest>())
+                    {
+                        var mediaEntity = entity.Media.FirstOrDefault(m => m.Id == existing.Id);
+                        if (mediaEntity is null) continue;
+
+                        if (existing.Media is not null)
+                            mediaEntity.MediaUrl = await _fileStorage.SaveAsync(existing.Media, MediaFolder, cancellationToken);
+                        if (existing.Type.HasValue)
+                            mediaEntity.MediaType = existing.Type.Value;
+                        if (existing.DisplayOrder.HasValue)
+                            mediaEntity.DisplayOrder = existing.DisplayOrder.Value;
+                        mediaEntity.UpdatedAtUtc = DateTime.UtcNow;
+                    }
+
+                    foreach (var newMedia in request.NewMedia ?? Enumerable.Empty<MediaCreateRequest>())
+                    {
+                        entity.Media.Add(new TourPackageMedia
+                        {
+                            TourPackageId = entity.Id,
+                            MediaUrl = await _fileStorage.SaveAsync(newMedia.Media, MediaFolder, cancellationToken),
+                            MediaType = newMedia.Type,
+                            DisplayOrder = newMedia.DisplayOrder,
+                            CreatedAtUtc = DateTime.UtcNow,
+                            UpdatedAtUtc = DateTime.UtcNow,
+                        });
+                    }
+                }
 
                 // Replace visited cities (only when sent).
                 if (request.CityIds is not null)
@@ -401,6 +436,7 @@ namespace Application.Services
                 var entity = await _unitOfWork.TourPackages
                     .Query()
                     .Include(p => p.PackageAttractions)
+                    .Include(p => p.Media)
                     .Include(p => p.PackageItineraries)
                         .ThenInclude(d => d.Activities)
                     .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
@@ -423,6 +459,7 @@ namespace Application.Services
                 _unitOfWork.Activities.RemoveRange(activities);
                 _unitOfWork.Itineraries.RemoveRange(entity.PackageItineraries);
                 _unitOfWork.TourPackage_Attraction.RemoveRange(entity.PackageAttractions);
+                _unitOfWork.Media.RemoveRange(entity.Media);
                 _unitOfWork.TourPackages.Remove(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -695,6 +732,7 @@ namespace Application.Services
                 //.Include(p => p.PackageAttractions).ThenInclude(pc => pc.City)
                 .Include(p => p.TourPackageGuides).ThenInclude(g => g.TouristGuide)
                 .Include(p => p.CabinClasses)
+                .Include(p => p.Media)
                 .Include(p => p.PackageItineraries).ThenInclude(d => d.Activities);
 
         /// <summary>

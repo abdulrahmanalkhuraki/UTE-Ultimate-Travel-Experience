@@ -26,6 +26,7 @@ using Domain.Interfaces;
 using Domain.Validators;
 using Infrastructure;
 using Infrastructure.Repositories;
+using Infrastructure.Seed;
 using Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -375,6 +376,16 @@ builder.Services.AddAutoMapper(cfg =>
 // 9. BUILD THE APPLICATION
 // ==========================================
 var app = builder.Build();
+
+
+// ==========================================
+// 10. SEED DATABASE
+// ==========================================
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<IDbSeedService>();
+    await seeder.SeedAsync();
+}
 
 
 // ==========================================

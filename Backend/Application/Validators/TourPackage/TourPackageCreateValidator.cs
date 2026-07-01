@@ -84,8 +84,11 @@ namespace Domain.Validators
             RuleForEach(x => x.AvailableCabinClasses)
                 .IsInEnum().WithMessage("Invalid flight cabin class");
 
-            RuleFor(x => x.MainImage)
-                .NotNull().WithMessage("Main program image is required");
+            RuleFor(x => x.Media)
+                .NotEmpty().WithMessage("At least one media file is required");
+
+            RuleForEach(x => x.Media)
+                .SetValidator(new TourPackageMediaValidator());
 
             RuleFor(x => x.Days)
                 .NotEmpty().WithMessage("At least one day is required");
