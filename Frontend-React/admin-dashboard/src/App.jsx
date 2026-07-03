@@ -6,11 +6,11 @@ import {
 } from 'lucide-react';
 
 // استدعاء واجهات النظام الداخلي
-// import Home from './home';
-// //import Users from './users';س
+ import Home from './screens/home';
+ import Users from './screens/users';
 // //import Companies from './companies';
 // import Companies from './companies2';
-// import GroupTrip from './grouptrip';
+ import GroupTrip from './screens/groupTrip';
 // import Support from './support';
 // import Notifications from './Notifications';
 // import Settings from './settings';
@@ -117,8 +117,8 @@ export default function App() {
         </header>
 
         {/* عرض المحتوى الديناميكي هنا بناءً على القائمة الجانبية */}
-        {/* {activeMenu === 'Home' && <Home />}
-        {activeMenu === 'Users' && <Users />}
+         {activeMenu === 'Home' && <Home />}
+        {/*{activeMenu === 'Users' && <Users />}
         {activeMenu === 'Companies' && <Companies />}
         {activeMenu === 'Group Trips' && <GroupTrip />}
         {activeMenu === 'Support' && <UserDetails />}
