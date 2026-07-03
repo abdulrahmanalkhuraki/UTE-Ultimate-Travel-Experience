@@ -17,7 +17,7 @@ import {
 // import CompanyDetails from './companydetailes2';
 // import UserDetails from './UserDetails';
 // import AdminProfile from './profile';
-// import Financials from './financial';
+ import Financials from './screens/financial';
 // import ProgramDetails from './programDetailes';
 // import Users from './users'; // يمكنك إزالة التعليق لاحقاً عند إنشاء ملف المستخدمين
 
