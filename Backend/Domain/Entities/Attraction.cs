@@ -2,7 +2,9 @@
 
 public partial class Attraction : BaseEntity
 {
-    public string AttractionName { get; set; } = null!;
+    public string EnAttractionName { get; set; } = null!;
+
+    public string ArAttractionName { get; set; } = null!;
 
     public int AttractionCategoryId { get; set; }
 
@@ -11,13 +13,6 @@ public partial class Attraction : BaseEntity
     public decimal Longitude { get; set; }
 
     public decimal Latitude { get; set; }
-
-    // when both are null, attraction opens 24 hours
-    public TimeOnly? OpenAt { get; set; }
-
-    public TimeOnly? ClosedAt { get; set; }
-
-    public decimal EntryFee { get; set; }
 
     public int CityId { get; set; }
 

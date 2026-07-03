@@ -1,0 +1,1002 @@
+[
+    {
+        "Id":  1,
+        "EnAttractionName":  "National Museum of Damascus",
+        "ArAttractionName":  "متحف دمشق الوطني",
+        "AttractionCategoryId":  1,
+        "Description":  "The largest museum in Syria, housing artifacts from prehistoric to Islamic periods.",
+        "Longitude":  36.2917,
+        "Latitude":  33.5113,
+        "CityId":  315
+    },
+    {
+        "Id":  2,
+        "EnAttractionName":  "Umayyad Mosque",
+        "ArAttractionName":  "الجامع الأموي",
+        "AttractionCategoryId":  8,
+        "Description":  "One of the largest and oldest mosques in the world, located in the old city of Damascus.",
+        "Longitude":  36.3065,
+        "Latitude":  33.5116,
+        "CityId":  315
+    },
+    {
+        "Id":  3,
+        "EnAttractionName":  "Al-Hamidiyah Souq",
+        "ArAttractionName":  "سوق الحميدية",
+        "AttractionCategoryId":  18,
+        "Description":  "A large and historic covered market in the old city of Damascus.",
+        "Longitude":  36.3012,
+        "Latitude":  33.5108,
+        "CityId":  315
+    },
+    {
+        "Id":  4,
+        "EnAttractionName":  "Damascus Citadel",
+        "ArAttractionName":  "قلعة دمشق",
+        "AttractionCategoryId":  12,
+        "Description":  "A large medieval fortified palace and citadel in the old city of Damascus.",
+        "Longitude":  36.3000,
+        "Latitude":  33.5120,
+        "CityId":  315
+    },
+    {
+        "Id":  5,
+        "EnAttractionName":  "Azem Palace",
+        "ArAttractionName":  "قصر العظم",
+        "AttractionCategoryId":  1,
+        "Description":  "An 18th-century Ottoman palace now serving as a museum of Syrian folk traditions.",
+        "Longitude":  36.3050,
+        "Latitude":  33.5095,
+        "CityId":  315
+    },
+    {
+        "Id":  6,
+        "EnAttractionName":  "Mount Qasioun",
+        "ArAttractionName":  "جبل قاسيون",
+        "AttractionCategoryId":  13,
+        "Description":  "Mount overlooking Damascus offering panoramic city views.",
+        "Longitude":  36.3200,
+        "Latitude":  33.5450,
+        "CityId":  315
+    },
+    {
+        "Id":  7,
+        "EnAttractionName":  "Sayyidah Zaynab Shrine",
+        "ArAttractionName":  "مرقد السيدة زينب",
+        "AttractionCategoryId":  8,
+        "Description":  "A major Shia religious site in the suburbs of Damascus.",
+        "Longitude":  36.3365,
+        "Latitude":  33.4490,
+        "CityId":  315
+    },
+    {
+        "Id":  8,
+        "EnAttractionName":  "Tishreen Park",
+        "ArAttractionName":  "حديقة تشرين",
+        "AttractionCategoryId":  3,
+        "Description":  "A large public park in central Damascus.",
+        "Longitude":  36.2820,
+        "Latitude":  33.5170,
+        "CityId":  315
+    },
+    {
+        "Id":  9,
+        "EnAttractionName":  "Damascus Opera House",
+        "ArAttractionName":  "دار الأوبرا الدمشقية",
+        "AttractionCategoryId":  9,
+        "Description":  "The main performing arts venue in Damascus, hosting concerts and theater productions.",
+        "Longitude":  36.2785,
+        "Latitude":  33.5200,
+        "CityId":  315
+    },
+    {
+        "Id":  10,
+        "EnAttractionName":  "Bab Sharqi Market",
+        "ArAttractionName":  "سوق باب شرقي",
+        "AttractionCategoryId":  18,
+        "Description":  "Traditional market near the Eastern Gate of old Damascus.",
+        "Longitude":  36.3140,
+        "Latitude":  33.5100,
+        "CityId":  315
+    },
+    {
+        "Id":  11,
+        "EnAttractionName":  "Aleppo Citadel",
+        "ArAttractionName":  "قلعة حلب",
+        "AttractionCategoryId":  12,
+        "Description":  "A medieval fortified palace and one of the oldest and largest castles in the world.",
+        "Longitude":  37.1624,
+        "Latitude":  36.1994,
+        "CityId":  414
+    },
+    {
+        "Id":  12,
+        "EnAttractionName":  "Great Mosque of Aleppo",
+        "ArAttractionName":  "الجامع الكبير في حلب",
+        "AttractionCategoryId":  8,
+        "Description":  "A historic mosque built in the 8th century, also known as the Umayyad Mosque of Aleppo.",
+        "Longitude":  37.1610,
+        "Latitude":  36.2000,
+        "CityId":  414
+    },
+    {
+        "Id":  13,
+        "EnAttractionName":  "Al-Madina Souq",
+        "ArAttractionName":  "سوق المدينة في حلب",
+        "AttractionCategoryId":  18,
+        "Description":  "A historic covered market complex in the old city of Aleppo.",
+        "Longitude":  37.1585,
+        "Latitude":  36.1998,
+        "CityId":  414
+    },
+    {
+        "Id":  14,
+        "EnAttractionName":  "National Museum of Aleppo",
+        "ArAttractionName":  "متحف حلب الوطني",
+        "AttractionCategoryId":  1,
+        "Description":  "Museum showcasing the rich history of Aleppo and northern Syria.",
+        "Longitude":  37.1550,
+        "Latitude":  36.2020,
+        "CityId":  414
+    },
+    {
+        "Id":  15,
+        "EnAttractionName":  "Church of Saint Simeon Stylites",
+        "ArAttractionName":  "كنيسة القديس سمعان العمودي",
+        "AttractionCategoryId":  2,
+        "Description":  "An ancient Byzantine church complex built around the pillar of Saint Simeon.",
+        "Longitude":  36.8433,
+        "Latitude":  36.3342,
+        "CityId":  414
+    },
+    {
+        "Id":  16,
+        "EnAttractionName":  "Dead Cities of Serjilla",
+        "ArAttractionName":  "المدن الميتة - سيرجيلة",
+        "AttractionCategoryId":  2,
+        "Description":  "A UNESCO World Heritage site featuring well-preserved Byzantine ruins.",
+        "Longitude":  36.5850,
+        "Latitude":  35.6760,
+        "CityId":  3885
+    },
+    {
+        "Id":  17,
+        "EnAttractionName":  "Ebla Archaeological Site",
+        "ArAttractionName":  "موقع إيبلا الأثري",
+        "AttractionCategoryId":  2,
+        "Description":  "One of the oldest kingdoms in Syria, dating back to the 3rd millennium BC.",
+        "Longitude":  36.7867,
+        "Latitude":  35.8075,
+        "CityId":  3885
+    },
+    {
+        "Id":  18,
+        "EnAttractionName":  "Krak des Chevaliers",
+        "ArAttractionName":  "قلعة الحصن (كراك دي شوفالييه)",
+        "AttractionCategoryId":  12,
+        "Description":  "A UNESCO World Heritage site and one of the best-preserved Crusader castles in the world.",
+        "Longitude":  36.2922,
+        "Latitude":  34.7560,
+        "CityId":  946
+    },
+    {
+        "Id":  19,
+        "EnAttractionName":  "Al-Nuri Mosque of Homs",
+        "ArAttractionName":  "جامع النوري في حمص",
+        "AttractionCategoryId":  8,
+        "Description":  "A historic mosque in Homs built by Nur ad-Din Zengi.",
+        "Longitude":  36.7160,
+        "Latitude":  34.7270,
+        "CityId":  946
+    },
+    {
+        "Id":  20,
+        "EnAttractionName":  "Qattinah Lake",
+        "ArAttractionName":  "بحيرة قطينة",
+        "AttractionCategoryId":  3,
+        "Description":  "A large artificial lake near Homs, popular for picnics and boating.",
+        "Longitude":  36.6125,
+        "Latitude":  34.6450,
+        "CityId":  946
+    },
+    {
+        "Id":  21,
+        "EnAttractionName":  "Temple of Bel (Palmyra)",
+        "ArAttractionName":  "معبد بل في تدمر",
+        "AttractionCategoryId":  2,
+        "Description":  "The most famous ancient temple in Palmyra, a UNESCO World Heritage site.",
+        "Longitude":  38.2686,
+        "Latitude":  34.5492,
+        "CityId":  11022
+    },
+    {
+        "Id":  22,
+        "EnAttractionName":  "Palmyra Museum",
+        "ArAttractionName":  "متحف تدمر",
+        "AttractionCategoryId":  1,
+        "Description":  "Museum displaying artifacts from the ancient city of Palmyra.",
+        "Longitude":  38.2570,
+        "Latitude":  34.5560,
+        "CityId":  11022
+    },
+    {
+        "Id":  23,
+        "EnAttractionName":  "Valley of the Tombs (Palmyra)",
+        "ArAttractionName":  "وادي القبور في تدمر",
+        "AttractionCategoryId":  2,
+        "Description":  "An ancient necropolis with elaborate tower tombs dating back to the Roman period.",
+        "Longitude":  38.2800,
+        "Latitude":  34.5350,
+        "CityId":  11022
+    },
+    {
+        "Id":  24,
+        "EnAttractionName":  "Saint Mary Church of the Holy Belt",
+        "ArAttractionName":  "كنيسة السيدة العذراء (الحزام)",
+        "AttractionCategoryId":  8,
+        "Description":  "One of the oldest churches in the world, containing a relic belt of the Virgin Mary.",
+        "Longitude":  36.7180,
+        "Latitude":  34.7250,
+        "CityId":  946
+    },
+    {
+        "Id":  25,
+        "EnAttractionName":  "Citadel of Raymond de Saint-Gilles",
+        "ArAttractionName":  "قلعة ريموند دي سان جيل",
+        "AttractionCategoryId":  12,
+        "Description":  "A Crusader fortress in Tartus with stunning views of the Mediterranean.",
+        "Longitude":  35.8825,
+        "Latitude":  34.8900,
+        "CityId":  6716
+    },
+    {
+        "Id":  26,
+        "EnAttractionName":  "Tartus Beach",
+        "ArAttractionName":  "شاطئ طرطوس",
+        "AttractionCategoryId":  5,
+        "Description":  "A popular Mediterranean beach along the Syrian coast.",
+        "Longitude":  35.8692,
+        "Latitude":  34.8908,
+        "CityId":  6716
+    },
+    {
+        "Id":  27,
+        "EnAttractionName":  "Arwad Island",
+        "ArAttractionName":  "جزيرة أرواد",
+        "AttractionCategoryId":  23,
+        "Description":  "The only inhabited island in Syria, with a historic fortress and seafood restaurants.",
+        "Longitude":  35.8583,
+        "Latitude":  34.8550,
+        "CityId":  6716
+    },
+    {
+        "Id":  28,
+        "EnAttractionName":  "Marqab Castle",
+        "ArAttractionName":  "قلعة المرقب",
+        "AttractionCategoryId":  12,
+        "Description":  "A massive Crusader castle perched on a hilltop overlooking the Mediterranean.",
+        "Longitude":  35.9450,
+        "Latitude":  35.1525,
+        "CityId":  12809
+    },
+    {
+        "Id":  29,
+        "EnAttractionName":  "Al-Fanar Beach",
+        "ArAttractionName":  "شاطئ الفنار",
+        "AttractionCategoryId":  5,
+        "Description":  "A scenic beach area in Latakia with golden sand and clear water.",
+        "Longitude":  35.7900,
+        "Latitude":  35.5200,
+        "CityId":  1048
+    },
+    {
+        "Id":  30,
+        "EnAttractionName":  "Latakia Corniche",
+        "ArAttractionName":  "كورنيش اللاذقية",
+        "AttractionCategoryId":  3,
+        "Description":  "A seaside promenade perfect for evening walks along the Mediterranean.",
+        "Longitude":  35.7850,
+        "Latitude":  35.5250,
+        "CityId":  1048
+    },
+    {
+        "Id":  31,
+        "EnAttractionName":  "Saladin Castle (Sahyun)",
+        "ArAttractionName":  "قلعة صلاح الدين (صهيون)",
+        "AttractionCategoryId":  12,
+        "Description":  "A medieval Crusader castle with a remarkable defensive ditch, a UNESCO World Heritage site.",
+        "Longitude":  35.9267,
+        "Latitude":  35.6017,
+        "CityId":  1048
+    },
+    {
+        "Id":  32,
+        "EnAttractionName":  "Ras al-Bassit Beach",
+        "ArAttractionName":  "شاطئ رأس البسيط",
+        "AttractionCategoryId":  5,
+        "Description":  "A pristine sandy beach near the ancient city of Ras al-Bassit.",
+        "Longitude":  35.8375,
+        "Latitude":  35.8250,
+        "CityId":  1048
+    },
+    {
+        "Id":  33,
+        "EnAttractionName":  "Al-Nabi Habeel Mosque",
+        "ArAttractionName":  "مقام النبي هابيل",
+        "AttractionCategoryId":  8,
+        "Description":  "A shrine believed to contain the tomb of Abel, son of Adam.",
+        "Longitude":  36.7300,
+        "Latitude":  34.7350,
+        "CityId":  946
+    },
+    {
+        "Id":  34,
+        "EnAttractionName":  "Qasr al-Azem (Hama)",
+        "ArAttractionName":  "قصر العظم في حماة",
+        "AttractionCategoryId":  2,
+        "Description":  "An 18th-century Ottoman palace in Hama now serving as a museum.",
+        "Longitude":  36.7583,
+        "Latitude":  35.1342,
+        "CityId":  1053
+    },
+    {
+        "Id":  35,
+        "EnAttractionName":  "Norias of Hama",
+        "ArAttractionName":  "نواعير حماة",
+        "AttractionCategoryId":  11,
+        "Description":  "Historic water wheels on the Orontes River, a symbol of Hama.",
+        "Longitude":  36.7520,
+        "Latitude":  35.1350,
+        "CityId":  1053
+    },
+    {
+        "Id":  36,
+        "EnAttractionName":  "Hama Museum",
+        "ArAttractionName":  "متحف حماة",
+        "AttractionCategoryId":  1,
+        "Description":  "A museum housed in an old Ottoman building with artifacts from the region.",
+        "Longitude":  36.7560,
+        "Latitude":  35.1330,
+        "CityId":  1053
+    },
+    {
+        "Id":  37,
+        "EnAttractionName":  "Bosra Roman Theatre",
+        "ArAttractionName":  "المسرح الروماني في بصرى",
+        "AttractionCategoryId":  9,
+        "Description":  "An exceptionally well-preserved Roman theater, a UNESCO World Heritage site.",
+        "Longitude":  36.4767,
+        "Latitude":  32.5183,
+        "CityId":  25084
+    },
+    {
+        "Id":  38,
+        "EnAttractionName":  "Bosra Amphitheatre Museum",
+        "ArAttractionName":  "متحف مدرج بصرى",
+        "AttractionCategoryId":  1,
+        "Description":  "Museum located within the Bosra Roman theatre complex.",
+        "Longitude":  36.4775,
+        "Latitude":  32.5180,
+        "CityId":  25084
+    },
+    {
+        "Id":  39,
+        "EnAttractionName":  "Bosra Citadel",
+        "ArAttractionName":  "قلعة بصرى",
+        "AttractionCategoryId":  12,
+        "Description":  "A medieval fortress built around the Roman theatre in Bosra.",
+        "Longitude":  36.4760,
+        "Latitude":  32.5190,
+        "CityId":  25084
+    },
+    {
+        "Id":  40,
+        "EnAttractionName":  "Maaloula Village",
+        "ArAttractionName":  "قرية معلولا",
+        "AttractionCategoryId":  2,
+        "Description":  "A historic village where Aramaic, the language of Jesus, is still spoken.",
+        "Longitude":  36.4786,
+        "Latitude":  33.8439,
+        "CityId":  315
+    },
+    {
+        "Id":  41,
+        "EnAttractionName":  "Convent of Saint Thecla (Maaloula)",
+        "ArAttractionName":  "دير مار تقلا في معلولا",
+        "AttractionCategoryId":  8,
+        "Description":  "An ancient Greek Orthodox convent built into the cliffs of Maaloula.",
+        "Longitude":  36.4795,
+        "Latitude":  33.8425,
+        "CityId":  315
+    },
+    {
+        "Id":  42,
+        "EnAttractionName":  "Mar Musa al-Habashi Monastery",
+        "ArAttractionName":  "دير مار موسى الحبشي",
+        "AttractionCategoryId":  8,
+        "Description":  "A 6th-century monastery carved into a mountainside, 80 km north of Damascus.",
+        "Longitude":  36.7570,
+        "Latitude":  33.9720,
+        "CityId":  315
+    },
+    {
+        "Id":  43,
+        "EnAttractionName":  "Our Lady of Saidnaya Monastery",
+        "ArAttractionName":  "دير سيدة صيدنايا",
+        "AttractionCategoryId":  8,
+        "Description":  "One of the oldest Greek Orthodox monasteries in the world, founded in 547 AD.",
+        "Longitude":  36.3775,
+        "Latitude":  33.6933,
+        "CityId":  20480
+    },
+    {
+        "Id":  44,
+        "EnAttractionName":  "Bloudan Ski Resort",
+        "ArAttractionName":  "منتجع بلودان للتزلج",
+        "AttractionCategoryId":  22,
+        "Description":  "A popular ski resort in the mountains near Damascus, with slopes for all levels.",
+        "Longitude":  36.1800,
+        "Latitude":  33.7420,
+        "CityId":  19745
+    },
+    {
+        "Id":  45,
+        "EnAttractionName":  "Zabadani Resort",
+        "ArAttractionName":  "منتجع الزبداني",
+        "AttractionCategoryId":  17,
+        "Description":  "A mountain resort town known for its pleasant climate and natural springs.",
+        "Longitude":  36.1333,
+        "Latitude":  33.7333,
+        "CityId":  19733
+    },
+    {
+        "Id":  46,
+        "EnAttractionName":  "Wadi al-Nadara (Valley of Christians)",
+        "ArAttractionName":  "وادي النصارى",
+        "AttractionCategoryId":  19,
+        "Description":  "A scenic valley in western Syria with ancient Christian villages and monasteries.",
+        "Longitude":  36.3000,
+        "Latitude":  34.8667,
+        "CityId":  1053
+    },
+    {
+        "Id":  47,
+        "EnAttractionName":  "Ayn al-Fijah Spring",
+        "ArAttractionName":  "عين الفيجة",
+        "AttractionCategoryId":  24,
+        "Description":  "A natural spring and popular picnic spot in the Barada River valley.",
+        "Longitude":  36.1833,
+        "Latitude":  33.6167,
+        "CityId":  315
+    },
+    {
+        "Id":  48,
+        "EnAttractionName":  "Masyaf Castle",
+        "ArAttractionName":  "قلعة مصياف",
+        "AttractionCategoryId":  12,
+        "Description":  "A medieval fortress known as the headquarters of the Assassins sect.",
+        "Longitude":  36.3472,
+        "Latitude":  35.0650,
+        "CityId":  14604
+    },
+    {
+        "Id":  49,
+        "EnAttractionName":  "Al-Dreikish Waterfalls",
+        "ArAttractionName":  "شلالات الدريكيش",
+        "AttractionCategoryId":  24,
+        "Description":  "Scenic waterfalls surrounded by forested hills in the Tartus countryside.",
+        "Longitude":  36.1667,
+        "Latitude":  34.8833,
+        "CityId":  6716
+    },
+    {
+        "Id":  50,
+        "EnAttractionName":  "Ras al-Ain Nature Reserve",
+        "ArAttractionName":  "محمية رأس العين الطبيعية",
+        "AttractionCategoryId":  19,
+        "Description":  "A wetland nature reserve near the Turkish border, home to diverse bird species.",
+        "Longitude":  40.0700,
+        "Latitude":  36.8500,
+        "CityId":  3457
+    },
+    {
+        "Id":  51,
+        "EnAttractionName":  "Eiffel Tower",
+        "ArAttractionName":  "برج إيفل",
+        "AttractionCategoryId":  11,
+        "Description":  "Iconic iron lattice tower on the Champ de Mars, the most recognizable landmark in Paris.",
+        "Longitude":  2.2945,
+        "Latitude":  48.8584,
+        "CityId":  36
+    },
+    {
+        "Id":  52,
+        "EnAttractionName":  "Louvre Museum",
+        "ArAttractionName":  "متحف اللوفر",
+        "AttractionCategoryId":  1,
+        "Description":  "The world\u0027s largest art museum, housing masterpieces including the Mona Lisa.",
+        "Longitude":  2.3376,
+        "Latitude":  48.8606,
+        "CityId":  36
+    },
+    {
+        "Id":  53,
+        "EnAttractionName":  "Notre-Dame Cathedral",
+        "ArAttractionName":  "كاتدرائية نوتردام",
+        "AttractionCategoryId":  8,
+        "Description":  "A medieval Catholic cathedral on the ÃŽle de la CitÃ©, masterpiece of French Gothic architecture.",
+        "Longitude":  2.3500,
+        "Latitude":  48.8530,
+        "CityId":  36
+    },
+    {
+        "Id":  54,
+        "EnAttractionName":  "Sacré-Cœur Basilica",
+        "ArAttractionName":  "كنيسة الساكري كور",
+        "AttractionCategoryId":  8,
+        "Description":  "A Roman Catholic basilica atop Montmartre offering panoramic views of Paris.",
+        "Longitude":  2.3431,
+        "Latitude":  48.8867,
+        "CityId":  36
+    },
+    {
+        "Id":  55,
+        "EnAttractionName":  "Palace of Versailles",
+        "ArAttractionName":  "قصر فرساي",
+        "AttractionCategoryId":  12,
+        "Description":  "A former royal residence with magnificent gardens, a symbol of absolute monarchy.",
+        "Longitude":  2.1203,
+        "Latitude":  48.8049,
+        "CityId":  36
+    },
+    {
+        "Id":  56,
+        "EnAttractionName":  "Big Ben",
+        "ArAttractionName":  "بيغ بن",
+        "AttractionCategoryId":  11,
+        "Description":  "The iconic clock tower of the Palace of Westminster, a symbol of London.",
+        "Longitude":  -0.1246,
+        "Latitude":  51.5007,
+        "CityId":  35
+    },
+    {
+        "Id":  57,
+        "EnAttractionName":  "British Museum",
+        "ArAttractionName":  "المتحف البريطاني",
+        "AttractionCategoryId":  1,
+        "Description":  "One of the world\u0027s greatest museums of human history and culture.",
+        "Longitude":  -0.1276,
+        "Latitude":  51.5194,
+        "CityId":  35
+    },
+    {
+        "Id":  58,
+        "EnAttractionName":  "Tower of London",
+        "ArAttractionName":  "برج لندن",
+        "AttractionCategoryId":  12,
+        "Description":  "A historic castle on the Thames, former royal palace and prison.",
+        "Longitude":  -0.0759,
+        "Latitude":  51.5081,
+        "CityId":  35
+    },
+    {
+        "Id":  59,
+        "EnAttractionName":  "Buckingham Palace",
+        "ArAttractionName":  "قصر باكنغهام",
+        "AttractionCategoryId":  12,
+        "Description":  "The London residence of the British monarch.",
+        "Longitude":  -0.1419,
+        "Latitude":  51.5014,
+        "CityId":  35
+    },
+    {
+        "Id":  60,
+        "EnAttractionName":  "London Eye",
+        "ArAttractionName":  "عين لندن",
+        "AttractionCategoryId":  20,
+        "Description":  "A giant Ferris wheel on the South Bank offering stunning views of London.",
+        "Longitude":  -0.1195,
+        "Latitude":  51.5033,
+        "CityId":  35
+    },
+    {
+        "Id":  61,
+        "EnAttractionName":  "Burj Khalifa",
+        "ArAttractionName":  "برج خليفة",
+        "AttractionCategoryId":  20,
+        "Description":  "The tallest building in the world with observation decks offering breathtaking views.",
+        "Longitude":  55.2742,
+        "Latitude":  25.1972,
+        "CityId":  227
+    },
+    {
+        "Id":  62,
+        "EnAttractionName":  "The Dubai Mall",
+        "ArAttractionName":  "دبي مول",
+        "AttractionCategoryId":  6,
+        "Description":  "One of the largest shopping malls in the world with an aquarium and ice rink.",
+        "Longitude":  55.2798,
+        "Latitude":  25.1986,
+        "CityId":  227
+    },
+    {
+        "Id":  63,
+        "EnAttractionName":  "Palm Jumeirah",
+        "ArAttractionName":  "نخلة جميرا",
+        "AttractionCategoryId":  11,
+        "Description":  "An artificial archipelago shaped like a palm tree, one of Dubai\u0027s most iconic landmarks.",
+        "Longitude":  55.1326,
+        "Latitude":  25.1124,
+        "CityId":  227
+    },
+    {
+        "Id":  64,
+        "EnAttractionName":  "Dubai Aquarium \u0026 Underwater Zoo",
+        "ArAttractionName":  "حوض دبي للأحياء المائية وحديقة الحيوانات المائية",
+        "AttractionCategoryId":  7,
+        "Description":  "One of the largest suspended aquariums in the world, in the Dubai Mall.",
+        "Longitude":  55.2794,
+        "Latitude":  25.1970,
+        "CityId":  227
+    },
+    {
+        "Id":  65,
+        "EnAttractionName":  "Mall of the Emirates",
+        "ArAttractionName":  "مول الإمارات",
+        "AttractionCategoryId":  6,
+        "Description":  "A major shopping mall featuring Ski Dubai, an indoor ski resort.",
+        "Longitude":  55.1986,
+        "Latitude":  25.1185,
+        "CityId":  227
+    },
+    {
+        "Id":  66,
+        "EnAttractionName":  "Statue of Liberty",
+        "ArAttractionName":  "تمثال الحرية",
+        "AttractionCategoryId":  11,
+        "Description":  "An iconic copper statue on Liberty Island, a symbol of freedom and democracy.",
+        "Longitude":  -74.0445,
+        "Latitude":  40.6892,
+        "CityId":  15
+    },
+    {
+        "Id":  67,
+        "EnAttractionName":  "Central Park",
+        "ArAttractionName":  "سنترال بارك",
+        "AttractionCategoryId":  3,
+        "Description":  "An urban park in Manhattan, offering a serene escape from the city.",
+        "Longitude":  -73.9654,
+        "Latitude":  40.7829,
+        "CityId":  15
+    },
+    {
+        "Id":  68,
+        "EnAttractionName":  "Times Square",
+        "ArAttractionName":  "تايمز سكوير",
+        "AttractionCategoryId":  11,
+        "Description":  "A major commercial intersection known for its bright billboards and Broadway theatres.",
+        "Longitude":  -73.9855,
+        "Latitude":  40.7580,
+        "CityId":  15
+    },
+    {
+        "Id":  69,
+        "EnAttractionName":  "Empire State Building",
+        "ArAttractionName":  "مبنى إمباير ستيت",
+        "AttractionCategoryId":  20,
+        "Description":  "A 102-story Art Deco skyscraper with iconic observation decks.",
+        "Longitude":  -73.9857,
+        "Latitude":  40.7484,
+        "CityId":  15
+    },
+    {
+        "Id":  70,
+        "EnAttractionName":  "Metropolitan Museum of Art",
+        "ArAttractionName":  "متحف المتروبوليتان للفنون",
+        "AttractionCategoryId":  1,
+        "Description":  "The largest art museum in the Americas, with over two million works of art.",
+        "Longitude":  -73.9632,
+        "Latitude":  40.7794,
+        "CityId":  15
+    },
+    {
+        "Id":  71,
+        "EnAttractionName":  "Grand Bazaar (Istanbul)",
+        "ArAttractionName":  "البازار الكبير (إسطنبول)",
+        "AttractionCategoryId":  18,
+        "Description":  "One of the largest and oldest covered markets in the world with thousands of shops.",
+        "Longitude":  28.9679,
+        "Latitude":  41.0107,
+        "CityId":  26
+    },
+    {
+        "Id":  72,
+        "EnAttractionName":  "Hagia Sophia",
+        "ArAttractionName":  "آيا صوفيا",
+        "AttractionCategoryId":  8,
+        "Description":  "A former Byzantine church and Ottoman mosque, now a museum and architectural wonder.",
+        "Longitude":  28.9795,
+        "Latitude":  41.0086,
+        "CityId":  26
+    },
+    {
+        "Id":  73,
+        "EnAttractionName":  "Blue Mosque (Sultan Ahmed Mosque)",
+        "ArAttractionName":  "الجامع الأزرق (جامع السلطان أحمد)",
+        "AttractionCategoryId":  8,
+        "Description":  "A historic mosque with six minarets and stunning blue Iznik tilework.",
+        "Longitude":  28.9760,
+        "Latitude":  41.0054,
+        "CityId":  26
+    },
+    {
+        "Id":  74,
+        "EnAttractionName":  "Topkapi Palace",
+        "ArAttractionName":  "قصر طوب قابي",
+        "AttractionCategoryId":  12,
+        "Description":  "The primary residence of Ottoman sultans for centuries, now a museum.",
+        "Longitude":  28.9832,
+        "Latitude":  41.0115,
+        "CityId":  26
+    },
+    {
+        "Id":  75,
+        "EnAttractionName":  "Basilica Cistern",
+        "ArAttractionName":  "صهريج البازيليكا",
+        "AttractionCategoryId":  2,
+        "Description":  "The largest surviving Byzantine cistern in Istanbul, an underground marvel.",
+        "Longitude":  28.9778,
+        "Latitude":  41.0084,
+        "CityId":  26
+    },
+    {
+        "Id":  76,
+        "EnAttractionName":  "Colosseum",
+        "ArAttractionName":  "الكولوسيوم",
+        "AttractionCategoryId":  2,
+        "Description":  "An ancient Roman amphitheater, the largest ever built, iconic symbol of Rome.",
+        "Longitude":  12.4922,
+        "Latitude":  41.8902,
+        "CityId":  290
+    },
+    {
+        "Id":  77,
+        "EnAttractionName":  "Vatican Museums",
+        "ArAttractionName":  "متاحف الفاتيكان",
+        "AttractionCategoryId":  1,
+        "Description":  "The museums of the Vatican City, housing an immense collection of art and antiquities.",
+        "Longitude":  12.4530,
+        "Latitude":  41.9065,
+        "CityId":  290
+    },
+    {
+        "Id":  78,
+        "EnAttractionName":  "Trevi Fountain",
+        "ArAttractionName":  "نافورة تريفي",
+        "AttractionCategoryId":  11,
+        "Description":  "The largest Baroque fountain in Rome, a masterpiece by Nicola Salvi.",
+        "Longitude":  12.4833,
+        "Latitude":  41.9009,
+        "CityId":  290
+    },
+    {
+        "Id":  79,
+        "EnAttractionName":  "Roman Forum",
+        "ArAttractionName":  "المنتدى الروماني",
+        "AttractionCategoryId":  2,
+        "Description":  "The center of ancient Roman public life, with ruins of important government buildings.",
+        "Longitude":  12.4854,
+        "Latitude":  41.8925,
+        "CityId":  290
+    },
+    {
+        "Id":  80,
+        "EnAttractionName":  "St. Peter\u0027s Basilica",
+        "ArAttractionName":  "كاتدرائية القديس بطرس",
+        "AttractionCategoryId":  8,
+        "Description":  "The largest church in the world, a masterpiece of Renaissance architecture.",
+        "Longitude":  12.4539,
+        "Latitude":  41.9022,
+        "CityId":  290
+    },
+    {
+        "Id":  81,
+        "EnAttractionName":  "Tokyo Tower",
+        "ArAttractionName":  "برج طوكيو",
+        "AttractionCategoryId":  20,
+        "Description":  "A communications and observation tower inspired by the Eiffel Tower.",
+        "Longitude":  139.7454,
+        "Latitude":  35.6586,
+        "CityId":  1
+    },
+    {
+        "Id":  82,
+        "EnAttractionName":  "Senso-ji Temple",
+        "ArAttractionName":  "معبد سينسو-جي",
+        "AttractionCategoryId":  8,
+        "Description":  "Tokyo\u0027s oldest temple, dedicated to Kannon, the goddess of mercy.",
+        "Longitude":  139.7967,
+        "Latitude":  35.7148,
+        "CityId":  1
+    },
+    {
+        "Id":  83,
+        "EnAttractionName":  "Shibuya Crossing",
+        "ArAttractionName":  "مفترق شيبويا",
+        "AttractionCategoryId":  11,
+        "Description":  "One of the busiest pedestrian crossings in the world, a symbol of Tokyo.",
+        "Longitude":  139.7002,
+        "Latitude":  35.6595,
+        "CityId":  1
+    },
+    {
+        "Id":  84,
+        "EnAttractionName":  "Akihabara Electric Town",
+        "ArAttractionName":  "مدينة أكيهابارا الإلكترونية",
+        "AttractionCategoryId":  6,
+        "Description":  "A major shopping district for electronics, anime, and manga.",
+        "Longitude":  139.7746,
+        "Latitude":  35.7023,
+        "CityId":  1
+    },
+    {
+        "Id":  85,
+        "EnAttractionName":  "Meiji Shrine",
+        "ArAttractionName":  "ضريح ميجي",
+        "AttractionCategoryId":  8,
+        "Description":  "A Shinto shrine dedicated to Emperor Meiji and Empress Shoken, surrounded by a forest.",
+        "Longitude":  139.6993,
+        "Latitude":  35.6764,
+        "CityId":  1
+    },
+    {
+        "Id":  86,
+        "EnAttractionName":  "Great Pyramid of Giza",
+        "ArAttractionName":  "الهرم الأكبر في الجيزة",
+        "AttractionCategoryId":  2,
+        "Description":  "The oldest and largest of the ancient Egyptian pyramids, a UNESCO World Heritage site.",
+        "Longitude":  31.1342,
+        "Latitude":  29.9792,
+        "CityId":  12
+    },
+    {
+        "Id":  87,
+        "EnAttractionName":  "The Egyptian Museum",
+        "ArAttractionName":  "المتحف المصري",
+        "AttractionCategoryId":  1,
+        "Description":  "Home to an extensive collection of ancient Egyptian antiquities, including Tutankhamun\u0027s treasures.",
+        "Longitude":  31.2330,
+        "Latitude":  30.0478,
+        "CityId":  12
+    },
+    {
+        "Id":  88,
+        "EnAttractionName":  "Khan el-Khalili",
+        "ArAttractionName":  "خان الخليلي",
+        "AttractionCategoryId":  18,
+        "Description":  "A historic souq and bazaar in the heart of Islamic Cairo.",
+        "Longitude":  31.2620,
+        "Latitude":  30.0470,
+        "CityId":  12
+    },
+    {
+        "Id":  89,
+        "EnAttractionName":  "Nile Corniche",
+        "ArAttractionName":  "كورنيش النيل",
+        "AttractionCategoryId":  3,
+        "Description":  "A scenic waterfront promenade along the River Nile in Cairo.",
+        "Longitude":  31.2250,
+        "Latitude":  30.0530,
+        "CityId":  12
+    },
+    {
+        "Id":  90,
+        "EnAttractionName":  "Cairo Tower",
+        "ArAttractionName":  "برج القاهرة",
+        "AttractionCategoryId":  20,
+        "Description":  "A 187-meter tower with a rotating observation deck and panoramic views of Cairo.",
+        "Longitude":  31.2246,
+        "Latitude":  30.0456,
+        "CityId":  12
+    },
+    {
+        "Id":  91,
+        "EnAttractionName":  "Grand Palace (Bangkok)",
+        "ArAttractionName":  "القصر الكبير (بانكوك)",
+        "AttractionCategoryId":  12,
+        "Description":  "A complex of buildings serving as the official residence of the Kings of Siam.",
+        "Longitude":  100.4914,
+        "Latitude":  13.7500,
+        "CityId":  17
+    },
+    {
+        "Id":  92,
+        "EnAttractionName":  "Wat Phra Kaew (Temple of the Emerald Buddha)",
+        "ArAttractionName":  "معبد وات فرا كايو (معبد بوذا الزمردي)",
+        "AttractionCategoryId":  8,
+        "Description":  "The most sacred Buddhist temple in Thailand, within the Grand Palace grounds.",
+        "Longitude":  100.4920,
+        "Latitude":  13.7510,
+        "CityId":  17
+    },
+    {
+        "Id":  93,
+        "EnAttractionName":  "Chatuchak Weekend Market",
+        "ArAttractionName":  "سوق تشاتوشاك الأسبوعي",
+        "AttractionCategoryId":  18,
+        "Description":  "One of the largest weekend markets in the world with over 15,000 stalls.",
+        "Longitude":  100.5499,
+        "Latitude":  13.7996,
+        "CityId":  17
+    },
+    {
+        "Id":  94,
+        "EnAttractionName":  "Safari World",
+        "ArAttractionName":  "سفاري وورلد",
+        "AttractionCategoryId":  7,
+        "Description":  "A large open-world zoo and marine park in Bangkok.",
+        "Longitude":  100.5383,
+        "Latitude":  13.7780,
+        "CityId":  17
+    },
+    {
+        "Id":  95,
+        "EnAttractionName":  "Asiatique The Riverfront",
+        "ArAttractionName":  "آسياتيك الواجهة النهرية",
+        "AttractionCategoryId":  6,
+        "Description":  "A large open-air mall and night market along the Chao Phraya River.",
+        "Longitude":  100.5017,
+        "Latitude":  13.7064,
+        "CityId":  17
+    },
+    {
+        "Id":  96,
+        "EnAttractionName":  "Sydney Opera House",
+        "ArAttractionName":  "دار أوبرا سيدني",
+        "AttractionCategoryId":  11,
+        "Description":  "A multi-venue performing arts centre, a UNESCO World Heritage site and icon of Sydney.",
+        "Longitude":  151.2153,
+        "Latitude":  -33.8568,
+        "CityId":  135
+    },
+    {
+        "Id":  97,
+        "EnAttractionName":  "Bondi Beach",
+        "ArAttractionName":  "شاطئ بوندي",
+        "AttractionCategoryId":  5,
+        "Description":  "One of Australia\u0027s most famous beaches, known for its golden sand and surf culture.",
+        "Longitude":  151.2761,
+        "Latitude":  -33.8915,
+        "CityId":  135
+    },
+    {
+        "Id":  98,
+        "EnAttractionName":  "Sydney Harbour Bridge",
+        "ArAttractionName":  "جسر ميناء سيدني",
+        "AttractionCategoryId":  11,
+        "Description":  "A steel through arch bridge across Sydney Harbour, offering bridge climb experiences.",
+        "Longitude":  151.2107,
+        "Latitude":  -33.8523,
+        "CityId":  135
+    },
+    {
+        "Id":  99,
+        "EnAttractionName":  "Royal Botanic Garden Sydney",
+        "ArAttractionName":  "الحديقة النباتية الملكية في سيدني",
+        "AttractionCategoryId":  3,
+        "Description":  "A major botanical garden in Sydney with stunning views of the Opera House and Harbour Bridge.",
+        "Longitude":  151.2175,
+        "Latitude":  -33.8642,
+        "CityId":  135
+    },
+    {
+        "Id":  100,
+        "EnAttractionName":  "Taronga Zoo Sydney",
+        "ArAttractionName":  "حديقة حيوان تارونغا سيدني",
+        "AttractionCategoryId":  7,
+        "Description":  "A zoo on Sydney Harbour with native and exotic animals.",
+        "Longitude":  151.2406,
+        "Latitude":  -33.8434,
+        "CityId":  135
+    }
+]

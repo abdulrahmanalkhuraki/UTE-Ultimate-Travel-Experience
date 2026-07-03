@@ -82,14 +82,12 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    AttractionName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    EnAttractionName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    ArAttractionName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     AttractionCategoryId = table.Column<int>(type: "int", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     Longitude = table.Column<decimal>(type: "decimal(18,8)", nullable: false),
                     Latitude = table.Column<decimal>(type: "decimal(18,8)", nullable: false),
-                    OpenAt = table.Column<TimeOnly>(type: "time", nullable: true),
-                    ClosedAt = table.Column<TimeOnly>(type: "time", nullable: true),
-                    Entry_Fee = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     CityId = table.Column<int>(type: "int", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())"),
                     UpdatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())")
@@ -850,37 +848,6 @@ namespace Infrastructure.Migrations
                         column: x => x.ItineraryId,
                         principalTable: "Itineraries",
                         principalColumn: "Id");
-                });
-
-            migrationBuilder.InsertData(
-                table: "AttractionCategories",
-                columns: new[] { "CategoryId", "ArCategoryName", "EnCategoryName" },
-                values: new object[,]
-                {
-                    { 1, "متاحف", "Museums" },
-                    { 2, "مواقع تاريخية", "Historical Sites" },
-                    { 3, "حدائق وطبيعة", "Parks & Nature" },
-                    { 4, "مدن ملاهي", "Amusement Parks" },
-                    { 5, "شواطئ", "Beaches" },
-                    { 6, "مراكز تسوق", "Shopping Malls" },
-                    { 7, "حدائق حيوان وأحواض أسماك", "Zoos & Aquariums" },
-                    { 8, "مواقع دينية", "Religious Sites" },
-                    { 9, "مسارح وعروض", "Theaters & Shows" },
-                    { 10, "معارض فنية", "Art Galleries" },
-                    { 11, "معالم ونصب تذكارية", "Landmarks & Monuments" },
-                    { 12, "قلاع وقصور", "Castles & Palaces" },
-                    { 13, "جبال ومسارات مشي", "Mountains & Hiking Trails" },
-                    { 14, "حدائق مائية", "Water Parks" },
-                    { 15, "ملاعب رياضية", "Sports Arenas" },
-                    { 16, "مهرجانات وفعاليات", "Festivals & Events" },
-                    { 17, "منتجعات صحية", "Spas & Wellness" },
-                    { 18, "أسواق محلية وبازارات", "Local Markets & Bazaars" },
-                    { 19, "محميات طبيعية", "Nature Reserves" },
-                    { 20, "منصات مشاهدة", "Observation Decks" },
-                    { 21, "كهوف", "Caves" },
-                    { 22, "منتجعات تزلج", "Ski Resorts" },
-                    { 23, "جزر", "Islands" },
-                    { 24, "شلالات", "Waterfalls" }
                 });
 
             migrationBuilder.InsertData(

@@ -59,6 +59,7 @@ namespace Application.Services
                     .Query()
                     .IgnoreQueryFilters()
                     .Where(c => c.Id == id)
+                    .Include(c => c.Cities)
                     .FirstOrDefaultAsync(cancellationToken);
 
                 if (entity == null)

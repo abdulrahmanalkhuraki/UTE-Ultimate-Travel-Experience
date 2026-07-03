@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260630191303_initDatabase")]
+    [Migration("20260702141242_initDatabase")]
     partial class initDatabase
     {
         /// <inheritdoc />
@@ -83,19 +83,16 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AttractionCategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("AttractionName")
+                    b.Property<string>("ArAttractionName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("CityId")
+                    b.Property<int>("AttractionCategoryId")
                         .HasColumnType("int");
 
-                    b.Property<TimeOnly?>("ClosedAt")
-                        .HasColumnType("time");
+                    b.Property<int>("CityId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .ValueGeneratedOnAdd()
@@ -106,18 +103,16 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<decimal>("EntryFee")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("Entry_Fee");
+                    b.Property<string>("EnAttractionName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("Latitude")
                         .HasColumnType("decimal(18, 8)");
 
                     b.Property<decimal>("Longitude")
                         .HasColumnType("decimal(18, 8)");
-
-                    b.Property<TimeOnly?>("OpenAt")
-                        .HasColumnType("time");
 
                     b.Property<DateTime>("UpdatedAtUtc")
                         .ValueGeneratedOnAdd()
@@ -154,152 +149,6 @@ namespace Infrastructure.Migrations
                     b.HasKey("CategoryId");
 
                     b.ToTable("AttractionCategories");
-
-                    b.HasData(
-                        new
-                        {
-                            CategoryId = 1,
-                            ArCategoryName = "متاحف",
-                            EnCategoryName = "Museums"
-                        },
-                        new
-                        {
-                            CategoryId = 2,
-                            ArCategoryName = "مواقع تاريخية",
-                            EnCategoryName = "Historical Sites"
-                        },
-                        new
-                        {
-                            CategoryId = 3,
-                            ArCategoryName = "حدائق وطبيعة",
-                            EnCategoryName = "Parks & Nature"
-                        },
-                        new
-                        {
-                            CategoryId = 4,
-                            ArCategoryName = "مدن ملاهي",
-                            EnCategoryName = "Amusement Parks"
-                        },
-                        new
-                        {
-                            CategoryId = 5,
-                            ArCategoryName = "شواطئ",
-                            EnCategoryName = "Beaches"
-                        },
-                        new
-                        {
-                            CategoryId = 6,
-                            ArCategoryName = "مراكز تسوق",
-                            EnCategoryName = "Shopping Malls"
-                        },
-                        new
-                        {
-                            CategoryId = 7,
-                            ArCategoryName = "حدائق حيوان وأحواض أسماك",
-                            EnCategoryName = "Zoos & Aquariums"
-                        },
-                        new
-                        {
-                            CategoryId = 8,
-                            ArCategoryName = "مواقع دينية",
-                            EnCategoryName = "Religious Sites"
-                        },
-                        new
-                        {
-                            CategoryId = 9,
-                            ArCategoryName = "مسارح وعروض",
-                            EnCategoryName = "Theaters & Shows"
-                        },
-                        new
-                        {
-                            CategoryId = 10,
-                            ArCategoryName = "معارض فنية",
-                            EnCategoryName = "Art Galleries"
-                        },
-                        new
-                        {
-                            CategoryId = 11,
-                            ArCategoryName = "معالم ونصب تذكارية",
-                            EnCategoryName = "Landmarks & Monuments"
-                        },
-                        new
-                        {
-                            CategoryId = 12,
-                            ArCategoryName = "قلاع وقصور",
-                            EnCategoryName = "Castles & Palaces"
-                        },
-                        new
-                        {
-                            CategoryId = 13,
-                            ArCategoryName = "جبال ومسارات مشي",
-                            EnCategoryName = "Mountains & Hiking Trails"
-                        },
-                        new
-                        {
-                            CategoryId = 14,
-                            ArCategoryName = "حدائق مائية",
-                            EnCategoryName = "Water Parks"
-                        },
-                        new
-                        {
-                            CategoryId = 15,
-                            ArCategoryName = "ملاعب رياضية",
-                            EnCategoryName = "Sports Arenas"
-                        },
-                        new
-                        {
-                            CategoryId = 16,
-                            ArCategoryName = "مهرجانات وفعاليات",
-                            EnCategoryName = "Festivals & Events"
-                        },
-                        new
-                        {
-                            CategoryId = 17,
-                            ArCategoryName = "منتجعات صحية",
-                            EnCategoryName = "Spas & Wellness"
-                        },
-                        new
-                        {
-                            CategoryId = 18,
-                            ArCategoryName = "أسواق محلية وبازارات",
-                            EnCategoryName = "Local Markets & Bazaars"
-                        },
-                        new
-                        {
-                            CategoryId = 19,
-                            ArCategoryName = "محميات طبيعية",
-                            EnCategoryName = "Nature Reserves"
-                        },
-                        new
-                        {
-                            CategoryId = 20,
-                            ArCategoryName = "منصات مشاهدة",
-                            EnCategoryName = "Observation Decks"
-                        },
-                        new
-                        {
-                            CategoryId = 21,
-                            ArCategoryName = "كهوف",
-                            EnCategoryName = "Caves"
-                        },
-                        new
-                        {
-                            CategoryId = 22,
-                            ArCategoryName = "منتجعات تزلج",
-                            EnCategoryName = "Ski Resorts"
-                        },
-                        new
-                        {
-                            CategoryId = 23,
-                            ArCategoryName = "جزر",
-                            EnCategoryName = "Islands"
-                        },
-                        new
-                        {
-                            CategoryId = 24,
-                            ArCategoryName = "شلالات",
-                            EnCategoryName = "Waterfalls"
-                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.Booking", b =>

@@ -3,9 +3,7 @@ using Application.DTOs.TourCompany.Response;
 using Application.Exceptions;
 using Application.Interfaces.TourCompany;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System.Net.Mime;
 using System.Security.Claims;
 using ValidationException = Application.Exceptions.ValidationException;
@@ -79,7 +77,8 @@ namespace UTE.Controllers
         /// <response code="409">If a conflict occurs (duplicate company)</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpPost]
-        [Authorize]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize("TourCompany")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(TourCompanyResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -206,7 +205,8 @@ namespace UTE.Controllers
         /// <response code="409">If a conflict or concurrency issue occurs</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpPut("{id:int:min(1)}")]
-        [Authorize]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize("TourCompany")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(TourCompanyResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -288,7 +288,8 @@ namespace UTE.Controllers
         /// <response code="404">If the tour company is not found</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpDelete("{id:int:min(1)}")]
-        [Authorize]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize("TourCompany")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
