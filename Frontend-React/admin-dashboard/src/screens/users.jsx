@@ -190,7 +190,7 @@ export default function Users() {
                 <UsersRound className="w-8 h-8 text-[#91B3FA]" />
                 <div>
                   <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Active Registered</p>
-                  <p className="text-xl font-bold text-white mt-0.5">12,450</p>
+                  <p className="text-xl font-bold text-[#91B3FA] mt-0.5">12,450</p>
                 </div>
               </div>
               <div className="flex items-center gap-4 bg-[#121212] p-4 rounded-xl border border-[#2a2a2a]">
@@ -234,9 +234,13 @@ export default function Users() {
 
         <div className="lg:col-span-5">
           <div className="bg-[#1C1C1E] border border-[#D4AF37]/30 rounded-2xl shadow-lg p-6 h-full flex flex-col">
-            <h3 className="text-lg font-semibold text-white mb-6 text-left ml-5 border-b border-[#333] pb-4">
-              Active Users
+            <h3 className="text-lg font-semibold  mb-6 text-left ml-5 border-b border-[#333] pb-4 text-[#91B3FA]">
+              <div className="flex items-center gap-4">
+              <UsersRound className="w-8 h-8  ml-5" />
+              ALL Users
+              </div>
             </h3>
+            
 
             <div className="space-y-5 overflow-y-auto flex-1 pr-2 custom-scrollbar">
               {activeUsers.map((user) => (
