@@ -7,10 +7,10 @@ import {
 
 // استدعاء واجهات النظام الداخلي
  import Home from './screens/home';
-// //import Users from './users';س
+ import Users from './screens/users';
 // //import Companies from './companies';
 // import Companies from './companies2';
-// import GroupTrip from './grouptrip';
+ import GroupTrip from './screens/groupTrip';
 // import Support from './support';
 // import Notifications from './Notifications';
 // import Settings from './settings';
