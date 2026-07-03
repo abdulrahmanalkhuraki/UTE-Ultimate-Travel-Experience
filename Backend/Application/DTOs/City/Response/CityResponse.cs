@@ -1,5 +1,4 @@
 ﻿using Domain.Entities;
-using System.Text.Json.Serialization;
 
 namespace Application.DTOs.City.Response
 {
@@ -11,7 +10,6 @@ namespace Application.DTOs.City.Response
         public string? Image { get; set; }
         public int CountryId { get; set; }
         public string? CountryName { get; set; }
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public virtual ICollection<Attraction> Attractions { get; set; } = new List<Attraction>();
     }
 }

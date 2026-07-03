@@ -1,0 +1,53 @@
+[
+  {
+    "Id": 1,
+    "Name": "شركة الإمارات للسياحة والسفر",
+    "Status": 1,
+    "RejectionReason": null,
+    "Description": "شركة رائدة في مجال السياحة والسفر تقدم أفضل الباقات السياحية إلى أجمل الوجهات في سوريا",
+    "Logo": null,
+    "Location": "دبي، الإمارات العربية المتحدة",
+    "PhoneNumber": "+971501234568",
+    "Email": "info@emirates-tour.com",
+    "FoundingDate": "2010-05-15",
+    "TourismLicenseNumber": "AE-54321",
+    "TourismLicenseImage": null,
+    "BankAccount": "AE12345678901234567890",
+    "About": "نحن شركة إماراتية رائدة في مجال السياحة والسفر، نقدم باقات سياحية مميزة إلى سوريا. لدينا فريق من المرشدين المحترفين والذين يضمنون تجربة سياحية لا تنسى.",
+    "UserId": 4
+  },
+  {
+    "Id": 2,
+    "Name": "شركة الأردن السياحية",
+    "Status": 1,
+    "RejectionReason": null,
+    "Description": "شركة سياحية أردنية متخصصة في تنظيم الرحلات إلى سوريا",
+    "Logo": null,
+    "Location": "عمّان، الأردن",
+    "PhoneNumber": "+962791234568",
+    "Email": "info@jordan-tour.com",
+    "FoundingDate": "2012-08-20",
+    "TourismLicenseNumber": "JO-98765",
+    "TourismLicenseImage": null,
+    "BankAccount": "JO12345678901234567890",
+    "About": "شركة أردنية متخصصة في السياحة إلى سوريا، نقدم أفضل البرامج السياحية التي تجمع بين التاريخ والطبيعة والمغامرة.",
+    "UserId": 5
+  },
+  {
+    "Id": 3,
+    "Name": "الشركة السورية للسياحة",
+    "Status": 1,
+    "RejectionReason": null,
+    "Description": "شركة سياحية سورية محلية تقدم أفضل البرامج السياحية في جميع أنحاء سوريا",
+    "Logo": null,
+    "Location": "دمشق، سوريا",
+    "PhoneNumber": "+963933000000",
+    "Email": "info@syria-tour.com",
+    "FoundingDate": "2008-03-01",
+    "TourismLicenseNumber": "SY-87654",
+    "TourismLicenseImage": null,
+    "BankAccount": "SY12345678901234567890",
+    "About": "شركة سورية محلية بخبرة تزيد عن 15 عاماً في مجال السياحة. نعرف سوريا جيداً ونقدم لك أفضل تجربة سياحية في بلدنا الجميل.",
+    "UserId": 6
+  }
+]

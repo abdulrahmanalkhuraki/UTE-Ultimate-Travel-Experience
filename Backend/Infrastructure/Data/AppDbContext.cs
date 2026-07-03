@@ -71,11 +71,9 @@ namespace Infrastructure.Data;
         modelBuilder.Entity<Attraction>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.AttractionName).HasMaxLength(100);
+            entity.Property(e => e.EnAttractionName).HasMaxLength(100);
+            entity.Property(e => e.ArAttractionName).HasMaxLength(100);
             entity.Property(e => e.Description).HasMaxLength(1000);
-            entity.Property(e => e.EntryFee)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("Entry_Fee");
 
             entity.Property(e => e.Latitude).HasColumnType("decimal(18, 8)");
             entity.Property(e => e.Longitude).HasColumnType("decimal(18, 8)");
@@ -101,8 +99,7 @@ namespace Infrastructure.Data;
         {
             entity.HasKey(e => e.CategoryId);
             entity.Property(e => e.EnCategoryName).HasMaxLength(100);
-            entity.Property(e => e.ArCategoryName).HasMaxLength(100);
-            
+            entity.Property(e => e.ArCategoryName).HasMaxLength(100);          
         });
 
         modelBuilder.Entity<Booking>(static entity =>

@@ -80,19 +80,16 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AttractionCategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("AttractionName")
+                    b.Property<string>("ArAttractionName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("CityId")
+                    b.Property<int>("AttractionCategoryId")
                         .HasColumnType("int");
 
-                    b.Property<TimeOnly?>("ClosedAt")
-                        .HasColumnType("time");
+                    b.Property<int>("CityId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .ValueGeneratedOnAdd()
@@ -103,18 +100,16 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<decimal>("EntryFee")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("Entry_Fee");
+                    b.Property<string>("EnAttractionName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("Latitude")
                         .HasColumnType("decimal(18, 8)");
 
                     b.Property<decimal>("Longitude")
                         .HasColumnType("decimal(18, 8)");
-
-                    b.Property<TimeOnly?>("OpenAt")
-                        .HasColumnType("time");
 
                     b.Property<DateTime>("UpdatedAtUtc")
                         .ValueGeneratedOnAdd()
