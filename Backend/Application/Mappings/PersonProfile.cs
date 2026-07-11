@@ -54,6 +54,7 @@ namespace Application.Mappings
                 .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.Firstname.Trim()))
                 .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.Lastname.Trim()))
                 .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Phone.Trim()))
+                .ForMember(dest => dest.NationalityCountryId, opt => opt.MapFrom(src => src.NationalityCountryId))
                 .ForMember(dest => dest.NationalIdCard, opt => opt.Ignore())
                 .ForMember(dest => dest.PassportScan, opt => opt.Ignore())
                 .ForMember(dest => dest.ProfileImage, opt => opt.Ignore())

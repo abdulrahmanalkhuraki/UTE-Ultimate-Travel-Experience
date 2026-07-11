@@ -12,8 +12,9 @@ namespace Application.Mappings
         {
             // Create mapping
             CreateMap<BookingCreateRequest, Booking>()
-                .ForMember(dest => dest.CreatedAtUtc, opt => opt.Ignore())
-                .ForMember(dest => dest.UpdatedAtUtc, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAtUtc, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.UpdatedAtUtc, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.BookingDate, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             // Update mapping

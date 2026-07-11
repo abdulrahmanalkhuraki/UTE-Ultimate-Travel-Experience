@@ -6,10 +6,10 @@ using Application.Interfaces.Notifications;
 using Application.Interfaces.User;
 using Application.Validators.Booking;
 using AutoMapper;
+using Azure.Core;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Interfaces;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -68,6 +68,9 @@ namespace Application.Services
                 throw new ValidationException(string.Join(", ", validationResult.Errors));
             }
 
+            var userId = _currentUser.UserId
+                ?? throw new AuthException("You must be loged in to create new booking.");
+
             var transactionStarted = false;
 
             try
@@ -90,78 +93,37 @@ namespace Application.Services
                     .Include(c => c.Person)
                     .ToListAsync(cancellationToken);
 
-                var foundIds = existingCompanions.Select(c => c.Id).ToHashSet();
-                var missingIds = companionIds.Except(foundIds).ToList();
-                if (missingIds.Count != 0)
-                {
-                    _logger.LogWarning("Companions with IDs [{MissingIds}] not found",
-                        string.Join(", ", missingIds));
-                    throw new NotFoundException($"Companions with IDs [{string.Join(", ", missingIds)}] not found");
-                }
-
-                var adultCompanions = existingCompanions.Count(c => c.Person.Age >= 18);
+                var adultCompanions = existingCompanions.Count(c => c.Person.Age >= 6);
                 var childrenCompanions = existingCompanions.Count - adultCompanions;
+                var totalSeatesNeeded = adultCompanions + 1; // user and his/her adult companions
 
-                var userId = _currentUser.UserId
-                    ?? throw new AuthException("You must be logged in to create a booking");
+                _EnsureCompanionsExists(existingCompanions,companionIds);
+                _EnsureSeatAvailability(package, totalSeatesNeeded);
+                await _EnsureNoBookingConflicts(package);
 
-                // check if this booking conflict with other bookings
-                var UserBookingsPackages = await _unitOfWork.Bookings
-                    .Query()
-                    .Where(b => b.UserId == userId)
-                    .Where(b => b.Status != BookingStatus.Completed &&
-                                b.Status != BookingStatus.Cancelled &&
-                                b.Status != BookingStatus.Rejected_By_Company &&
-                                b.Status != BookingStatus.Rejected_By_Tourist &&
-                                b.Status != BookingStatus.No_Show)
-                    .Include(b => b.TourPackage)
-                    .Select(b => b.TourPackage)
-                    .ToListAsync();
-
-                // user bookings packages that conflict with the created booking package
-                var PackageConflicts = UserBookingsPackages.Where(
-                    p => Conflict(
-                    package.StartDate,
-                    package.EndDate,
-                    p.StartDate,
-                    p.EndDate));
-
-                if (PackageConflicts.Any())
-                {
-                    var p = PackageConflicts.First();
-
-                    _logger.LogWarning($"User {userId} attempted to book package '{package.PackageName}' " +
-                        $"(from {package.StartDate:d} to {package.EndDate:d})" +
-                        " but it conflicts with their existing booking for package " +
-                        $"'{p.PackageName}' (from {p.StartDate:d} to {p.EndDate:d}).");
-                    throw new ConflictException($"You already have a booking that overlaps with this package's dates.");
-                }
 
                 await _unitOfWork.BeginTransactionAsync(cancellationToken);
                 transactionStarted = true;
 
-                var totalAmount = package.PricePerPerson * (adultCompanions + 1 + childrenCompanions);
-
+                var totalAmount = package.PricePerPerson * totalSeatesNeeded;
+                
+                // create payment record
                 var payment = new Payment();
                 payment.UserId = userId;
                 payment.Amount = totalAmount;
                 payment.PaymentDate = DateTime.UtcNow;
                 payment.PaymentStatus = PaymentStatus.Pending;
-                await _unitOfWork.Payments.AddAsync(payment, cancellationToken);
 
+                // create booking record
                 var booking = _mapper.Map<Booking>(request);
                 booking.UserId = userId;
                 booking.TourPackageId = package.Id;
                 booking.TourPackage = package;
                 booking.TotalCost = totalAmount;
                 booking.Payment = payment;
-                booking.BookingDate = DateTime.UtcNow;
                 booking.Status = BookingStatus.Pending;
                 booking.NumberOfAdults = adultCompanions + 1;
                 booking.NumberOfChildren = childrenCompanions;
-                booking.CreatedAtUtc = DateTime.UtcNow;
-                booking.UpdatedAtUtc = DateTime.UtcNow;
-
 
                 foreach (var companionId in request.CompanionIds)
                 {
@@ -254,12 +216,7 @@ namespace Application.Services
                     throw new NotFoundException($"Booking with ID {id} not found");
                 }
 
-                if (entity.UserId != _currentUser.UserId)
-                {
-                    _logger.LogWarning($"User with Id {_currentUser.UserId} Cannot Get booking with Id {entity.Id} " +
-                           $"because it belongs to another user.");
-                    throw new ForbiddenException("You do not have permission to access this booking. This booking belongs to another user.");
-                }
+                _EnsureBookingBelongsToCurrentUser(entity);
 
                 var response = _mapper.Map<BookingResponse>(entity);
 
@@ -334,7 +291,7 @@ namespace Application.Services
         {
             _logger.LogDebug("Retrieving bookings with status filter");
 
-            var userId = _currentUser.UserId;
+            var userId = _currentUser.UserId ?? throw new AuthException("You must be loged in to preform this action.");
 
             try
             {
@@ -377,12 +334,6 @@ namespace Application.Services
             var userId = _currentUser.UserId
                 ?? throw new AuthException("You must be logged in to perform this action.");
 
-            var company = await _unitOfWork.TourCompanies
-                .FirstOrDefaultAsync(tc => tc.UserId == userId, cancellationToken);
-
-            if (company is null)
-                throw new ForbiddenException("You are not associated with any tour company.");
-
             if (packageId.HasValue)
                 _logger.LogDebug("Retrieving Pending Bookings For Package {PackageId}", packageId);
             else
@@ -390,7 +341,20 @@ namespace Application.Services
 
             try
             {
-                List<Booking> entities;
+                var company = await _unitOfWork.TourCompanies
+                .FirstOrDefaultAsync(tc => tc.UserId == userId, cancellationToken);
+
+                if (company is null)
+                {
+                    _logger.LogWarning("User with id {userId} is not associated with any tour company", userId);
+                    throw new ForbiddenException("You are not associated with any tour company.");
+                }
+
+                var query = _unitOfWork.Bookings
+                            .Query()
+                            .Where(b => b.TourPackage.CompanyId == company.Id)
+                            .Where(b => b.Status == BookingStatus.Pending);
+
                 if (packageId.HasValue)
                 {
                     bool exists = await _unitOfWork.TourPackages
@@ -402,11 +366,10 @@ namespace Application.Services
                         throw new NotFoundException($"Tour Package With ID = {packageId} not found for your company.");
                     }
 
-                    entities = await _unitOfWork.Bookings
-                            .Query()
-                            .Where(b => b.TourPackage.CompanyId == company.Id)
-                            .Where(b => b.TourPackageId == packageId)
-                            .Where(b => b.Status == BookingStatus.Pending)
+                    query = query.Where(b => b.TourPackageId == packageId);
+                }
+
+                var entities = await query
                             .Include(b => b.TourPackage)
                             .Include(b => b.User)
                             .Include(b => b.Payment)
@@ -414,27 +377,17 @@ namespace Application.Services
                                 .ThenInclude(cb => cb.Companion)
                             .OrderByDescending(b => b.BookingDate)
                             .ToListAsync(cancellationToken);
-                }
-                else
-                {
-                    entities = await _unitOfWork.Bookings
-                            .Query()
-                            .Where(b => b.TourPackage.CompanyId == company.Id)
-                            .Where(b => b.Status == BookingStatus.Pending)
-                            .Include(b => b.TourPackage)
-                            .Include(b => b.User)
-                            .Include(b => b.Payment)
-                            .Include(b => b.CompanionBookings)
-                                .ThenInclude(cb => cb.Companion)
-                            .OrderByDescending(b => b.BookingDate)
-                            .ToListAsync(cancellationToken);
-                }
+
 
                 var response = _mapper.Map<IReadOnlyList<BookingResponse>>(entities);
                 _logger.LogDebug("Successfully retrieved {Count} bookings", response.Count);
                 return response;
             }
             catch (NotFoundException)
+            {
+                throw;
+            }
+            catch (ForbiddenException)
             {
                 throw;
             }
@@ -449,7 +402,6 @@ namespace Application.Services
         {
             if (id <= 0)
                 throw new ArgumentException("Invalid booking ID", nameof(id));
-
 
             _logger.LogInformation("Attempting to approve booking with ID {BookingId}", id);
 
@@ -473,18 +425,35 @@ namespace Application.Services
                 var userId = _currentUser.UserId
                     ?? throw new AuthException("You must be logged in to perform this action.");
 
+
                 var company = await _unitOfWork.TourCompanies
                     .FirstOrDefaultAsync(tc => tc.UserId == userId, cancellationToken);
 
-                if (company is null || booking.TourPackage.CompanyId != company.Id)
-                    throw new ForbiddenException("You do not have permission to approve this booking.");
-
-                if (booking.Status != BookingStatus.Pending)
+                if(company is null)
                 {
-                    _logger.LogWarning("Booking {BookingId} is not pending. Current status: {Status}", id, booking.Status);
-                    throw new BusinessRuleException($"Cannot approve booking {id}. Current status is '{booking.Status}'. " +
-                        $"Approvals are only allowed when status is '{BookingStatus.Pending}'.");
+                    _logger.LogWarning("User with id {userId} is not associated with any tour company", userId);
+                    throw new ForbiddenException("You are not associated with any tour company.");
                 }
+
+                if (booking.TourPackage.CompanyId != company.Id)
+                {
+                    _logger.LogWarning(
+                        "Authorization failed: Company '{CompanyId}' ('{CompanyName}') attempted to approve booking '{BookingId}' " +
+                        "which belongs to company '{BookingCompanyId}' ('{BookingCompanyName}'). " +
+                        "Access denied due to company mismatch. User: '{UserId}'",
+                        company.Id,
+                        company.Name ?? "Unknown",
+                        booking.Id,
+                        booking.TourPackage.CompanyId,
+                        booking.TourPackage.Company?.Name ?? "Unknown",
+                        _currentUser.UserId);
+
+                    throw new ForbiddenException(
+                        $"You do not have permission to approve booking '{booking.Id}'. " +
+                        $"This booking belongs to a different tour company.");
+                }
+
+                _EnsureBookingIsPending(booking, BookingOperation.Approve);
 
                 // Validate payment exists
                 if (booking.Payment is null)
@@ -511,7 +480,7 @@ namespace Application.Services
                     {
                         _logger.LogWarning("NewCalculatedCost is missing but required because the tourist provided preferences (RoomTypePreference: {RoomPref}, DietaryRequirements: {Dietary}, SpecialRequests: {SpecialRequests}) for booking {BookingId}",
                             booking.RoomTypePreference, booking.DietaryRequirements, booking.SpecialRequests, id);
-                        throw new BusinessRuleException("Cannot confirm booking with preferences. The new calculated cost is required because additional charges or adjustments may apply based on the tourist's requests. Please provide the updated total cost.");
+                        throw new BusinessRuleException("Cannot approve booking with preferences. The new calculated cost is required because additional charges or adjustments may apply based on the tourist's requests. Please provide the updated total cost.");
                     }
 
                     booking.Status = BookingStatus.Accepted_By_Company;
@@ -521,6 +490,10 @@ namespace Application.Services
                     userNotificationMessage = $"Booking #{booking.Id} has been accepted by the tour company with an updated total cost of {approveRequest.NewCalculatedCost.Value:C}. Please review and confirm to finalize your booking.";
                 }
 
+                // Deduct total seats: 1 for the primary booker plus all companions
+                booking.TourPackage.AvailableSeats -= (booking.CompanionBookings.Count + 1);
+
+                _unitOfWork.TourPackages.Update(booking.TourPackage);
                 _unitOfWork.Bookings.Update(booking);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -554,7 +527,6 @@ namespace Application.Services
             if (string.IsNullOrWhiteSpace(rejectRequest?.RejectReason))
                 throw new ArgumentException("Rejection reason is required", nameof(rejectRequest));
 
-
             _logger.LogInformation("Attempting to Reject booking with ID {BookingId}", id);
 
             try
@@ -579,15 +551,32 @@ namespace Application.Services
                 var company = await _unitOfWork.TourCompanies
                     .FirstOrDefaultAsync(tc => tc.UserId == userId, cancellationToken);
 
-                if (company is null || booking.TourPackage.CompanyId != company.Id)
-                    throw new ForbiddenException("You do not have permission to reject this booking.");
-
-                if (booking.Status != BookingStatus.Pending)
+                if (company is null)
                 {
-                    _logger.LogWarning("Booking {BookingId} is Not Pending", id);
-                    throw new BusinessRuleException($"Cannot Reject booking {id}. Current status is '{booking.Status}'. " +
-                        $"Rejections are only allowed when status is '{BookingStatus.Pending}'.");
+                    _logger.LogWarning("User with id {userId} is not associated with any tour company", userId);
+                    throw new ForbiddenException("You are not associated with any tour company.");
                 }
+
+                if (booking.TourPackage.CompanyId != company.Id)
+                {
+                    _logger.LogWarning(
+                        "Authorization failed: Company '{CompanyId}' ('{CompanyName}') attempted to reject booking '{BookingId}' " +
+                        "which belongs to company '{BookingCompanyId}' ('{BookingCompanyName}'). " +
+                        "Access denied due to company mismatch. User: '{UserId}'",
+                        company.Id,
+                        company.Name ?? "Unknown",
+                        booking.Id,
+                        booking.TourPackage.CompanyId,
+                        booking.TourPackage.Company?.Name ?? "Unknown",
+                        _currentUser.UserId);
+
+                    throw new ForbiddenException(
+                        $"You do not have permission to reject booking '{booking.Id}'. " +
+                        $"This booking belongs to a different tour company.");
+                }
+
+
+                _EnsureBookingIsPending(booking, BookingOperation.Reject);
 
                 booking.Status = BookingStatus.Rejected_By_Company;
                 booking.RejectReason = rejectRequest.RejectReason;
@@ -646,11 +635,7 @@ namespace Application.Services
                     throw new NotFoundException($"Booking with ID {id} not found");
                 }
 
-                var userId = _currentUser.UserId
-                    ?? throw new AuthException("You must be logged in to perform this action.");
-
-                if (booking.UserId != userId)
-                    throw new ForbiddenException("You do not have permission to confirm this booking.");
+                _EnsureBookingBelongsToCurrentUser(booking);
 
                 if (booking.Status != BookingStatus.Accepted_By_Company)
                 {
@@ -721,11 +706,7 @@ namespace Application.Services
                     throw new NotFoundException($"Booking with ID {id} not found");
                 }
 
-                var userId = _currentUser.UserId
-                    ?? throw new AuthException("You must be logged in to perform this action.");
-
-                if (booking.UserId != userId)
-                    throw new ForbiddenException("You do not have permission to decline this booking.");
+                _EnsureBookingBelongsToCurrentUser(booking);
 
                 if (booking.Status != BookingStatus.Accepted_By_Company)
                 {
@@ -737,6 +718,9 @@ namespace Application.Services
                 booking.Status = BookingStatus.Rejected_By_Tourist;
                 booking.Payment.PaymentStatus = PaymentStatus.Cancelled;
 
+                booking.TourPackage.AvailableSeats += (booking.CompanionBookings.Count + 1);
+
+                _unitOfWork.TourPackages.Update(booking.TourPackage);
                 _unitOfWork.Bookings.Update(booking);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -762,7 +746,7 @@ namespace Application.Services
             {
                 throw;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not BusinessRuleException)
             {
                 _logger.LogError(ex, "Unexpected error when Decline booking {BookingId}", id);
                 throw new ServiceException($"Failed to Decline booking: {ex.Message}", ex);
@@ -800,24 +784,25 @@ namespace Application.Services
                     throw new NotFoundException($"Booking with ID {id} not found");
                 }
 
-                if (entity.UserId != _currentUser.UserId)
-                {
-                    _logger.LogWarning($"User with Id {_currentUser.UserId} Cannot Update booking with Id {entity.Id} " +
-                           $"because it belongs to another user.");
-                    throw new ForbiddenException("You do not have permission to Update this booking. This booking belongs to another user.");
-                }
+
+
+
+                _EnsureBookingBelongsToCurrentUser(entity);
 
                 // prevent editing if the booking status isn't pending
-                if (entity.Status != BookingStatus.Pending)
-                {
-                    _logger.LogWarning("Update attempted on booking {BookingId} with status {CurrentStatus}. " +
-                                       "Only pending bookings can be updated.",
-                                       id, entity.Status);
+                _EnsureBookingIsPending(entity,BookingOperation.Update);
 
-                    throw new BusinessRuleException(
-                        $"Cannot update booking {id}. Current status is '{entity.Status}'. " +
-                        $"Updates are only allowed when status is '{BookingStatus.Pending}'.");
-                }
+
+                var companionIds = request.CompanionIds.ToHashSet();
+                var existingCompanions = await _unitOfWork.Companions
+                    .Query()
+                    .Where(c => companionIds.Contains(c.Id))
+                    .Include(c => c.Person)
+                    .ToListAsync(cancellationToken);
+
+
+                _EnsureCompanionsExists(existingCompanions, companionIds);
+                _EnsureSeatAvailability(entity.TourPackage, entity.CompanionBookings.Count + 1);
 
                 _mapper.Map(request, entity);
                 entity.UpdatedAtUtc = DateTime.UtcNow;
@@ -891,19 +876,8 @@ namespace Application.Services
                     throw new NotFoundException($"Booking with ID {id} not found for cancellation");
                 }
 
-                if (entity.UserId != _currentUser.UserId)
-                {
-                    _logger.LogWarning($"User with Id {_currentUser.UserId} Cannot Cancel booking with Id {entity.Id} " +
-                           $"because it belongs to another user.");
-                    throw new ForbiddenException("You do not have permission to Cancel this booking. This booking belongs to another user.");
-                }
-
-                if (entity.Status != BookingStatus.Pending)
-                {
-                    _logger.LogWarning("Booking {BookingId} is already cancelled", id);
-                    throw new BusinessRuleException($"Cannot Cancel booking {id}. Current status is '{entity.Status}'. " +
-                        $"Cancellation are only allowed when status is '{BookingStatus.Pending}'.");
-                }
+                _EnsureBookingBelongsToCurrentUser(entity);
+                _EnsureBookingIsPending(entity, BookingOperation.Cancel);
 
                 entity.Status = BookingStatus.Cancelled;
                 entity.Payment.PaymentStatus = PaymentStatus.Cancelled;
@@ -961,8 +935,152 @@ namespace Application.Services
             _cache.Remove(BookingsListCacheKey);
         }
 
+        private void _EnsureBookingIsPending(Booking entity, BookingOperation operation)
+        {
+            // Validate input
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
 
+            if (!Enum.IsDefined(typeof(BookingOperation), operation))
+                throw new ArgumentException($"Invalid operation: {operation}", nameof(operation));
+
+            // Check booking status
+            if (entity.Status != BookingStatus.Pending)
+            {
+                var operationName = GetOperationDisplayName(operation);
+
+                _logger.LogWarning(
+                    "Business rule violation: Attempted to perform '{Operation}' on booking '{BookingId}' with status '{CurrentStatus}'. " +
+                    "This operation is only allowed for bookings in 'Pending' status. " +
+                    "User: '{UserId}', Timestamp: {Timestamp}",
+                    operationName,
+                    entity.Id,
+                    entity.Status,
+                    _currentUser.UserId,
+                    DateTime.UtcNow);
+
+                throw new BusinessRuleException(
+                    $"Cannot {operationName.ToLower()} booking '{entity.Id}'. " +
+                    $"The booking is currently in '{entity.Status}' status. " +
+                    $"Only bookings with 'Pending' status can be {operationName.ToLower()}ed.");
+            }
+        }
+
+        private string GetOperationDisplayName(BookingOperation operation)
+        {
+            return operation switch
+            {
+                BookingOperation.Update => "Update",
+                BookingOperation.Reject => "Reject",
+                BookingOperation.Approve => "Approve",
+                BookingOperation.Cancel => "Cancel",
+                _ => throw new ArgumentOutOfRangeException(nameof(operation), $"Unknown operation: {operation}")
+            };
+        }
+
+        private void _EnsureBookingBelongsToCurrentUser(Booking entity)
+        {
+            int userId = _currentUser.UserId ??
+                throw new AuthException("You must be logged in to perform this action.");
+
+            if (entity.UserId != userId)
+            {
+                _logger.LogWarning(
+                    "Authorization failed: Current user '{CurrentUserId}' attempted to access booking '{BookingId}' which belongs to user '{BookingUserId}'. " +
+                    "Access denied due to ownership mismatch.",
+                    userId,
+                    entity.Id,
+                    entity.UserId);
+
+                throw new ForbiddenException(
+                    $"You do not have permission to perform this operation on booking '{entity.Id}'. " +
+                    "The booking belongs to a different user.");
+            }
+        }
+
+        private void _EnsureCompanionsExists(List<Companion> existingCompanions,HashSet<int> companionIds)
+        {
+            var foundIds = existingCompanions.Select(c => c.Id).ToHashSet();
+            var missingIds = companionIds.Except(foundIds).ToList();
+            if (missingIds.Count != 0)
+            {
+                _logger.LogWarning("Companions with IDs [{MissingIds}] not found",
+                    string.Join(", ", missingIds));
+                throw new NotFoundException($"Companions with IDs [{string.Join(", ", missingIds)}] not found");
+            }
+        }
+
+        private void _EnsureSeatAvailability(TourPackage package, int totalSeatsNeeded)
+        {
+            // Validate inputs
+            if (package == null)
+                throw new ArgumentNullException(nameof(package));
+
+            if (totalSeatsNeeded <= 0)
+                throw new ArgumentException($"Number of seats needed must be positive. Received: {totalSeatsNeeded}", nameof(totalSeatsNeeded));
+
+            // Check seat availability
+            if (package.AvailableSeats < totalSeatsNeeded)
+            {
+                _logger.LogWarning(
+                    "Insufficient seat availability: Requested {RequestedSeats} seats for tour package '{PackageId}' ('{PackageName}'), " +
+                    "but only {AvailableSeats} seats are available. Shortage: {Shortage} seats.",
+                    totalSeatsNeeded,
+                    package.Id,
+                    package.PackageName,
+                    package.AvailableSeats,
+                    totalSeatsNeeded - package.AvailableSeats);
+
+                throw new BusinessRuleException(
+                    $"Not enough seats available for tour package '{package.Id}'. " +
+                    $"You requested {totalSeatsNeeded} seat(s), but only {package.AvailableSeats} seat(s) are available. " +
+                    $"Please reduce the number of seats or choose a different package.");
+            }
+        }
+
+        private async Task _EnsureNoBookingConflicts(TourPackage package)
+        {
+            // check if this booking conflict with other bookings
+            var UserBookingsPackages = await _unitOfWork.Bookings
+                .Query()
+                .Where(b => b.UserId == _currentUser.UserId)
+                .Where(b => b.Status != BookingStatus.Completed &&
+                            b.Status != BookingStatus.Cancelled &&
+                            b.Status != BookingStatus.Rejected_By_Company &&
+                            b.Status != BookingStatus.Rejected_By_Tourist &&
+                            b.Status != BookingStatus.No_Show)
+                .Include(b => b.TourPackage)
+                .Select(b => b.TourPackage)
+                .ToListAsync();
+
+            // user bookings packages that conflict with the created booking package
+            var PackageConflicts = UserBookingsPackages.Where(
+                p => Conflict(
+                package.StartDate,
+                package.EndDate,
+                p.StartDate,
+                p.EndDate));
+
+            if (PackageConflicts.Any())
+            {
+                var p = PackageConflicts.First();
+
+                _logger.LogWarning($"User {_currentUser.UserId} attempted to book package '{package.PackageName}' " +
+                    $"(from {package.StartDate:d} to {package.EndDate:d})" +
+                    " but it conflicts with their existing booking for package " +
+                    $"'{p.PackageName}' (from {p.StartDate:d} to {p.EndDate:d}).");
+                throw new ConflictException($"You already have a booking that overlaps with this package's dates.");
+            }
+        }
 
         #endregion
+    }
+
+    public enum BookingOperation
+    {
+        Update = 0,
+        Reject = 1,
+        Approve = 2,
+        Cancel = 3
     }
 }

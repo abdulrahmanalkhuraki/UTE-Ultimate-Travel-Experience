@@ -10,7 +10,6 @@ namespace Domain.Entities
         public int UserId { get; set; }
         public Person Person { get; set; } = null!;
         public virtual User User { get; set; } = null!;
-        public virtual Country NationalityCountry { get; set; } = null!;
         public virtual ICollection<Companion_Booking> CompanionBookings { get; set; } = new List<Companion_Booking>();
     }
 }

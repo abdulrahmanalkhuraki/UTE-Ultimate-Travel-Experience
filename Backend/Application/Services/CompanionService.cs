@@ -21,6 +21,7 @@ namespace Application.Services
         private readonly IMapper _mapper;
         private readonly ILogger<CompanionService> _logger;
         private readonly IFileStorage _fileStorage;
+        private readonly ICurrentUserService _currentUser;
         private readonly CompanionCreateValidator _createValidator;
         private readonly CompanionUpdateValidator _updateValidator;
 
@@ -31,6 +32,7 @@ namespace Application.Services
             IMapper mapper,
             ILogger<CompanionService> logger,
             IFileStorage fileStorage,
+            ICurrentUserService currentUser,
             CompanionCreateValidator createValidator,
             CompanionUpdateValidator updateValidator)
         {
@@ -38,6 +40,7 @@ namespace Application.Services
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
+            _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
             _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
             _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
         }
@@ -55,7 +58,7 @@ namespace Application.Services
                 .AnyAsync(u => u.Id == userId, cancellationToken);
             if (!userExists)
                 throw new NotFoundException($"User with ID {userId} not found");
-
+            
             await EnsureCountryExistsAsync(request.NationalityCountryId, cancellationToken);
             await EnsureCityExistsAsync(request.ResidentialCityId, cancellationToken);
 
@@ -224,7 +227,6 @@ namespace Application.Services
             _unitOfWork.Companions
                 .Query()
                 .AsNoTracking()
-                .Include(c => c.NationalityCountry)
                 .Include(c => c.Person)
                     .ThenInclude(p => p.ResidentialCity)
                 .Include(c => c.CompanionBookings)

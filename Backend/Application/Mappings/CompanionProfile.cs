@@ -15,7 +15,6 @@ public class CompanionProfile : Profile
             .ForMember(dest => dest.UserId, opt => opt.Ignore())
             .ForMember(dest => dest.Person, opt => opt.Ignore())
             .ForMember(dest => dest.User, opt => opt.Ignore())
-            .ForMember(dest => dest.NationalityCountry, opt => opt.Ignore())
             .ForMember(dest => dest.CompanionBookings, opt => opt.Ignore());
 
         CreateMap<CompanionUpdateRequest, Companion>()
@@ -24,7 +23,6 @@ public class CompanionProfile : Profile
             .ForMember(dest => dest.UserId, opt => opt.Ignore())
             .ForMember(dest => dest.Person, opt => opt.Ignore())
             .ForMember(dest => dest.User, opt => opt.Ignore())
-            .ForMember(dest => dest.NationalityCountry, opt => opt.Ignore())
             .ForMember(dest => dest.CompanionBookings, opt => opt.Ignore())
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
@@ -45,7 +43,7 @@ public class CompanionProfile : Profile
                 src.Person != null && src.Person.ResidentialCity != null ? src.Person.ResidentialCity.EnCityName : null))
             .ForMember(dest => dest.ResidencyCard, opt => opt.MapFrom(s => s.Person.ResidencyCard))
             .ForMember(dest => dest.NationalityCountryName, opt => opt.MapFrom(src =>
-                src.NationalityCountry != null ? src.NationalityCountry.EnCountryName : null))
+                src.Person.NationalityCountry != null ? src.Person.NationalityCountry.EnCountryName : null))
             .ForMember(dest => dest.Relationship, opt => opt.MapFrom(src => src.Relationship.ToString()))
             .ForMember(dest => dest.RegistrationDate, opt => opt.Ignore())
             .ForMember(dest => dest.JoinedPackagesCount, opt => opt.Ignore())
