@@ -4,6 +4,8 @@ using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
+using Domain.Enums;
+
 namespace Infrastructure.Seed;
 
 public class DbSeedService : IDbSeedService
@@ -22,6 +24,7 @@ public class DbSeedService : IDbSeedService
         await SeedCitiesAsync(ct);
         await SeedPersonsAsync(ct);
         await SeedUsersAsync(ct);
+        await SeedCompanionsAsync(ct);
         await SeedAttractionsAsync(ct);
         await SeedTourCompaniesAsync(ct);
         await SeedTouristGuidesAsync(ct);
@@ -168,6 +171,24 @@ public class DbSeedService : IDbSeedService
         }));
 
         await WithIdentityInsert("Users", ct);
+    }
+
+    private async Task SeedCompanionsAsync(CancellationToken ct)
+    {
+        if (await _context.Companions.AnyAsync(ct))
+            return;
+
+        var items = await LoadJsonAsync<CompanionJson>("companions.json", ct);
+
+        _context.Companions.AddRange(items.Select(x => new Companion
+        {
+            Id = x.Id,
+            Relationship = (CompanionRelationship)x.Relationship,
+            PersonId = x.PersonId,
+            UserId = x.UserId
+        }));
+
+        await WithIdentityInsert("Companions", ct);
     }
 
     private async Task SeedTourCompaniesAsync(CancellationToken ct)
@@ -557,5 +578,13 @@ public class DbSeedService : IDbSeedService
         public string MediaUrl { get; init; } = null!;
         public int MediaType { get; init; }
         public int DisplayOrder { get; init; }
+    }
+
+    private sealed record CompanionJson
+    {
+        public int Id { get; init; }
+        public int Relationship { get; init; }
+        public int PersonId { get; init; }
+        public int UserId { get; init; }
     }
 }

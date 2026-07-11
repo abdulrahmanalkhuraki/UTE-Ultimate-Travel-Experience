@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260702141242_initDatabase")]
+    [Migration("20260711115127_initDatabase")]
     partial class initDatabase
     {
         /// <inheritdoc />
@@ -281,9 +281,6 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("NationalityCountryId")
-                        .HasColumnType("int");
-
                     b.Property<int>("PersonId")
                         .HasColumnType("int");
 
@@ -294,8 +291,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("NationalityCountryId");
 
                     b.HasIndex("PersonId")
                         .IsUnique();
@@ -1460,12 +1455,6 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Companion", b =>
                 {
-                    b.HasOne("Domain.Entities.Country", "NationalityCountry")
-                        .WithMany()
-                        .HasForeignKey("NationalityCountryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Domain.Entities.Person", "Person")
                         .WithOne("Companion")
                         .HasForeignKey("Domain.Entities.Companion", "PersonId")
@@ -1477,8 +1466,6 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("NationalityCountry");
 
                     b.Navigation("Person");
 

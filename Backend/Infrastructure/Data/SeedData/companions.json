@@ -1,0 +1,38 @@
+[
+  {
+    "Id": 1,
+    "Relationship": 0,
+    "PersonId": 17,
+    "UserId": 7
+  },
+  {
+    "Id": 2,
+    "Relationship": 1,
+    "PersonId": 18,
+    "UserId": 7
+  },
+  {
+    "Id": 3,
+    "Relationship": 0,
+    "PersonId": 19,
+    "UserId": 8
+  },
+  {
+    "Id": 4,
+    "Relationship": 1,
+    "PersonId": 20,
+    "UserId": 8
+  },
+  {
+    "Id": 5,
+    "Relationship": 0,
+    "PersonId": 21,
+    "UserId": 9
+  },
+  {
+    "Id": 6,
+    "Relationship": 1,
+    "PersonId": 22,
+    "UserId": 9
+  }
+]

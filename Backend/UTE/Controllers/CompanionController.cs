@@ -17,14 +17,11 @@ namespace UTE.Controllers
     public class CompanionController : ControllerBase
     {
         private readonly ICompanionService _companionService;
-        private readonly ICurrentUserService _currentUserService;
-        private readonly ILogger<CompanionController> _logger;
 
-        public CompanionController(ICompanionService companionService, ICurrentUserService currentUserService, ILogger<CompanionController> logger)
+
+        public CompanionController(ICompanionService companionService)
         {
             _companionService = companionService ?? throw new ArgumentNullException(nameof(companionService));
-            _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>Retrieves all companions for the authenticated tourist.</summary>
@@ -39,12 +36,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<IReadOnlyList<CompanionResponse>>> GetAll(CancellationToken cancellationToken = default)
         {
-            var userId = _currentUserService.UserId;
-
-            if (userId is null)
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
-
-            return Ok(await _companionService.GetAllAsync(userId.Value, cancellationToken));
+            return Ok(await _companionService.GetAllAsync(cancellationToken));
         }
 
         /// <summary>Retrieves a specific companion by ID.</summary>
@@ -64,11 +56,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<CompanionResponse>> GetById(int id, CancellationToken cancellationToken = default)
         {
-            var userId = _currentUserService.UserId;
-            if (userId is null)
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
-
-            return Ok(await _companionService.GetAsync(id, userId.Value, cancellationToken));
+            return Ok(await _companionService.GetAsync(id,cancellationToken));
         }
 
         /// <summary>Creates a new companion for the authenticated tourist.</summary>
@@ -90,11 +78,7 @@ namespace UTE.Controllers
             [FromForm] CompanionCreateRequest request,
             CancellationToken cancellationToken = default)
         {
-            var userId = _currentUserService.UserId;
-            if (userId is null)
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
-
-            var created = await _companionService.CreateAsync(userId.Value, request, cancellationToken);
+            var created = await _companionService.CreateAsync(request, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
 
         }
@@ -120,11 +104,7 @@ namespace UTE.Controllers
             [FromForm] CompanionUpdateRequest request,
             CancellationToken cancellationToken = default)
         {
-            var userId = _currentUserService.UserId;
-            if (userId is null)
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
-
-            return Ok(await _companionService.UpdateAsync(id, userId.Value, request, cancellationToken));
+            return Ok(await _companionService.UpdateAsync(id,request, cancellationToken));
         }
 
         /// <summary>Deletes a companion belonging to the authenticated tourist.</summary>
@@ -144,36 +124,10 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
         {
-            var userId = _currentUserService.UserId;
-            if (userId is null)
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
-
-            try
-            {
-                var deleted = await _companionService.DeleteAsync(id, userId.Value, cancellationToken);
-                if (!deleted)
-                    return NotFound(CreateProblemDetails("Companion not found", $"Companion with ID {id} not found", StatusCodes.Status404NotFound));
-                return NoContent();
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
-            }
-            catch (ForbiddenException ex)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(CreateProblemDetails("Not found", ex.Message, StatusCodes.Status404NotFound));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error deleting companion {CompanionId}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            var deleted = await _companionService.DeleteAsync(id,cancellationToken);
+            if (!deleted)
+                return NotFound(CreateProblemDetails("Companion not found", $"Companion with ID {id} not found", StatusCodes.Status404NotFound));
+            return NoContent();
         }
 
         #region Helpers

@@ -224,19 +224,12 @@ namespace Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Relationship = table.Column<int>(type: "int", nullable: false),
                     PersonId = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    NationalityCountryId = table.Column<int>(type: "int", nullable: false)
+                    UserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Companions", x => x.Id);
                     table.CheckConstraint("CHK_Companion_Relationship", "[Relationship] IN (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)");
-                    table.ForeignKey(
-                        name: "FK_Companions_Countries_NationalityCountryId",
-                        column: x => x.NationalityCountryId,
-                        principalTable: "Countries",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Companions_Persons_PersonId",
                         column: x => x.PersonId,
@@ -905,11 +898,6 @@ namespace Infrastructure.Migrations
                 name: "IX_Companion_Booking_CompanionId",
                 table: "Companion_Booking",
                 column: "CompanionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Companions_NationalityCountryId",
-                table: "Companions",
-                column: "NationalityCountryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Companions_PersonId",

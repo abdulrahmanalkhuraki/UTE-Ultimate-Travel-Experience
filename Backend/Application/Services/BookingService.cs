@@ -99,7 +99,7 @@ namespace Application.Services
 
                 _EnsureCompanionsExists(existingCompanions,companionIds);
                 _EnsureSeatAvailability(package, totalSeatesNeeded);
-                await _EnsureNoBookingConflicts(package);
+                await _EnsureNoBookingConflicts(package,cancellationToken);
 
 
                 await _unitOfWork.BeginTransactionAsync(cancellationToken);
@@ -372,9 +372,13 @@ namespace Application.Services
                 var entities = await query
                             .Include(b => b.TourPackage)
                             .Include(b => b.User)
+                                .ThenInclude(u => u.Person)
+                            .Include(b => b.User)
+                                .ThenInclude(u => u.Role)
                             .Include(b => b.Payment)
                             .Include(b => b.CompanionBookings)
                                 .ThenInclude(cb => cb.Companion)
+                                    .ThenInclude(c => c.Person)
                             .OrderByDescending(b => b.BookingDate)
                             .ToListAsync(cancellationToken);
 
@@ -411,9 +415,13 @@ namespace Application.Services
                             .Query()
                             .Include(b => b.TourPackage)
                             .Include(b => b.User)
+                                .ThenInclude(u => u.Person)
+                            .Include(b => b.User)
+                                .ThenInclude(u => u.Role)
                             .Include(b => b.Payment)
                             .Include(b => b.CompanionBookings)
                                 .ThenInclude(cb => cb.Companion)
+                                    .ThenInclude(c => c.Person)
                             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
 
                 if (booking is null)
@@ -1038,7 +1046,7 @@ namespace Application.Services
             }
         }
 
-        private async Task _EnsureNoBookingConflicts(TourPackage package)
+        private async Task _EnsureNoBookingConflicts(TourPackage package, CancellationToken ct)
         {
             // check if this booking conflict with other bookings
             var UserBookingsPackages = await _unitOfWork.Bookings
@@ -1051,7 +1059,7 @@ namespace Application.Services
                             b.Status != BookingStatus.No_Show)
                 .Include(b => b.TourPackage)
                 .Select(b => b.TourPackage)
-                .ToListAsync();
+                .ToListAsync(ct);
 
             // user bookings packages that conflict with the created booking package
             var PackageConflicts = UserBookingsPackages.Where(
