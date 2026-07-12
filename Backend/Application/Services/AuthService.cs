@@ -123,7 +123,7 @@ public class AuthService : IAuthService
 
         await _users.SaveChangesAsync(ct);
 
-        var (token, expiresAt) = _tokens.GenerateToken(user);
+        var (token, expiresAt) = _tokens.GenerateToken(user, 30);
 
         return new AuthResponse
         {
@@ -168,7 +168,8 @@ public class AuthService : IAuthService
             throw new ForbiddenException(
                 "Email is not verified. Please verify your email using the OTP sent at registration.");
 
-        var (token, expiresAt) = _tokens.GenerateToken(user);
+        var expiry = user.PersonId is null ? 30 : (int?)null;
+        var (token, expiresAt) = _tokens.GenerateToken(user, expiry);
         return new AuthResponse
         {
             UserId             = user.Id,

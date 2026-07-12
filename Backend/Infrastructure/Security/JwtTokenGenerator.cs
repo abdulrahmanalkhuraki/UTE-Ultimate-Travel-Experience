@@ -15,9 +15,9 @@ public class JwtTokenGenerator : IJwtTokenGenerator
 
     public JwtTokenGenerator(IOptions<JwtSettings> settings) => _settings = settings.Value;
 
-    public (string Token, DateTime ExpiresAt) GenerateToken(User user)
+    public (string Token, DateTime ExpiresAt) GenerateToken(User user, int? expiresInMinutes = null)
     {
-        var expiresAt = DateTime.UtcNow.AddMinutes(_settings.ExpiresInMinutes);
+        var expiresAt = DateTime.UtcNow.AddMinutes(expiresInMinutes ?? _settings.ExpiresInMinutes);
 
         var firstName = user.Person?.FirstName ?? string.Empty;
         var lastName  = user.Person?.LastName ?? string.Empty;
@@ -37,7 +37,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
             new(ClaimTypes.Surname, lastName),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Role, roleName),
-            new("isprofilecompleted", (user.PersonId is not null).ToString().ToLowerInvariant())
+            new("IsProfileCompleted", (user.PersonId is not null).ToString().ToLowerInvariant())
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));

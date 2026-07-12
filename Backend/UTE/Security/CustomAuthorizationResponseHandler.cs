@@ -27,7 +27,7 @@ namespace UTE.Security
                 context.Response.ContentType = "application/json";
 
                 // You can check specifically for the profile completion claim
-                if (!context.User.HasClaim(c => c.Type == "IsProfileCompleted" && c.Value == "True"))
+                if (!context.User.HasClaim(c => c.Type == "IsProfileCompleted" && c.Value == "true"))
                 {
                     var profileMessage = new { message = "Your profile is not completed. Please complete it to perform this action." };
                     await context.Response.WriteAsJsonAsync(profileMessage);
