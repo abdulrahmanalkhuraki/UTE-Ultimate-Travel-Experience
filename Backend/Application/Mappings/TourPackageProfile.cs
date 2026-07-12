@@ -52,6 +52,7 @@ namespace Application.Mappings
                 .ForMember(dest => dest.Media,
                     opt => opt.MapFrom(src => src.Media
                         .OrderBy(m => m.DisplayOrder)));
+                
         }
     }
 }

@@ -729,7 +729,7 @@ namespace Application.Services
                 .AsSplitQuery()
                 .Include(p => p.Country)
                 .Include(p => p.Company)
-                //.Include(p => p.PackageAttractions).ThenInclude(pc => pc.City)
+                .Include(p => p.Rates)
                 .Include(p => p.TourPackageGuides).ThenInclude(g => g.TouristGuide)
                 .Include(p => p.CabinClasses)
                 .Include(p => p.Media)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Domain.Enums;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Domain.Entities;
 
@@ -60,6 +61,14 @@ namespace Domain.Entities;
     /// <summary>Admin moderation state (حالة الموافقة). New programs start pending until an admin accepts (مقبول) or rejects (مرفوض) them.</summary>
     public PackageApprovalStatus ApprovalStatus { get; set; } = PackageApprovalStatus.Pending;
 
+    public float Rate
+    {
+        get
+        {
+            return CalculateRate();
+        }
+    }
+
     /// <summary>Reason shown to the company when an admin rejects the program (سبب الرفض). Set on reject, cleared on accept.</summary>
     public string? RejectionReason { get; set; }
 
@@ -94,4 +103,14 @@ namespace Domain.Entities;
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
     public virtual ICollection<TourPackageMedia> Media { get; set; } = new List<TourPackageMedia>();
+
+    private float CalculateRate()
+    {
+        if (Rates.Count == 0)
+        {
+            return 0f;
+        }
+         return (float)Rates.Select(r => r.RateValue).Average();
+    }
+
 }
