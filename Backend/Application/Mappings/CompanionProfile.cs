@@ -42,6 +42,7 @@ public class CompanionProfile : Profile
             .ForMember(dest => dest.ResidentialCityName, opt => opt.MapFrom(src =>
                 src.Person != null && src.Person.ResidentialCity != null ? src.Person.ResidentialCity.EnCityName : null))
             .ForMember(dest => dest.ResidencyCard, opt => opt.MapFrom(s => s.Person.ResidencyCard))
+            .ForMember(dest => dest.ProfileImage, opt => opt.MapFrom(s => s.Person.ProfileImage))
             .ForMember(dest => dest.NationalityCountryId, opt => opt.MapFrom(src => src.Person.NationalityCountryId))
             .ForMember(dest => dest.NationalityCountryName, opt => opt.MapFrom(src =>
                 src.Person.NationalityCountry != null ? src.Person.NationalityCountry.EnCountryName : null))

@@ -40,6 +40,8 @@ namespace Application.DTOs.Companion.Response
 
         public string? ResidencyCard { get; set; }
 
+        public string? ProfileImage { get; set; }
+
         public string Relationship { get; set; } = null!;
 
         public DateOnly RegistrationDate { get; set; }

@@ -82,6 +82,8 @@ namespace Application.Services
                     person.PassportScan = await _fileStorage.SaveAsync(request.PassportScan, CompanionImageFolder, cancellationToken);
                 if (request.ResidencyCard is not null)
                     person.ResidencyCard = await _fileStorage.SaveAsync(request.ResidencyCard, CompanionImageFolder, cancellationToken);
+                if (request.ProfileImage is not null)
+                    person.ProfileImage = await _fileStorage.SaveAsync(request.ProfileImage, CompanionImageFolder, cancellationToken);
 
                 var companion = new Companion
                 {
@@ -298,6 +300,8 @@ namespace Application.Services
                 entity.Person.PassportScan = await _fileStorage.SaveAsync(request.PassportScan, CompanionImageFolder, cancellationToken);
             if (request.ResidencyCard is not null)
                 entity.Person.ResidencyCard = await _fileStorage.SaveAsync(request.ResidencyCard, CompanionImageFolder, cancellationToken);
+            if (request.ProfileImage is not null)
+                entity.Person.ProfileImage = await _fileStorage.SaveAsync(request.ProfileImage, CompanionImageFolder, cancellationToken);
         }
 
         private IQueryable<Companion> QueryWithGraph() =>

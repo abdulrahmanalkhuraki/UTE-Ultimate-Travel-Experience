@@ -52,6 +52,10 @@ namespace Application.Validators.Companion
             RuleFor(x => x.ResidencyCard)
                 .Must(IsValidImage).WithMessage("Residency card image must be JPG/PNG/WEBP and at most 5 MB")
                 .When(x => x.ResidencyCard != null && x.ResidencyCard.Length > 0);
+
+            RuleFor(x => x.ProfileImage)
+                .Must(IsValidImage).WithMessage("Profile image must be JPG/PNG/WEBP and at most 5 MB")
+                .When(x => x.ProfileImage != null && x.ProfileImage.Length > 0);
         }
 
         private static bool IsValidImage(IFormFile? file)

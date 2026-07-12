@@ -17,6 +17,7 @@ namespace Application.DTOs.Companion.Request
         string? PassportNumber,
         IFormFile? PassportScan,
         IFormFile? ResidencyCard,
-        CompanionRelationship? Relationship
+        CompanionRelationship? Relationship,
+        IFormFile? ProfileImage
     );
 }
