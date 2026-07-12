@@ -443,6 +443,11 @@ RecurringJob.AddOrUpdate<BookingBackgroundJobs>(
     j => j.SendUpcomingBookingRemindersAsync(CancellationToken.None),
     "0 8 * * *");
 
+RecurringJob.AddOrUpdate<BookingBackgroundJobs>(
+    "send-registration-deadline-reminders",
+    j => j.SendRegistrationDeadlineRemindersAsync(CancellationToken.None),
+    "0 8 * * *");
+
 // ==========================================
 // 13. RUN THE APPLICATION
 // ==========================================

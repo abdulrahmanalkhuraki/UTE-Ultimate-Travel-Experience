@@ -110,5 +110,55 @@ namespace Application.Services
                 _logger.LogInformation("Sent {Count} reminders for bookings starting {When}", bookings.Count, when);
             }
         }
+
+        public async Task SendRegistrationDeadlineRemindersAsync(CancellationToken cancellationToken = default)
+        {
+            var targetDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3));
+
+            var packages = await _unitOfWork.TourPackages
+                .Query()
+                .Where(p => p.RegistrationDeadline == targetDate && !p.IsDeleted)
+                .ToListAsync(cancellationToken);
+
+            if (packages.Count == 0)
+            {
+                _logger.LogDebug("No packages with registration deadline in 3 days");
+                return;
+            }
+
+            foreach (var package in packages)
+            {
+                var wishlistUserIds = await _unitOfWork.Wishlists
+                    .Query()
+                    .AsNoTracking()
+                    .Where(w => w.TourPackageId == package.Id)
+                    .Select(w => w.UserId)
+                    .ToListAsync(cancellationToken);
+
+                if (wishlistUserIds.Count == 0)
+                    continue;
+
+                var message = $"Registration for '{package.PackageName}' closes in 3 days! Don't miss out — book your spot now.";
+
+                foreach (var userId in wishlistUserIds)
+                {
+                    try
+                    {
+                        await _notificationService.NotifyAsync(
+                            userId, message, NotificationType.RegistrationDeadlineReminder, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex,
+                            "Failed to send registration deadline reminder to user {UserId} for package {PackageId}",
+                            userId, package.Id);
+                    }
+                }
+
+                _logger.LogInformation(
+                    "Sent registration deadline reminders to {Count} users for package {PackageId}",
+                    wishlistUserIds.Count, package.Id);
+            }
+        }
     }
 }

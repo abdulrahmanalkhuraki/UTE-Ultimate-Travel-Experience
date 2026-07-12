@@ -17,5 +17,7 @@ namespace Domain.Enums
         BookingDeclined, // by tourist
         NewPackage,
         BookingStartingSoon,
+        PriceDrop,
+        RegistrationDeadlineReminder,
     }
 }

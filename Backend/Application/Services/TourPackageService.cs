@@ -168,6 +168,12 @@ namespace Application.Services
                 if (entity.CompanyId != companyId)
                     throw new ForbiddenException("You can only modify your own tour packages.");
 
+                // Capture old prices before applying updates
+                var oldPricePerPerson = entity.PricePerPerson;
+                var oldEconomyClassPrice = entity.EconomyClassPrice;
+                var oldPremiumClassPrice = entity.PremiumClassPrice;
+                var oldBusinessClassPrice = entity.BusinessClassPrice;
+
                 // Scalars — partial update: apply only the fields that were actually sent
                 // (non-null). Anything omitted keeps its current value.
                 if (request.PackageName is not null) entity.PackageName = request.PackageName.Trim();
@@ -283,6 +289,18 @@ namespace Application.Services
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Updated tour package {PackageId}", id);
+
+                // Notify wishlisted users about price drops
+                var anyPriceDropped =
+                    (request.PricePerPerson.HasValue && request.PricePerPerson.Value < oldPricePerPerson) ||
+                    (request.EconomyClassPrice.HasValue && request.EconomyClassPrice.Value < oldEconomyClassPrice) ||
+                    (request.PremiumClassPrice.HasValue && request.PremiumClassPrice.Value < oldPremiumClassPrice) ||
+                    (request.BusinessClassPrice.HasValue && request.BusinessClassPrice.Value < oldBusinessClassPrice);
+
+                if (anyPriceDropped)
+                {
+                    await NotifyWishlistUsersAboutPriceDropAsync(entity, cancellationToken);
+                }
 
                 return await BuildResponseAsync(id, cancellationToken);
             }
@@ -893,6 +911,49 @@ namespace Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error notifying favoriting users about new package {PackageId}", package.Id);
+            }
+        }
+
+        private async Task NotifyWishlistUsersAboutPriceDropAsync(TourPackage package, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var wishlistUserIds = await _unitOfWork.Wishlists
+                    .Query()
+                    .AsNoTracking()
+                    .Where(w => w.TourPackageId == package.Id)
+                    .Select(w => w.UserId)
+                    .ToListAsync(cancellationToken);
+
+                if (wishlistUserIds.Count == 0)
+                {
+                    _logger.LogDebug("No wishlist users to notify for price drop on package {PackageId}", package.Id);
+                    return;
+                }
+
+                var message = $"Great news! The price for '{package.PackageName}' has dropped! Check it out now.";
+                var notifiedCount = 0;
+
+                foreach (var userId in wishlistUserIds)
+                {
+                    try
+                    {
+                        await _notificationService.NotifyAsync(userId, message, NotificationType.PriceDrop, cancellationToken);
+                        notifiedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to send price-drop notification to user {UserId} for package {PackageId}",
+                            userId, package.Id);
+                    }
+                }
+
+                _logger.LogInformation("Notified {NotifiedCount}/{TotalCount} wishlist users about price drop on package {PackageId}",
+                    notifiedCount, wishlistUserIds.Count, package.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error notifying wishlist users about price drop on package {PackageId}", package.Id);
             }
         }
 
