@@ -3,44 +3,44 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'theme_cubit.dart';
 
 import 'bottomNavigationBar.dart';
 import 'profile_screen.dart';
-import 'companions_screen.dart';
+import 'companions_screen.dart'; // قد لا تحتاج هذا إذا لم يكن للشركة مرافقون
 import 'model/user_profile_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'theme_cubit.dart';
+class CompanySettingsScreen extends StatefulWidget {
+  final String companyName;
+  final String companyEmail;
+  final String companyLocation;
+  final String establishmentYears;
+  final String registrationNumber;
 
-class SettingsScreen extends StatefulWidget {
-  final String userName;
-  final String userEmail;
-  final String userAge;
-  final String userLocation;
-  final String userId;
-
-  const SettingsScreen({
+  const CompanySettingsScreen({
     Key? key,
-    required this.userName,
-    required this.userEmail,
-    required this.userAge,
-    required this.userLocation,
-    required this.userId,
+    required this.companyName,
+    required this.companyEmail,
+    required this.companyLocation,
+    required this.establishmentYears,
+    required this.registrationNumber,
   }) : super(key: key);
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  State<CompanySettingsScreen> createState() => _CompanySettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
+  // يمكن استبدال هذا بنموذج بيانات خاص بالشركة لاحقاً
   final UserProfileModel dummyUser = UserProfileModel(
-    name: 'مياس نعمان',
+    name: 'شركة مدري شو',
     age: 20,
     gender: 'female',
     phone: '0988389494',
-    email: 'ffrgkkkkk@gmail.com',
-    currentLocation: 'سوريا_ ريف دمشق_دوما',
-    residence: 'سوريا_ ريف دمشق_دوما',
-    nationalId: '0333644323578789867',
+    email: 'kea******@gmail.com',
+    currentLocation: 'سوريا_دمشق_الصناعة_كلية الهندسة المعلوماتية',
+    residence: 'سوريا_دمشق_الصناعة_كلية الهندسة المعلوماتية',
+    nationalId: '08784927594', // استخدمنا هذا الحقل مؤقتاً لرقم السجل
     passportNumber: '5567778',
     cardNumber: '87659876543234567',
     joinDate: '27/3/2025',
@@ -53,45 +53,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   bool isLanguageExpanded = false;
   String selectedLanguage = 'العربية';
-
-  // 🌟 المتغيرات الجديدة للعملة
-  bool isCurrencyExpanded = false;
-  String selectedCurrency = 'الليرة السورية';
-
   bool isNotificationOn = true;
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final double scale = size.width / 440;
-
-    // 🌟 حساب المسافات الإضافية عند فتح القوائم المنسدلة
     final double lOffset = isLanguageExpanded ? 90.0 : 0.0;
-    final double cOffset = isCurrencyExpanded ? 280.0 : 0.0; // مسافة 6 عملات
-    final double totalOffset = lOffset + cOffset; // المسافة الكلية اللي رح تنزاح فيها باقي الأزرار
-
-    // 🌟 قائمة العملات
-    final List<String> currencies = [
-      'الليرة السورية',
-      'الدولار',
-      'اليورو',
-      'الليرة التركية',
-      'الدرهم الإماراتي',
-      'الريال السعودي'
-    ];
-
-    final bool isDarkMode = context.watch<ThemeCubit>().state == ThemeMode.dark;
-    final Color textColor = isDarkMode ? Colors.white : Colors.black;
 
     return Scaffold(
-      backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFFFFFFFF),
+      backgroundColor: const Color(0xFFFFFFFF),
       body: Directionality(
         textDirection: TextDirection.ltr,
         child: SingleChildScrollView(
           child: SizedBox(
             width: 440 * scale,
-            // 🌟 تحديث الارتفاع الكلي للشاشة ليتسع للقوائم لما تفتح
-            height: (1680 + totalOffset) * scale,
+            height: (1680 + lOffset) * scale,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
@@ -103,9 +80,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     'assets/images/Vector.svg',
                     width: size.width,
                     fit: BoxFit.cover,
-                    colorFilter: isDarkMode
-                        ? const ColorFilter.mode(Color(0xFF223A5E), BlendMode.srcIn)
-                        : null,
                   ),
                 ),
 
@@ -124,20 +98,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         fontSize: 40 * scale,
                         letterSpacing: 2 * scale,
                         height: 1.0,
-                        color: textColor,
+                        color: const Color(0xFF000000),
                       ),
                     ),
                   ),
                 ),
 
+                // --- كرت الملف الشخصي للشركة ---
                 Positioned(
                   top: 100 * scale,
                   left: 10 * scale,
                   width: 420 * scale,
                   height: 317 * scale,
                   child: SvgPicture.asset(
-                    // 🌟 التبديل الذكي بين الصورتين بدون استخدام فلتر ألوان
-                    isDarkMode ? 'assets/images/profileCardDark.svg' : 'assets/images/profileCard.svg',
+                    'assets/images/profileCard.svg',
                     fit: BoxFit.fill,
                   ),
                 ),
@@ -178,7 +152,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                 ),
-
+                Positioned(
+                  top: 193 * scale,
+                  left: 14 * scale,
+                  width: 24 * scale,
+                  height: 24 * scale,
+                  child: SvgPicture.asset(
+                    'assets/icons/Sun.svg',
+                    fit: BoxFit.contain,
+                  ),
+                ),
                 Positioned(
                   top: 121 * scale,
                   left: 309 * scale,
@@ -202,13 +185,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Directionality(
                     textDirection: TextDirection.rtl,
                     child: Text(
-                      widget.userName,
+                      widget.companyName,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontFamily: 'Tajawal',
                         fontSize: 22 * scale,
                         fontWeight: FontWeight.w400,
-                        color: textColor,
+                        color: Colors.black,
                         height: 1.0,
                       ),
                     ),
@@ -220,13 +203,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   width: 140 * scale,
                   height: 40 * scale,
                   child: Text(
-                    widget.userEmail,
+                    widget.companyEmail,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontFamily: 'Tajawal',
                       fontSize: 16 * scale,
                       fontWeight: FontWeight.w400,
-                      color: textColor,
+                      color: Colors.black,
                       height: 1.2,
                     ),
                   ),
@@ -239,7 +222,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(25 * scale),
-                      border: Border.all(color: textColor, width: 1 * scale),
+                      border: Border.all(color: Colors.black, width: 1 * scale),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(25 * scale),
@@ -251,47 +234,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 _buildSquareArrow(scale: scale, top: 267, left: 86),
+
+                // التأسيس
                 Positioned(
-                  top: 245 * scale,
+                  top: 235 * scale,
                   left: 303 * scale,
-                  width: 40 * scale,
+                  width: 60 * scale,
                   height: 19 * scale,
                   child: Directionality(
                     textDirection: TextDirection.rtl,
                     child: Text(
-                      'العمر:',
+                      'التأسيس:',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontFamily: 'Tajawal',
-                        fontSize: 16 * scale,
+                        fontSize: 14 * scale,
                         fontWeight: FontWeight.w400,
-                        color: textColor,
+                        color: Colors.black,
                         height: 1.0,
                       ),
                     ),
                   ),
                 ),
                 Positioned(
-                  top: 265 * scale,
+                  top: 255 * scale,
                   left: 303 * scale,
-                  width: 40 * scale,
+                  width: 60 * scale,
                   child: Directionality(
                     textDirection: TextDirection.rtl,
                     child: Text(
-                      '${widget.userAge}\nسنة',
+                      'منذ ${widget.establishmentYears}\nسنة',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontFamily: 'Tajawal',
-                        fontSize: 12 * scale,
+                        fontSize: 10 * scale,
                         fontWeight: FontWeight.w400,
-                        color: textColor,
+                        color: Colors.black,
                         height: 1.2,
                       ),
                     ),
                   ),
                 ),
+
+                // الموقع الحالي
                 Positioned(
-                  top: 245 * scale,
+                  top: 235 * scale,
                   left: 168 * scale,
                   width: 93 * scale,
                   height: 19 * scale,
@@ -302,52 +289,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontFamily: 'Tajawal',
-                        fontSize: 16 * scale,
+                        fontSize: 14 * scale,
                         fontWeight: FontWeight.w400,
-                        color: textColor,
+                        color: Colors.black,
                         height: 1.0,
                       ),
                     ),
                   ),
                 ),
                 Positioned(
-                  top: 265 * scale,
+                  top: 255 * scale,
                   left: 140 * scale,
                   width: 150 * scale,
                   child: Directionality(
                     textDirection: TextDirection.rtl,
                     child: Text(
-                      widget.userLocation,
+                      widget.companyLocation,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontFamily: 'Tajawal',
-                        fontSize: 11 * scale,
+                        fontSize: 10 * scale,
                         fontWeight: FontWeight.w400,
-                        color: textColor,
+                        color: Colors.black,
                         height: 1.2,
                       ),
                     ),
                   ),
                 ),
+
+                // رقم السجل
                 Positioned(
-                  top: 305 * scale,
+                  top: 295 * scale,
                   left: 130 * scale,
                   width: 180 * scale,
                   child: Directionality(
                     textDirection: TextDirection.rtl,
                     child: Text(
-                      'الرقم التعريفي: ${widget.userId}',
+                      'رقم السجل: ${widget.registrationNumber}',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontFamily: 'Tajawal',
-                        fontSize: 13 * scale,
+                        fontSize: 14 * scale,
                         fontWeight: FontWeight.w400,
-                        color: textColor,
+                        color: Colors.black,
                       ),
                     ),
                   ),
                 ),
 
+                // أزرار الحذف وتسجيل الخروج
                 Positioned(
                   top: 350 * scale,
                   left: 146.5 * scale,
@@ -416,7 +406,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
 
-                // زر كرت الملف الشخصي
                 Positioned(
                   top: 100 * scale,
                   left: 10 * scale,
@@ -435,7 +424,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
 
-                // --- قسم اللغة التفاعلي ---
+                // --- قسم اللغة ---
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
@@ -445,9 +434,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   height: (isLanguageExpanded ? 170 : 80) * scale,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(25 * scale),
-                      border: Border.all(color: isDarkMode ? Colors.white24 : Colors.black, width: 1 * scale),
+                      border: Border.all(color: Colors.black, width: 1 * scale),
                     ),
                     child: Stack(
                       children: [
@@ -459,7 +448,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: SvgPicture.asset(
                             'assets/icons/laguage.svg',
                             fit: BoxFit.contain,
-                            colorFilter: isDarkMode ? const ColorFilter.mode(Colors.white, BlendMode.srcIn) : null,
                           ),
                         ),
                         Positioned(
@@ -478,7 +466,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   fontWeight: FontWeight.w400,
                                   fontSize: 22 * scale,
                                   height: 1.0,
-                                  color: textColor,
+                                  color: Colors.black,
                                 ),
                               ),
                             ),
@@ -492,7 +480,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: Container(
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: textColor,
+                                color: Colors.black,
                                 width: 1.2 * scale,
                               ),
                               borderRadius: BorderRadius.circular(6 * scale),
@@ -503,7 +491,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     ? Icons.keyboard_arrow_up
                                     : Icons.keyboard_arrow_down,
                                 size: 20 * scale,
-                                color: textColor,
+                                color: Colors.black,
                               ),
                             ),
                           ),
@@ -533,7 +521,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                           fontFamily: 'Tajawal',
                                           fontSize: 22 * scale,
                                           fontWeight: FontWeight.w400,
-                                          color: textColor,
+                                          color: Colors.black,
                                         ),
                                       ),
                                     ),
@@ -546,7 +534,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         color: selectedLanguage == 'العربية'
                                             ? const Color(0xFFF4A261)
                                             : Colors.transparent,
-                                        border: Border.all(color: isDarkMode ? Colors.white24 : Colors.black12),
+                                        border: Border.all(color: Colors.black12),
                                       ),
                                     ),
                                   ],
@@ -578,7 +566,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                           fontFamily: 'Tajawal',
                                           fontSize: 22 * scale,
                                           fontWeight: FontWeight.w400,
-                                          color: textColor,
+                                          color: Colors.black,
                                         ),
                                       ),
                                     ),
@@ -591,7 +579,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         color: selectedLanguage == 'الإنكليزية'
                                             ? const Color(0xFFF4A261)
                                             : Colors.transparent,
-                                        border: Border.all(color: isDarkMode ? Colors.white24 : Colors.black12),
+                                        border: Border.all(color: Colors.black12),
                                       ),
                                     ),
                                   ],
@@ -617,174 +605,99 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
 
-                // --- 🌟 قسم العملة الجديد المنسدل 🌟 ---
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
+                // --- العملة ---
+                _buildListContainer(
+                  scale: scale,
+                  top: 542,
+                  offset: lOffset,
+                  left: 241,
+                  width: 160,
+                  height: 80,
+                  hasShadow: true,
+                ),
+                _buildListContainer(
+                  scale: scale,
+                  top: 542,
+                  offset: lOffset,
+                  left: 39,
+                  width: 160,
+                  height: 80,
+                ),
+                _buildIcon(
+                  scale: scale,
+                  top: 562,
+                  offset: lOffset,
+                  left: 341,
+                  width: 40,
+                  height: 40,
+                  assetPath: 'assets/icons/coin.svg',
+                ),
+                _buildText(
+                  scale: scale,
+                  top: 572,
+                  offset: lOffset,
+                  left: 271,
+                  width: 60,
+                  height: 26,
+                  text: 'العملة',
+                  fontSize: 22,
+                ),
+                _buildText(
+                  scale: scale,
+                  top: 569,
+                  offset: lOffset,
+                  left: 104,
+                  width: 70,
+                  height: 26,
+                  text: 'ل.س.ج',
+                  fontSize: 22,
+                ),
+                _buildSquareArrow(
+                  scale: scale,
+                  top: 569,
+                  offset: lOffset,
+                  left: 54,
+                ),
+                Positioned(
                   top: (542 + lOffset) * scale,
                   left: 39 * scale,
                   width: 362 * scale,
-                  height: (isCurrencyExpanded ? 360 : 80) * scale,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
-                      borderRadius: BorderRadius.circular(25 * scale),
-                      border: Border.all(color: isDarkMode ? Colors.white24 : Colors.black, width: 1 * scale),
-                    ),
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          top: 20 * scale,
-                          left: 282 * scale,
-                          width: 40 * scale,
-                          height: 40 * scale,
-                          child: SvgPicture.asset(
-                            'assets/icons/coin.svg',
-                            fit: BoxFit.contain,
-                            colorFilter: isDarkMode ? const ColorFilter.mode(Colors.white, BlendMode.srcIn) : null,
-                          ),
-                        ),
-                        Positioned(
-                          top: 27 * scale,
-                          left: 181 * scale,
-                          width: 60 * scale,
-                          height: 26 * scale,
-                          child: Directionality(
-                            textDirection: TextDirection.rtl,
-                            child: Center(
-                              child: Text(
-                                'العملة',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontFamily: 'Tajawal',
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 22 * scale,
-                                  height: 1.0,
-                                  color: textColor,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 27 * scale,
-                          left: 15 * scale,
-                          width: 26 * scale,
-                          height: 26 * scale,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: textColor,
-                                width: 1.2 * scale,
-                              ),
-                              borderRadius: BorderRadius.circular(6 * scale),
-                            ),
-                            child: Center(
-                              child: Icon(
-                                isCurrencyExpanded
-                                    ? Icons.keyboard_arrow_up
-                                    : Icons.keyboard_arrow_down,
-                                size: 20 * scale,
-                                color: textColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (isCurrencyExpanded) ...[
-                          for (int i = 0; i < currencies.length; i++)
-                            Positioned(
-                              top: (78 + (i * 46)) * scale,
-                              left: 0,
-                              right: 0,
-                              height: 40 * scale,
-                              child: GestureDetector(
-                                onTap: () => setState(() {
-                                  selectedCurrency = currencies[i];
-                                  isCurrencyExpanded = false;
-                                }),
-                                child: Container(
-                                  color: Colors.transparent,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      SizedBox(
-                                        width: 160 * scale,
-                                        child: Text(
-                                          currencies[i],
-                                          textAlign: TextAlign.right,
-                                          style: TextStyle(
-                                            fontFamily: 'Tajawal',
-                                            fontSize: 22 * scale,
-                                            fontWeight: FontWeight.w400,
-                                            color: textColor,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 26 * scale),
-                                      Container(
-                                        width: 20 * scale,
-                                        height: 20 * scale,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: selectedCurrency == currencies[i]
-                                              ? const Color(0xFFF4A261)
-                                              : Colors.transparent,
-                                          border: Border.all(color: isDarkMode ? Colors.white24 : Colors.black12),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          width: 362 * scale,
-                          height: 80 * scale,
-                          child: GestureDetector(
-                            onTap: () => setState(
-                                  () => isCurrencyExpanded = !isCurrencyExpanded,
-                            ),
-                            child: Container(color: Colors.transparent),
-                          ),
-                        ),
-                      ],
-                    ),
+                  height: 80 * scale,
+                  child: GestureDetector(
+                    onTap: () {},
+                    child: Container(color: Colors.transparent),
                   ),
                 ),
 
-                // --- إشعارات الشركات ---
-                // 🌟 جميع الأزرار هنا للأسفل تستخدم totalOffset لتنزل للأسفل إذا تم فتح أي قائمة
+                // --- تفعيل اشعارات التطبيق ---
                 _buildListContainer(
                   scale: scale,
                   top: 637,
-                  offset: totalOffset,
+                  offset: lOffset,
                   left: 39,
                   width: 362,
                   height: 80,
                 ),
                 _buildText(
                   scale: scale,
-                  top: 653,
-                  offset: totalOffset,
+                  top: 663,
+                  offset: lOffset,
                   left: 131,
                   width: 254,
-                  height: 52,
-                  text: 'ارسال اشعار عن برامج\nالشركات اللتي تم تفضيلها:',
+                  height: 26,
+                  text: 'تفعيل اشعارات التطبيق:',
                   fontSize: 22,
                 ),
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 200),
-                  top: (659 + totalOffset) * scale,
+                  top: (659 + lOffset) * scale,
                   left: 59 * scale,
                   width: 68 * scale,
                   height: 35 * scale,
                   child: Container(
                     decoration: BoxDecoration(
                       color: isNotificationOn
-                          ? (isDarkMode ? const Color(0xFF223A5E) : const Color(0xFF91B3FA))
+                          ? const Color(0xFF91B3FA)
                           : Colors.grey[400],
                       borderRadius: BorderRadius.circular(17.5 * scale),
                     ),
@@ -793,9 +706,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 200),
                   curve: Curves.easeInOut,
-                  top: (662.5 + totalOffset) * scale,
-                  // 🌟 عكسنا القيم: 63 للتفعيل (يسار) و 95 للإيقاف (يمين)
-                  left: (isNotificationOn ? 63 : 95) * scale,
+                  top: (662.5 + lOffset) * scale,
+                  left: (isNotificationOn ? 95 : 63) * scale,
                   width: 28 * scale,
                   height: 28 * scale,
                   child: Container(
@@ -808,15 +720,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 200),
                   curve: Curves.easeInOut,
-                  top: (664 + totalOffset) * scale,
-                  // 🌟 وعكسنا القيم للأيقونة لتتحرك مع الدائرة تماماً
-                  left: (isNotificationOn ? 65 : 97) * scale,
+                  top: (664 + lOffset) * scale,
+                  left: (isNotificationOn ? 97 : 65) * scale,
                   width: 24 * scale,
                   height: 24 * scale,
                   child: SvgPicture.asset('assets/icons/SMS.svg'),
                 ),
                 Positioned(
-                  top: (637 + totalOffset) * scale,
+                  top: (637 + lOffset) * scale,
                   left: 39 * scale,
                   width: 362 * scale,
                   height: 80 * scale,
@@ -827,11 +738,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
 
-                // --- المرافقون ---
+                // --- المرشدون السياحيون ---
                 _buildListContainer(
                   scale: scale,
                   top: 732,
-                  offset: totalOffset,
+                  offset: lOffset,
                   left: 39,
                   width: 362,
                   height: 80,
@@ -839,87 +750,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildIcon(
                   scale: scale,
                   top: 752,
-                  offset: totalOffset,
+                  offset: lOffset,
                   left: 321,
                   width: 40,
                   height: 40,
-                  assetPath: 'assets/icons/companions.svg',
+                  assetPath: 'assets/icons/tour_guide.png', // 🌟 تم تعديل المسار ليعمل بشكل سليم
                 ),
                 _buildText(
                   scale: scale,
                   top: 759,
-                  offset: totalOffset,
-                  left: 211,
-                  width: 91,
+                  offset: lOffset,
+                  left: 141,
+                  width: 170,
                   height: 26,
-                  text: 'المرافقون',
+                  text: 'المرشدون السياحيون',
                   fontSize: 22,
                 ),
                 _buildSquareArrow(
                   scale: scale,
                   top: 759,
-                  offset: totalOffset,
+                  offset: lOffset,
                   left: 54,
                 ),
                 Positioned(
-                  top: (732 + totalOffset) * scale,
+                  top: (732 + lOffset) * scale,
                   left: 39 * scale,
                   width: 362 * scale,
                   height: 80 * scale,
                   child: GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CompanionsScreen(),
-                        ),
-                      );
+                      // Navigate to tour guides screen
                     },
-                    child: Container(color: Colors.transparent),
-                  ),
-                ),
-
-                // --- الأدوات والخرائط ---
-                _buildListContainer(
-                  scale: scale,
-                  top: 827,
-                  offset: totalOffset,
-                  left: 39,
-                  width: 362,
-                  height: 80,
-                ),
-                _buildIcon(
-                  scale: scale,
-                  top: 855,
-                  offset: totalOffset,
-                  left: 329,
-                  width: 24,
-                  height: 24,
-                  assetPath: 'assets/icons/Edit.svg',
-                ),
-                _buildText(
-                  scale: scale,
-                  top: 854,
-                  offset: totalOffset,
-                  left: 104,
-                  width: 254,
-                  height: 26,
-                  text: 'الأدوات والخرائط',
-                  fontSize: 22,
-                ),
-                _buildSquareArrow(
-                  scale: scale,
-                  top: 854,
-                  offset: totalOffset,
-                  left: 54,
-                ),
-                Positioned(
-                  top: (827 + totalOffset) * scale,
-                  left: 39 * scale,
-                  width: 362 * scale,
-                  height: 80 * scale,
-                  child: GestureDetector(
-                    onTap: () {},
                     child: Container(color: Colors.transparent),
                   ),
                 ),
@@ -927,16 +788,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // --- الإبلاغ عن سائح ---
                 _buildListContainer(
                   scale: scale,
-                  top: 922,
-                  offset: totalOffset,
+                  top: 827,
+                  offset: lOffset,
                   left: 39,
                   width: 362,
                   height: 80,
                 ),
                 _buildIcon(
                   scale: scale,
-                  top: 942,
-                  offset: totalOffset,
+                  top: 847,
+                  offset: lOffset,
                   left: 321,
                   width: 40,
                   height: 40,
@@ -944,8 +805,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildText(
                   scale: scale,
-                  top: 949,
-                  offset: totalOffset,
+                  top: 854,
+                  offset: lOffset,
                   left: 162,
                   width: 140,
                   height: 26,
@@ -954,12 +815,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildSquareArrow(
                   scale: scale,
-                  top: 949,
-                  offset: totalOffset,
+                  top: 854,
+                  offset: lOffset,
                   left: 54,
                 ),
                 Positioned(
-                  top: (922 + totalOffset) * scale,
+                  top: (827 + lOffset) * scale,
                   left: 39 * scale,
                   width: 362 * scale,
                   height: 80 * scale,
@@ -972,16 +833,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // --- تقييم UTE ---
                 _buildListContainer(
                   scale: scale,
-                  top: 1017,
-                  offset: totalOffset,
+                  top: 922,
+                  offset: lOffset,
                   left: 39,
                   width: 362,
                   height: 80,
                 ),
                 _buildIcon(
                   scale: scale,
-                  top: 1037,
-                  offset: totalOffset,
+                  top: 942,
+                  offset: lOffset,
                   left: 321,
                   width: 40,
                   height: 40,
@@ -989,8 +850,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildText(
                   scale: scale,
-                  top: 1044,
-                  offset: totalOffset,
+                  top: 949,
+                  offset: lOffset,
                   left: 190,
                   width: 120,
                   height: 26,
@@ -999,47 +860,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildSquareArrow(
                   scale: scale,
-                  top: 1044,
-                  offset: totalOffset,
+                  top: 949,
+                  offset: lOffset,
                   left: 54,
                 ),
                 Positioned(
-                  top: (1017 + totalOffset) * scale,
+                  top: (922 + lOffset) * scale,
                   left: 39 * scale,
                   width: 362 * scale,
                   height: 80 * scale,
                   child: GestureDetector(
-                    onTap: () {
-                      // 🌟 استدعاء شاشة التقييم عند الضغط
-                      Navigator.pushNamed(context, '/rating');
-                    },
+                    onTap: () {},
                     child: Container(color: Colors.transparent),
                   ),
                 ),
-                // --- فريق الدعم ---
+
+                // --- تواصل مع فريق الدعم ---
                 _buildListContainer(
                   scale: scale,
-                  top: 1112,
-                  offset: totalOffset,
+                  top: 1017,
+                  offset: lOffset,
                   left: 39,
                   width: 362,
                   height: 80,
                 ),
                 Positioned(
-                  top: (1132 + totalOffset) * scale,
+                  top: (1037 + lOffset) * scale,
                   left: 321 * scale,
                   width: 40 * scale,
                   height: 40 * scale,
                   child: Image.asset(
                     'assets/icons/support.png',
                     fit: BoxFit.contain,
-                    color: isDarkMode ? Colors.white : null,
                   ),
                 ),
                 _buildText(
                   scale: scale,
-                  top: 1139,
-                  offset: totalOffset,
+                  top: 1044,
+                  offset: lOffset,
                   left: 117,
                   width: 197,
                   height: 26,
@@ -1048,12 +906,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildSquareArrow(
                   scale: scale,
-                  top: 1139,
-                  offset: totalOffset,
+                  top: 1044,
+                  offset: lOffset,
                   left: 54,
                 ),
                 Positioned(
-                  top: (1112 + totalOffset) * scale,
+                  top: (1017 + lOffset) * scale,
                   left: 39 * scale,
                   width: 362 * scale,
                   height: 80 * scale,
@@ -1070,78 +928,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
 
-                // --- إعادة تعيين كلمة المرور ---
-                _buildListContainer(
-                  scale: scale,
-                  top: 1207,
-                  offset: totalOffset,
-                  left: 39,
-                  width: 362,
-                  height: 80,
-                ),
-                _buildIcon(
-                  scale: scale,
-                  top: 1227,
-                  offset: totalOffset,
-                  left: 331,
-                  width: 40,
-                  height: 40,
-                  assetPath: 'assets/icons/Refresh.svg',
-                ),
-                _buildText(
-                  scale: scale,
-                  top: 1234,
-                  offset: totalOffset,
-                  left: 100,
-                  width: 218,
-                  height: 26,
-                  text: 'إعادة تعيين كلمة المرور',
-                  fontSize: 22,
-                ),
-                _buildSquareArrow(
-                  scale: scale,
-                  top: 1234,
-                  offset: totalOffset,
-                  left: 54,
-                ),
-                Positioned(
-                  top: (1207 + totalOffset) * scale,
-                  left: 39 * scale,
-                  width: 362 * scale,
-                  height: 80 * scale,
-                  child: GestureDetector(
-                    onTap: () => _showResetPasswordBottomSheet(context, scale),
-                    child: Container(color: Colors.transparent),
-                  ),
-                ),
-
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  top: 193 * scale,
-                  left: (isDarkMode ? 30 : 14) * scale,
-                  width: 24 * scale,
-                  height: 24 * scale,
-                  child: Icon(
-                    isDarkMode ? Icons.nightlight_round : Icons.wb_sunny,
-                    color: isDarkMode ? Colors.white : const Color(0xFFF4A261),
-                    size: 22 * scale,
-                  ),
-                ),
-
-                Positioned(
-                  top: 178 * scale,
-                  left: 0,
-                  width: 60 * scale,
-                  height: 50 * scale,
-                  child: GestureDetector(
-                    onTap: () {
-                      context.read<ThemeCubit>().toggleTheme();
-                    },
-                    child: Container(color: Colors.transparent),
-                  ),
-                ),
-
+                // زر الرجوع في الأعلى
                 Positioned(
                   top: 46 * scale,
                   left: 373 * scale,
@@ -1154,7 +941,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: Icon(
                         Icons.keyboard_arrow_right,
                         size: 35 * scale,
-                        color: textColor,
+                        color: Colors.black,
                       ),
                     ),
                   ),
@@ -1173,7 +960,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // --- 🌟 النوافذ المنبثقة للتحذيرات المخصصة ---
+  // --- النوافذ المنبثقة للتحذيرات المخصصة ---
 
   void _showLogoutDialog(BuildContext context, double scale) {
     _showActionDialog(
@@ -1349,6 +1136,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // --- نافذة الإبلاغ عن سائح ---
   void _showReportTouristBottomSheet(BuildContext context, double scale) {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController reasonController = TextEditingController();
@@ -1412,6 +1200,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                     ),
+
                     Positioned(
                       top: 91 * scale,
                       right: 50 * scale,
@@ -1426,6 +1215,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                     ),
+
                     Positioned(
                       top: 130 * scale,
                       left: 50 * scale,
@@ -1474,6 +1264,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                     ),
+
                     Positioned(
                       top: 220 * scale,
                       left: 50 * scale,
@@ -1518,6 +1309,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ],
                       ),
                     ),
+
                     Positioned(
                       top: 420 * scale,
                       left: 85 * scale,
@@ -1525,6 +1317,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       height: 65 * scale,
                       child: GestureDetector(
                         onTap: () {
+                          print(
+                            "Reporting Tourist: ${nameController.text}, Reason: ${reasonController.text}",
+                          );
                           Navigator.pop(context);
                         },
                         child: Container(
@@ -1567,6 +1362,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // --- نافذة إعادة تعيين كلمة المرور (احتفظنا بها فقط تحسباً لو احتجتها لاحقاً، رغم إزالتها من القائمة) ---
   void _showResetPasswordBottomSheet(BuildContext context, double scale) {
     showModalBottomSheet(
       context: context,
@@ -1722,8 +1518,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // 🌟 الدوال المساعدة (حافظنا على اللون الرمادي #2C2C2C للأزرار كما طلبتِ) 🌟
-
   Widget _buildListContainer({
     required double scale,
     required double top,
@@ -1733,8 +1527,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     double offset = 0.0,
     bool hasShadow = false,
   }) {
-    final bool isDarkMode = context.watch<ThemeCubit>().state == ThemeMode.dark;
-
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -1744,9 +1536,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       height: height * scale,
       child: Container(
         decoration: BoxDecoration(
-          color: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(25 * scale),
-          border: Border.all(color: isDarkMode ? Colors.white24 : Colors.black, width: 1 * scale),
+          border: Border.all(color: Colors.black, width: 1 * scale),
           boxShadow: hasShadow
               ? [
             BoxShadow(
@@ -1772,8 +1564,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String text,
     required double fontSize,
   }) {
-    final bool isDarkMode = context.watch<ThemeCubit>().state == ThemeMode.dark;
-
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -1792,7 +1582,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               fontWeight: FontWeight.w400,
               fontSize: fontSize * scale,
               height: 1.0,
-              color: isDarkMode ? Colors.white : Colors.black,
+              color: Colors.black,
             ),
           ),
         ),
@@ -1800,6 +1590,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // 🌟 التعديل هنا: الدالة الآن تقبل الصور بصيغة png أو svg
   Widget _buildIcon({
     required double scale,
     required double top,
@@ -1809,7 +1600,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     double offset = 0.0,
     required String assetPath,
   }) {
-    final bool isDarkMode = context.watch<ThemeCubit>().state == ThemeMode.dark;
+    bool isSvg = assetPath.toLowerCase().endsWith('.svg');
 
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
@@ -1818,13 +1609,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       left: left * scale,
       width: width * scale,
       height: height * scale,
-      child: SvgPicture.asset(
-        assetPath,
-        fit: BoxFit.contain,
-        colorFilter: isDarkMode
-            ? const ColorFilter.mode(Colors.white, BlendMode.srcIn)
-            : null,
-      ),
+      child: isSvg
+          ? SvgPicture.asset(assetPath, fit: BoxFit.contain)
+          : Image.asset(assetPath, fit: BoxFit.contain),
     );
   }
 
@@ -1834,8 +1621,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required double left,
     double offset = 0.0,
   }) {
-    final bool isDarkMode = context.watch<ThemeCubit>().state == ThemeMode.dark;
-
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -1845,14 +1630,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       height: 26 * scale,
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(color: isDarkMode ? Colors.white : Colors.black, width: 1.2 * scale),
+          border: Border.all(color: Colors.black, width: 1.2 * scale),
           borderRadius: BorderRadius.circular(6 * scale),
         ),
         child: Center(
           child: Icon(
             Icons.keyboard_arrow_left,
             size: 20 * scale,
-            color: isDarkMode ? Colors.white : Colors.black,
+            color: Colors.black,
           ),
         ),
       ),
@@ -1900,16 +1685,10 @@ class _SupportTeamState extends State<SupportTeam> {
   Widget build(BuildContext context) {
     final double scale = MediaQuery.of(context).size.width / 440;
 
-    // 🌟 تعريف المتغير هنا لحل مشكلة الخطأ الأحمر في شاشة الدعم
-    final bool isDarkMode = context.watch<ThemeCubit>().state == ThemeMode.dark;
-    final Color textColor = isDarkMode ? Colors.white : Colors.black;
-
     return Scaffold(
-      backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFFFFFFFF),
       body: SafeArea(
         child: Stack(
           children: [
-            // 🌟 الفيكتور في شاشة فريق الدعم أيضاً باللون الكحلي
             Positioned(
               top: 0,
               left: 0,
@@ -1917,9 +1696,6 @@ class _SupportTeamState extends State<SupportTeam> {
               child: SvgPicture.asset(
                 'assets/images/Vector.svg',
                 fit: BoxFit.cover,
-                colorFilter: isDarkMode
-                    ? const ColorFilter.mode(Color(0xFF223A5E), BlendMode.srcIn)
-                    : null,
               ),
             ),
             SingleChildScrollView(
@@ -1943,7 +1719,6 @@ class _SupportTeamState extends State<SupportTeam> {
                                 fontFamily: 'Cairo',
                                 fontSize: 36 * scale,
                                 fontWeight: FontWeight.bold,
-                                color: textColor,
                               ),
                             ),
                           ),
@@ -1955,7 +1730,6 @@ class _SupportTeamState extends State<SupportTeam> {
                             child: Icon(
                               Icons.keyboard_arrow_right,
                               size: 35 * scale,
-                              color: textColor,
                             ),
                           ),
                         ),
@@ -1976,7 +1750,7 @@ class _SupportTeamState extends State<SupportTeam> {
                         gradient: LinearGradient(
                           colors: [
                             const Color(0xFF666666).withOpacity(0.5),
-                            textColor,
+                            const Color(0xFF000000),
                             const Color(0xFF666666).withOpacity(0.5),
                           ],
                         ),
@@ -1995,7 +1769,7 @@ class _SupportTeamState extends State<SupportTeam> {
                           fontFamily: 'Tajawal',
                           fontSize: 32 * scale,
                           fontWeight: FontWeight.w400,
-                          color: textColor,
+                          color: Colors.black,
                           height: 1.0,
                         ),
                       ),
@@ -2048,7 +1822,7 @@ class _SupportTeamState extends State<SupportTeam> {
                           fontFamily: 'Tajawal',
                           fontSize: 32 * scale,
                           fontWeight: FontWeight.w400,
-                          color: textColor,
+                          color: Colors.black,
                           height: 1.0,
                         ),
                       ),
@@ -2103,13 +1877,15 @@ class _SupportTeamState extends State<SupportTeam> {
                           fontFamily: 'Tajawal',
                           fontSize: 32 * scale,
                           fontWeight: FontWeight.w400,
-                          color: textColor,
+                          color: Colors.black,
                           height: 1.0,
                         ),
                       ),
                     ),
                   ),
                   SizedBox(height: 12 * scale),
+
+                  // 🌟 إطار الصورة التفاعلي
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 22 * scale),
                     child: Align(
