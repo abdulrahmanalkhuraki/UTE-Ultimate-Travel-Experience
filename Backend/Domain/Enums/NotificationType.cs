@@ -16,5 +16,6 @@ namespace Domain.Enums
         BookingConfirmed, // by tourist
         BookingDeclined, // by tourist
         NewPackage,
+        BookingStartingSoon,
     }
 }

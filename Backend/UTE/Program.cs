@@ -41,6 +41,8 @@ using Scalar.AspNetCore;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
+using Hangfire;
+using Hangfire.SqlServer;
 using UTE.Middleware;
 using UTE.Security;
 
@@ -350,6 +352,15 @@ builder.Services.AddScoped<ISupportReplyService, SupportReplyService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 
 builder.Services.AddMemoryCache();
+
+// ==========================================
+// 7.1. ADD HANGFIRE (BACKGROUND JOBS)
+// ==========================================
+builder.Services.AddHangfire(config =>
+    config.UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddHangfireServer();
+builder.Services.AddScoped<BookingBackgroundJobs>();
+
 // ==========================================
 // 8. ADD AUTOMAPPER
 // ==========================================
@@ -408,6 +419,30 @@ app.UseCors();
 app.UseAuthentication();  // Must be before Authorization
 app.UseAuthorization();
 app.MapControllers();
+
+// ==========================================
+// 12.1. CONFIGURE HANGFIRE DASHBOARD & RECURRING JOBS
+// ==========================================
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = [new HangfireDashboardAuthFilter()]
+});
+
+RecurringJob.AddOrUpdate<BookingBackgroundJobs>(
+    "process-started-bookings",
+    j => j.ProcessStartedBookingsAsync(CancellationToken.None),
+    "*/5 * * * *");
+
+RecurringJob.AddOrUpdate<BookingBackgroundJobs>(
+    "process-completed-bookings",
+    j => j.ProcessCompletedBookingsAsync(CancellationToken.None),
+    "*/5 * * * *");
+
+RecurringJob.AddOrUpdate<BookingBackgroundJobs>(
+    "send-upcoming-reminders",
+    j => j.SendUpcomingBookingRemindersAsync(CancellationToken.None),
+    "0 8 * * *");
+
 // ==========================================
 // 13. RUN THE APPLICATION
 // ==========================================
