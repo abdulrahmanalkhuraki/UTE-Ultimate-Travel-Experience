@@ -29,9 +29,13 @@ namespace Application.Services
         private readonly INotificationService _notificationService;
 
         private const string BookingCacheKeyPrefix = "booking_";
-        private const string BookingsListCacheKey = "all_bookings";
+        private const string BookingsListCacheKeyPrefix = "all_bookings_";
+        private const string FilteredCacheKeyPrefix = "filtered_";
+        private const string UnapprovedCacheKeyPrefix = "unapproved_";
         private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan SlidingCacheDuration = TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan FilterCacheDuration = TimeSpan.FromMinutes(3);
+        private static readonly TimeSpan UnapprovedCacheDuration = TimeSpan.FromMinutes(2);
 
         public BookingService(
             IUnitOfWork unitOfWork,
@@ -143,6 +147,8 @@ namespace Application.Services
 
                 _logger.LogInformation("Successfully created booking {BookingId}", booking.Id);
 
+                InvalidateBookingCache(userId: userId, companyId: package.CompanyId);
+
                 // notify user
                 await _notificationService.NotifyAsync(
                     userId,
@@ -250,9 +256,11 @@ namespace Application.Services
         {
             _logger.LogDebug($"Retrieving all bookings for user with Id = {userId}");
 
-            if (_cache.TryGetValue(BookingsListCacheKey, out IReadOnlyList<BookingResponse>? cached) && cached is not null)
+            var listCacheKey = $"{BookingsListCacheKeyPrefix}{userId}";
+
+            if (_cache.TryGetValue(listCacheKey, out IReadOnlyList<BookingResponse>? cached) && cached is not null)
             {
-                _logger.LogDebug("Cache hit for all bookings");
+                _logger.LogDebug("Cache hit for all bookings of user {UserId}", userId);
                 return cached;
             }
 
@@ -270,7 +278,7 @@ namespace Application.Services
 
                 var response = _mapper.Map<IReadOnlyList<BookingResponse>>(entities);
 
-                _cache.Set(BookingsListCacheKey, response, new MemoryCacheEntryOptions
+                _cache.Set(listCacheKey, response, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = CacheDuration,
                     Priority = CacheItemPriority.Low
@@ -293,6 +301,16 @@ namespace Application.Services
 
             var userId = _currentUser.UserId ?? throw new AuthException("You must be loged in to preform this action.");
 
+            var filterCacheKey = status.HasValue
+                ? $"{FilteredCacheKeyPrefix}{userId}_{status.Value}"
+                : $"{FilteredCacheKeyPrefix}{userId}_all";
+
+            if (_cache.TryGetValue(filterCacheKey, out IReadOnlyList<BookingResponse>? cached) && cached is not null)
+            {
+                _logger.LogDebug("Cache hit for filtered bookings of user {UserId} with status {Status}", userId, status);
+                return cached;
+            }
+
             try
             {
                 var query = _unitOfWork.Bookings
@@ -313,6 +331,12 @@ namespace Application.Services
                     .ToListAsync(cancellationToken);
 
                 var response = _mapper.Map<IReadOnlyList<BookingResponse>>(entities);
+
+                _cache.Set(filterCacheKey, response, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = FilterCacheDuration,
+                    Priority = CacheItemPriority.Normal
+                });
 
                 _logger.LogDebug("Successfully retrieved {Count} bookings with filter {Status}", response.Count, status);
 
@@ -350,6 +374,16 @@ namespace Application.Services
                     throw new ForbiddenException("You are not associated with any tour company.");
                 }
 
+                var unapprovedCacheKey = packageId.HasValue
+                    ? $"{UnapprovedCacheKeyPrefix}{company.Id}_{packageId.Value}"
+                    : $"{UnapprovedCacheKeyPrefix}{company.Id}_all";
+
+                if (_cache.TryGetValue(unapprovedCacheKey, out IReadOnlyList<BookingResponse>? cached) && cached is not null)
+                {
+                    _logger.LogDebug("Cache hit for unapproved bookings of company {CompanyId}", company.Id);
+                    return cached;
+                }
+
                 var query = _unitOfWork.Bookings
                             .Query()
                             .Where(b => b.TourPackage.CompanyId == company.Id)
@@ -384,6 +418,13 @@ namespace Application.Services
 
 
                 var response = _mapper.Map<IReadOnlyList<BookingResponse>>(entities);
+
+                _cache.Set(unapprovedCacheKey, response, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = UnapprovedCacheDuration,
+                    Priority = CacheItemPriority.Normal
+                });
+
                 _logger.LogDebug("Successfully retrieved {Count} bookings", response.Count);
                 return response;
             }
@@ -505,7 +546,7 @@ namespace Application.Services
                 _unitOfWork.Bookings.Update(booking);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                InvalidateBookingCache(id);
+                InvalidateBookingCache(booking.Id, booking.UserId, booking.TourPackage.CompanyId, booking.TourPackageId);
 
                 await _notificationService.NotifyAsync(booking.UserId, userNotificationMessage, NotificationType.BookingApproved, cancellationToken);
 
@@ -592,7 +633,7 @@ namespace Application.Services
                 _unitOfWork.Bookings.Update(booking);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                InvalidateBookingCache(id);
+                InvalidateBookingCache(booking.Id, booking.UserId, booking.TourPackage.CompanyId, booking.TourPackageId);
 
                 var userNotificationMessage = $"Booking #{booking.Id} has been rejected by the tour company. " +
                     $"Reason: {rejectRequest.RejectReason}. " +
@@ -658,7 +699,7 @@ namespace Application.Services
                 _unitOfWork.Bookings.Update(booking);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                InvalidateBookingCache(id);
+                InvalidateBookingCache(booking.Id, booking.UserId, booking.TourPackage.CompanyId, booking.TourPackageId);
 
                 var tourCompanyNotificationMessage = $"✓ Booking #{booking.Id} " +
                     $"confirmed by {booking.User.Person?.Fullname}. " +
@@ -732,7 +773,7 @@ namespace Application.Services
                 _unitOfWork.Bookings.Update(booking);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                InvalidateBookingCache(id);
+                InvalidateBookingCache(booking.Id, booking.UserId, booking.TourPackage.CompanyId, booking.TourPackageId);
 
                 var tourCompanyNotificationMessage = $"✗ Booking #{booking.Id} " +
                     $"declined by {booking.User.Person?.Fullname}. Booking cancelled.";
@@ -784,6 +825,7 @@ namespace Application.Services
                 var entity = await _unitOfWork.Bookings
                     .Query()
                     .Include(b => b.CompanionBookings)
+                    .Include(b => b.TourPackage)
                     .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
 
                 if (entity is null)
@@ -791,9 +833,6 @@ namespace Application.Services
                     _logger.LogWarning("Booking with ID {BookingId} not found for update", id);
                     throw new NotFoundException($"Booking with ID {id} not found");
                 }
-
-
-
 
                 _EnsureBookingBelongsToCurrentUser(entity);
 
@@ -831,7 +870,7 @@ namespace Application.Services
                 _unitOfWork.Bookings.Update(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                InvalidateBookingCache(id);
+                InvalidateBookingCache(entity.Id, entity.UserId, entity.TourPackage?.CompanyId);
 
                 var response = _mapper.Map<BookingResponse>(entity);
 
@@ -875,6 +914,7 @@ namespace Application.Services
                 var entity = await _unitOfWork.Bookings
                     .Query()
                     .Include(e => e.Payment)
+                    .Include(b => b.TourPackage)
                     .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
 
 
@@ -894,7 +934,7 @@ namespace Application.Services
                 _unitOfWork.Bookings.Update(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                InvalidateBookingCache(id);
+                InvalidateBookingCache(entity.Id, entity.UserId, entity.TourPackage?.CompanyId);
 
                 _logger.LogInformation("Successfully cancelled booking {BookingId}", id);
 
@@ -932,15 +972,26 @@ namespace Application.Services
                 || firstBookingStartDate > secondBookingEndDate);
         }
 
-        private void InvalidateBookingCache(int? specificBookingId = null)
+        private void InvalidateBookingCache(int? bookingId = null, int? userId = null, int? companyId = null, int? packageId = null)
         {
-            if (specificBookingId.HasValue)
+            if (bookingId.HasValue)
             {
-                var cacheKey = $"{BookingCacheKeyPrefix}{specificBookingId.Value}";
-                _cache.Remove(cacheKey);
+                _cache.Remove($"{BookingCacheKeyPrefix}{bookingId.Value}");
             }
 
-            _cache.Remove(BookingsListCacheKey);
+            if (userId.HasValue)
+            {
+                _cache.Remove($"{BookingsListCacheKeyPrefix}{userId.Value}");
+                _cache.Remove($"{FilteredCacheKeyPrefix}{userId.Value}_all");
+            }
+
+            if (companyId.HasValue)
+            {
+                var unapprovedKey = packageId.HasValue
+                    ? $"{UnapprovedCacheKeyPrefix}{companyId.Value}_{packageId.Value}"
+                    : $"{UnapprovedCacheKeyPrefix}{companyId.Value}_all";
+                _cache.Remove(unapprovedKey);
+            }
         }
 
         private void _EnsureBookingIsPending(Booking entity, BookingOperation operation)
