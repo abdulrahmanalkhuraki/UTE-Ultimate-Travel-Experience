@@ -10,58 +10,33 @@ namespace Application.Interfaces.TourPackage
 {
     public interface ITourPackageService
     {
-        /// <summary>Creates a program owned by the company of <paramref name="ownerUserId"/>.</summary>
-        Task<TourPackageResponse> CreateAsync(int ownerUserId, TourPackageCreateRequest request, CancellationToken cancellationToken = default);
+        Task<TourPackageResponse> CreateAsync(TourPackageCreateRequest request, CancellationToken cancellationToken = default);
 
         Task<TourPackageResponse> GetAsync(int id, CancellationToken cancellationToken = default);
 
         Task<IReadOnlyList<TourPackageResponse>> GetAllAsync(CancellationToken cancellationToken = default);
 
-        /// <summary>Lists every program owned by the company of <paramref name="ownerUserId"/>.</summary>
-        Task<IReadOnlyList<TourPackageResponse>> GetMineAsync(int ownerUserId, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<TourPackageResponse>> GetMineAsync(TourPackageStatus? status = null, CancellationToken cancellationToken = default);
 
-        /// <summary>
-        /// Lists the company's own programs filtered to one dashboard tab:
-        /// current (الحالية), previous (السابقة), or cancelled (الملغاة).
-        /// </summary>
-        Task<IReadOnlyList<TourPackageResponse>> GetMineByTimelineAsync(int ownerUserId, TimeLine timeline, CancellationToken cancellationToken = default);
+        Task<TourPackageResponse> UpdateAsync(int id, TourPackageUpdateRequest request, CancellationToken cancellationToken = default);
 
-        /// <summary>Aggregate counts of the company's own programs for the dashboard stats card.</summary>
-        Task<CompanyProgramStatsResponse> GetMyStatsAsync(int ownerUserId, CancellationToken cancellationToken = default);
+        Task<TourPackageResponse> RepublishAsync(int id, TourPackageUpdateRequest request, CancellationToken cancellationToken = default);
 
-        /// <summary>Counts the company's own published programs (عدد البرامج المنشورة).</summary>
-        Task<int> GetMyPublishedCountAsync(int ownerUserId, CancellationToken cancellationToken = default);
+        Task<ProgramStatusResponse> CancelAsync(int id, CancellationToken cancellationToken = default);
 
-        /// <summary>Updates a program; only its owning company may do so.</summary>
-        Task<TourPackageResponse> UpdateAsync(int id, int ownerUserId, TourPackageUpdateRequest request, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<TourPackageResponse>> GetUnApprovedAsync(CancellationToken cancellationToken = default);
 
-        /// <summary>Cancels a program (sets its status to cancelled); only its owning company may do so.</summary>
-        Task<ProgramStatusResponse> CancelAsync(int id, int ownerUserId, CancellationToken cancellationToken = default);
+        Task<ProgramStatusResponse> ApproveAsync(int id, CancellationToken cancellationToken = default);
 
-        /// <summary>Admin view: lists all programs awaiting moderation (قيد الانتظار), oldest first.</summary>
-        Task<IReadOnlyList<TourPackageResponse>> GetPendingAsync(CancellationToken cancellationToken = default);
-
-        /// <summary>Admin action: accepts a program (المقبولة) and notifies the owning company.</summary>
-        Task<ProgramStatusResponse> AcceptAsync(int id, CancellationToken cancellationToken = default);
-
-        /// <summary>Admin action: rejects a program (المرفوضة) with a reason and notifies the owning company.</summary>
         Task<ProgramStatusResponse> RejectAsync(int id, string reason, CancellationToken cancellationToken = default);
 
-        /// <summary>Deletes a program; only its owning company may do so.</summary>
-        Task<bool> DeleteAsync(int id, int ownerUserId, CancellationToken cancellationToken = default);
-
-        Task<bool> AddToWishlistAsync(int tourPackageId, CancellationToken cancellationToken = default);
-
-        Task<bool> RemoveFromWishlistAsync(int tourPackageId, CancellationToken cancellationToken = default);
-
-        Task<IReadOnlyList<TourPackageResponse>> GetWishlistAsync(CancellationToken cancellationToken = default);
+        Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
 
         Task<IReadOnlyList<TourPackageResponse>> FilterAsync(
             int? countryId = null,
             int? cityId = null,
             decimal? minPrice = null,
             decimal? maxPrice = null,
-            bool publishedOnly = true,
             CancellationToken cancellationToken = default);
     }
 }

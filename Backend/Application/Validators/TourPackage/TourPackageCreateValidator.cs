@@ -4,9 +4,6 @@ using FluentValidation;
 
 namespace Domain.Validators
 {
-    /// <summary>
-    /// Create-time rules. Every field is required (per the "نشر البرنامج" form).
-    /// </summary>
     public class TourPackageCreateValidator : AbstractValidator<TourPackageCreateRequest>
     {
         public TourPackageCreateValidator()
@@ -19,35 +16,12 @@ namespace Domain.Validators
                 .NotEmpty().WithMessage("Description is required")
                 .MaximumLength(1000).WithMessage("Description must not exceed 1000 characters");
 
-            // مكان الالتقاء مع السياح — required.
             RuleFor(x => x.MeetingPoint)
                 .NotEmpty().WithMessage("Meeting point is required")
                 .MaximumLength(200).WithMessage("Meeting point must not exceed 200 characters");
 
             RuleFor(x => x.CountryId)
                 .GreaterThan(0).WithMessage("A destination country is required");
-
-            RuleFor(x => x.CityIds)
-                .NotEmpty().WithMessage("At least one region/city is required");
-            RuleForEach(x => x.CityIds)
-                .GreaterThan(0).WithMessage("City id must be greater than 0");
-
-            // التكلفة الأربعة — optional: leave blank (0) or provide a non-negative amount below the ceiling.
-            RuleFor(x => x.PricePerPerson)
-                .GreaterThanOrEqualTo(0).WithMessage("Price per person must not be negative")
-                .LessThan(1000000).WithMessage("Price per person must be less than 1,000,000");
-
-            RuleFor(x => x.EconomyClassPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("Economy class price must not be negative")
-                .LessThan(1000000).WithMessage("Economy class price must be less than 1,000,000");
-
-            RuleFor(x => x.PremiumClassPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("Premium class price must not be negative")
-                .LessThan(1000000).WithMessage("Premium class price must be less than 1,000,000");
-
-            RuleFor(x => x.BusinessClassPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("Business class price must not be negative")
-                .LessThan(1000000).WithMessage("Business class price must be less than 1,000,000");
 
             RuleFor(x => x.Currency)
                 .NotEmpty().WithMessage("Currency is required")
@@ -69,7 +43,7 @@ namespace Domain.Validators
                 .LessThanOrEqualTo(x => x.StartDate)
                 .WithMessage("Registration deadline must be on or before the start date");
 
-            RuleFor(x => x.AvailableSeats)
+            RuleFor(x => x.TotalCapacity)
                 .GreaterThan(0).WithMessage("Number of seats must be greater than 0");
 
             RuleFor(x => x.TouristGuideIds)
@@ -80,15 +54,34 @@ namespace Domain.Validators
             RuleFor(x => x.ServiceLevel)
                 .IsInEnum().WithMessage("Invalid service level");
 
-            // Flight cabin classes are optional, but any provided must be valid.
-            RuleForEach(x => x.AvailableCabinClasses)
-                .IsInEnum().WithMessage("Invalid flight cabin class");
+            // When cabin classes are provided, validate them
+            When(x => x.CabinClasses is { Count: > 0 }, () =>
+            {
+                RuleFor(x => x.CabinClasses)
+                    .Must(list => list!.Count(c => c.IsDefault) == 1)
+                    .WithMessage("Exactly one cabin class must be marked as the default");
+
+                RuleFor(x => x.CabinClasses)
+                    .Must(list => list!.Select(c => c.CabinClass).Distinct().Count() == list!.Count)
+                    .WithMessage("Duplicate cabin classes are not allowed");
+
+                RuleForEach(x => x.CabinClasses)
+                    .SetValidator(new CabinClassRequestValidator());
+            });
+
+            // When no cabin classes, PricePerPerson is used directly
+            When(x => x.CabinClasses is null or { Count: 0 }, () =>
+            {
+                RuleFor(x => x.PricePerPerson)
+                    .GreaterThanOrEqualTo(0).WithMessage("Price per person must not be negative")
+                    .LessThan(1000000).WithMessage("Price per person must be less than 1,000,000");
+            });
 
             RuleFor(x => x.Media)
                 .NotEmpty().WithMessage("At least one media file is required");
 
             RuleForEach(x => x.Media)
-                .SetValidator(new TourPackageMediaValidator());
+                .SetValidator(new TourPackageMediaCreateValidator());
 
             RuleFor(x => x.Days)
                 .NotEmpty().WithMessage("At least one day is required");

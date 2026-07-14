@@ -278,9 +278,6 @@ public class DbSeedService : IDbSeedService
             Description = x.Description,
             MeetingPoint = x.MeetingPoint,
             PricePerPerson = x.PricePerPerson,
-            EconomyClassPrice = x.EconomyClassPrice,
-            PremiumClassPrice = x.PremiumClassPrice,
-            BusinessClassPrice = x.BusinessClassPrice,
             Currency = x.Currency,
             DurationInDays = x.DurationInDays,
             AvailableSeats = x.AvailableSeats,
@@ -289,9 +286,7 @@ public class DbSeedService : IDbSeedService
             EndDate = DateOnly.Parse(x.EndDate),
             RegistrationDeadline = DateOnly.Parse(x.RegistrationDeadline),
             ServiceLevel = (Domain.Enums.ServiceLevel)x.ServiceLevel,
-            IsPublished = x.IsPublished,
             Status = (Domain.Enums.TourPackageStatus)x.Status,
-            ApprovalStatus = (Domain.Enums.PackageApprovalStatus)x.ApprovalStatus,
             RejectionReason = x.RejectionReason,
             PublishCount = x.PublishCount,
             PublishedAtUtc = x.PublishedAtUtc != null ? DateTime.Parse(x.PublishedAtUtc) : null,
@@ -515,9 +510,6 @@ public class DbSeedService : IDbSeedService
         public string? Description { get; init; }
         public string MeetingPoint { get; init; } = null!;
         public decimal PricePerPerson { get; init; }
-        public decimal EconomyClassPrice { get; init; }
-        public decimal PremiumClassPrice { get; init; }
-        public decimal BusinessClassPrice { get; init; }
         public string Currency { get; init; } = null!;
         public int DurationInDays { get; init; }
         public int AvailableSeats { get; init; }
@@ -526,9 +518,7 @@ public class DbSeedService : IDbSeedService
         public string EndDate { get; init; } = null!;
         public string RegistrationDeadline { get; init; } = null!;
         public int ServiceLevel { get; init; }
-        public bool IsPublished { get; init; }
         public int Status { get; init; }
-        public int ApprovalStatus { get; init; }
         public string? RejectionReason { get; init; }
         public int PublishCount { get; init; }
         public string? PublishedAtUtc { get; init; }

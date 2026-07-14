@@ -4,11 +4,6 @@ using FluentValidation;
 
 namespace Domain.Validators
 {
-    /// <summary>
-    /// Update-time rules. This is a PARTIAL update (تعديل جزئي): every field is
-    /// optional, so each rule only runs when its field is actually sent (non-null).
-    /// A field left out keeps its current value; a field sent must still be valid.
-    /// </summary>
     public class TourPackageUpdateValidator : AbstractValidator<TourPackageUpdateRequest>
     {
         public TourPackageUpdateValidator()
@@ -32,33 +27,10 @@ namespace Domain.Validators
                 .GreaterThan(0).WithMessage("A destination country is required")
                 .When(x => x.CountryId.HasValue);
 
-            RuleFor(x => x.CityIds)
-                .NotEmpty().WithMessage("At least one region/city is required")
-                .When(x => x.CityIds != null);
-
-            RuleForEach(x => x.CityIds)
-                .GreaterThan(0).WithMessage("City id must be greater than 0")
-                .When(x => x.CityIds != null);
-
             RuleFor(x => x.PricePerPerson)
                 .GreaterThanOrEqualTo(0).WithMessage("Price per person must not be negative")
                 .LessThan(1000000).WithMessage("Price per person must be less than 1,000,000")
                 .When(x => x.PricePerPerson.HasValue);
-
-            RuleFor(x => x.EconomyClassPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("Economy class price must not be negative")
-                .LessThan(1000000).WithMessage("Economy class price must be less than 1,000,000")
-                .When(x => x.EconomyClassPrice.HasValue);
-
-            RuleFor(x => x.PremiumClassPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("Premium class price must not be negative")
-                .LessThan(1000000).WithMessage("Premium class price must be less than 1,000,000")
-                .When(x => x.PremiumClassPrice.HasValue);
-
-            RuleFor(x => x.BusinessClassPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("Business class price must not be negative")
-                .LessThan(1000000).WithMessage("Business class price must be less than 1,000,000")
-                .When(x => x.BusinessClassPrice.HasValue);
 
             RuleFor(x => x.Currency)
                 .NotEmpty().WithMessage("Currency cannot be empty")
@@ -81,9 +53,9 @@ namespace Domain.Validators
                 .WithMessage("Registration deadline must be on or before the start date")
                 .When(x => x.StartDate.HasValue && x.RegistrationDeadline.HasValue);
 
-            RuleFor(x => x.AvailableSeats)
-                .GreaterThan(0).WithMessage("Number of seats must be greater than 0")
-                .When(x => x.AvailableSeats.HasValue);
+            RuleFor(x => x.TotalCapacity)
+                .GreaterThan(0).WithMessage("Total capacity must be greater than 0")
+                .When(x => x.TotalCapacity.HasValue);
 
             RuleFor(x => x.TouristGuideIds)
                 .NotEmpty().WithMessage("At least one tour guide is required")
@@ -97,9 +69,27 @@ namespace Domain.Validators
                 .IsInEnum().WithMessage("Invalid service level")
                 .When(x => x.ServiceLevel.HasValue);
 
-            RuleForEach(x => x.AvailableCabinClasses)
-                .IsInEnum().WithMessage("Invalid flight cabin class")
-                .When(x => x.AvailableCabinClasses != null);
+            // When cabin classes are provided, validate them
+            When(x => x.CabinClasses is { Count: > 0 }, () =>
+            {
+                RuleFor(x => x.CabinClasses)
+                    .Must(list => list!.Count(c => c.IsDefault) == 1)
+                    .WithMessage("Exactly one cabin class must be marked as the default");
+
+                RuleFor(x => x.CabinClasses)
+                    .Must(list => list!.Select(c => c.CabinClass).Distinct().Count() == list!.Count)
+                    .WithMessage("Duplicate cabin classes are not allowed");
+
+                RuleForEach(x => x.CabinClasses)
+                    .SetValidator(new CabinClassRequestValidator());
+            });
+
+            // When cabin classes are explicitly set to empty, PricePerPerson is needed
+            When(x => x.CabinClasses is { Count: 0 }, () =>
+            {
+                RuleFor(x => x.PricePerPerson)
+                    .NotNull().WithMessage("Price per person is required when removing all cabin classes");
+            });
 
             RuleFor(x => x.Days)
                 .NotEmpty().WithMessage("At least one day is required")
@@ -115,9 +105,17 @@ namespace Domain.Validators
                 .WithMessage("The number of days must match the trip duration")
                 .When(x => x.Days != null && x.DurationInDays is > 0);
 
-            RuleForEach(x => x.NewMedia)
-                .SetValidator(new TourPackageMediaValidator())
-                .When(x => x.NewMedia != null);
+            RuleFor(x => x.Media)
+                .NotEmpty().WithMessage("At least one media file is required")
+                .When(x => x.Media != null);
+
+            RuleForEach(x => x.Media)
+                .SetValidator(new TourPackageMediaCreateValidator())
+                .When(x => x.Media != null);
+
+            RuleForEach(x => x.ExistingMedia)
+                .SetValidator(new TourPackageMediaUpdateValidator())
+                .When(x => x.ExistingMedia != null);
         }
     }
 }

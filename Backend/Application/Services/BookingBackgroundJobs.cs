@@ -78,6 +78,32 @@ namespace Application.Services
             _logger.LogInformation("Marked {Count} bookings as Completed", bookings.Count);
         }
 
+        public async Task ProcessCompletedPackagesAsync(CancellationToken cancellationToken = default)
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            var packages = await _unitOfWork.TourPackages
+                .Query()
+                .Where(p => p.Status == TourPackageStatus.Active && p.EndDate < today)
+                .ToListAsync(cancellationToken);
+
+            if (packages.Count == 0)
+            {
+                _logger.LogDebug("No packages to mark as Completed today");
+                return;
+            }
+
+            foreach (var pkg in packages)
+            {
+                pkg.Status = TourPackageStatus.Completed;
+                pkg.UpdatedAtUtc = DateTime.UtcNow;
+                _unitOfWork.TourPackages.Update(pkg);
+            }
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Marked {Count} packages as Completed", packages.Count);
+        }
+
         public async Task SendUpcomingBookingRemindersAsync(CancellationToken cancellationToken = default)
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);

@@ -7,6 +7,10 @@ namespace Application.DTOs.TourPackage.Response
     {
         public FlightCabinClass CabinClass { get; set; }
 
+        public decimal Price { get; set; }
+
+        public bool IsDefault { get; set; }
+
         /// <summary>Arabic label for the cabin class (الاسم بالعربي).</summary>
         public string Label => CabinClass switch
         {

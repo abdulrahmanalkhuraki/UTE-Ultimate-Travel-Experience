@@ -5,11 +5,6 @@ using Domain.Entities;
 
 namespace Application.Mappings
 {
-    /// <summary>
-    /// Entity → Response maps for the TourPackage feature. Requests are mapped
-    /// to entities manually in the service because they carry uploaded files
-    /// and a nested object graph.
-    /// </summary>
     public class TourPackageProfile : Profile
     {
         public TourPackageProfile()
@@ -21,15 +16,9 @@ namespace Application.Mappings
                     opt => opt.MapFrom(src => src.Activities
                         .OrderBy(a => a.OrderNumber)));
 
-            //CreateMap<TourPackage_Attraction, PackageCityResponse>()
-            //    .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.CityId))
-            //    .ForMember(dest => dest.EnCityName, opt => opt.MapFrom(src => src.City.EnCityName));
-
-            // A program's assigned guide (المرشد المختار) shown on the program.
             CreateMap<TouristGuide, TourPackageGuideResponse>()
                 .ForMember(dest => dest.FullName,
-                    opt => opt.MapFrom(src => src.Person.Fullname))
-                ;
+                    opt => opt.MapFrom(src => src.Person.Fullname));
 
             CreateMap<TourPackageCabinClass, TourPackageCabinClassResponse>();
 

@@ -239,6 +239,10 @@ namespace Infrastructure.Data;
 
             entity.Property(e => e.CabinClass).HasConversion<int>();
 
+            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
+
+            entity.Property(e => e.IsDefault).HasDefaultValue(false);
+
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -528,6 +532,7 @@ namespace Infrastructure.Data;
 
         modelBuilder.Entity<TourPackage>(entity =>
         {
+            entity.HasKey(e => e.Id);
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -535,9 +540,6 @@ namespace Infrastructure.Data;
             entity.Property(e => e.PackageName).HasMaxLength(100);
             entity.Property(e => e.MeetingPoint).HasMaxLength(200);
             entity.Property(e => e.PricePerPerson).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.EconomyClassPrice).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.PremiumClassPrice).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.BusinessClassPrice).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Currency).HasMaxLength(10);
             entity.Property(e => e.StartDate).HasColumnType("date");
             entity.Property(e => e.EndDate).HasColumnType("date");
@@ -545,11 +547,8 @@ namespace Infrastructure.Data;
 
             entity.Property(e => e.Status)
                 .HasConversion<int>()
-                .HasDefaultValue(TourPackageStatus.Active);
+                .HasDefaultValue(TourPackageStatus.Pending);
 
-            entity.Property(e => e.ApprovalStatus)
-                .HasConversion<int>()
-                .HasDefaultValue(PackageApprovalStatus.Pending);
             entity.Property(e => e.RejectionReason).HasMaxLength(1000);
 
             entity.Property(e => e.ServiceLevel)
