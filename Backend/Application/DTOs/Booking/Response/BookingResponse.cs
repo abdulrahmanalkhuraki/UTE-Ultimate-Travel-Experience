@@ -10,7 +10,7 @@ namespace Application.DTOs.Booking.Response
 {
     public sealed class BookingResponse
     {
-        public int Id { get; set; }
+        public int Id { get; set; } 
 
         public DateTime BookingDate { get; set; }
 
@@ -18,13 +18,10 @@ namespace Application.DTOs.Booking.Response
 
         public int NumberOfChildren { get; set; }
 
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? RoomTypePreference { get; set; }
 
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? DietaryRequirements { get; set; }
 
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? SpecialRequests { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

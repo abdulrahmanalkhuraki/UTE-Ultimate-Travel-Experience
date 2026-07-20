@@ -5,7 +5,6 @@ using Application.DTOs.TouristGuide.Response;
 using Application.Exceptions;
 using Application.Interfaces.TouristGuide;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ValidationException = Application.Exceptions.ValidationException;
 

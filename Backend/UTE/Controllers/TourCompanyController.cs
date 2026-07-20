@@ -366,6 +366,31 @@ namespace UTE.Controllers
             }
         }
 
+
+
+        /// <summary>
+        /// Retrieves dashboard information for the authenticated tour company.
+        /// </summary>
+        /// <param name="cancellationToken">A token to observe while waiting for the task to complete.</param>
+        /// <returns>A <see cref="TourCompanyDashboardResponse"/> containing the tour company's dashboard data.</returns>
+        /// <response code="200">Returns the dashboard information for the authenticated tour company.</response>
+        /// <response code="401">The request is not authenticated. The user must be logged in to access this endpoint.</response>
+        /// <response code="403">The authenticated user does not have the 'TourCompany' role required to access this endpoint.</response>
+        /// <response code="404">The authenticated user is not associated with any tour company.</response>
+        /// <response code="500">An internal server error occurred while processing the request.</response>
+        [HttpGet("MyDashboard")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles ="TourCompany")]
+        [ProducesResponseType(typeof(TourCompanyDashboardResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<TourCompanyDashboardResponse>> MyDashboard(CancellationToken cancellationToken = default)
+        {
+            return Ok(await _tourCompanyService.MyDashboard(cancellationToken));
+        }
+
         /// <summary>
         /// Approves a pending tour company, making it publicly visible. Admin only.
         /// </summary>

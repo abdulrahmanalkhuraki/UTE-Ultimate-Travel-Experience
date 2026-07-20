@@ -1,6 +1,7 @@
 using Application.Common;
 using Application.DTOs.TourCompany.Request;
 using Application.DTOs.TourCompany.Response;
+using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Notifications;
@@ -13,6 +14,7 @@ using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using System.Security.Authentication;
 using TourCompanyEntity = Domain.Entities.TourCompany;
 using ValidationException = Application.Exceptions.ValidationException;
 
@@ -25,6 +27,7 @@ namespace Application.Services
         private readonly ILogger<TourCompanyService> _logger;
         private readonly IMemoryCache _cache;
         private readonly IFileStorage _fileStorage;
+        private readonly ICurrentUserService _currentUser;
         private readonly TourCompanyCreateValidator _createValidator;
         private readonly TourCompanyUpdateValidator _updateValidator;
         private readonly INotificationService _notificationService;
@@ -41,6 +44,7 @@ namespace Application.Services
             ILogger<TourCompanyService> logger,
             IMemoryCache cache,
             IFileStorage fileStorage,
+            ICurrentUserService currentUser,
             TourCompanyCreateValidator createValidator,
             TourCompanyUpdateValidator updateValidator,
             INotificationService notificationService)
@@ -50,6 +54,7 @@ namespace Application.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
+            _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
             _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
             _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
@@ -342,6 +347,50 @@ namespace Application.Services
             }
         }
 
+        public async Task<TourCompanyDashboardResponse> MyDashboard(CancellationToken cancellationToken)
+        {
+            int currentUserId = _currentUser.UserId ?? 
+                throw new AuthenticationException("Log In To Continue this Operation.");
+            try
+            {
+                var company = await _unitOfWork.TourCompanies
+                    .Query()
+                    .SingleOrDefaultAsync(tc => tc.UserId == currentUserId, cancellationToken);
+
+                if(company == null)
+                {
+                    _logger.LogWarning("User with id {id} is not attached to any tour company",currentUserId);
+                    throw new NotFoundException("You Are Not Attached To Any Tour Company in The System");
+                }
+
+                var dashboard = await _unitOfWork.TourPackages
+                    .Query()
+                    .Where(tp => tp.CompanyId == company.Id && !tp.IsDeleted)
+                    .GroupBy(tp => tp.CompanyId)
+                    .Select(g => new TourCompanyDashboardResponse()
+                    {
+                        NumberOfPackages = g.Count(),
+                        NumberOfRates = g.Sum(tp => tp.Rates.Count()),
+                        NumberOfReviews = g.Sum(tp => tp.Reviews.Count()),
+                        NumberOfTourists = g.Sum(tp => tp.Bookings.Where(b => b.Status == BookingStatus.Completed).Count())
+                    })
+                    .SingleAsync(cancellationToken);
+
+                dashboard.MostWantedPackages = await GetMostWantedPackages(company.Id,cancellationToken);
+
+                return dashboard;
+            }
+            catch (NotFoundException)
+            {
+                throw;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Error with Tour Company Dashboard");
+                throw new ServiceException($"Failed to retrieve tour company dashboard informations: {ex.Message}", ex);
+            }
+        }
+
         public async Task<bool> DeleteAsync(int id, int requestingUserId, bool isAdmin, CancellationToken cancellationToken = default)
         {
             if (id <= 0)
@@ -542,6 +591,30 @@ namespace Application.Services
                 _cache.Remove($"{TourCompanyCacheKeyPrefix}{specificId.Value}");
 
             _cache.Remove(TourCompaniesListCacheKey);
+        }
+
+        private async Task<IReadOnlyList<TourPackageResponse>> GetMostWantedPackages(int TourCompanyId,CancellationToken ct)
+        {
+
+            var mostWanted = await _unitOfWork.TourPackages
+                .Query()
+                .Where(tp => tp.CompanyId == TourCompanyId)
+                .Where(tp => !tp.IsDeleted && tp.Status == TourPackageStatus.Active)
+                .Select(p => new
+                {
+                    Package = p,
+                    TotalBookings = p.Bookings.Count(b => b.Status != BookingStatus.Cancelled),
+                    TotalWishlists = p.Wishlists.Count(),
+                    TotalDemandScore = (p.Bookings.Count(b => b.Status != BookingStatus.Cancelled) * 2) + p.Wishlists.Count(),
+
+                })
+                .Where(p => p.TotalDemandScore > 0)
+                .OrderByDescending(x => x.TotalDemandScore)
+                .Take(5)
+                .Select(p => p.Package)
+                .ToListAsync(ct);
+
+            return _mapper.Map<IReadOnlyList<TourPackageResponse>>(mostWanted);
         }
 
         #endregion
