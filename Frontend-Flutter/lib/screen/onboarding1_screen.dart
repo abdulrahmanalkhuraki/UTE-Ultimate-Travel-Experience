@@ -103,13 +103,29 @@ class Onboarding1Screen extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildDot(width: 30 * scaleW, height: 15 * scaleH, color: const Color(0xFF91B3FA)),
+                    _buildDot(
+                      width: 30 * scaleW,
+                      height: 15 * scaleH,
+                      color: const Color(0xFF91B3FA),
+                    ),
                     SizedBox(width: 10 * scaleW),
-                    _buildDot(width: 20 * scaleW, height: 15 * scaleH, color: const Color(0x4091B3FA)),
+                    _buildDot(
+                      width: 20 * scaleW,
+                      height: 15 * scaleH,
+                      color: const Color(0x4091B3FA),
+                    ),
                     SizedBox(width: 10 * scaleW),
-                    _buildDot(width: 20 * scaleW, height: 15 * scaleH, color: const Color(0x4091B3FA)),
+                    _buildDot(
+                      width: 20 * scaleW,
+                      height: 15 * scaleH,
+                      color: const Color(0x4091B3FA),
+                    ),
                     SizedBox(width: 10 * scaleW),
-                    _buildDot(width: 20 * scaleW, height: 15 * scaleH, color: const Color(0x4091B3FA)),
+                    _buildDot(
+                      width: 20 * scaleW,
+                      height: 15 * scaleH,
+                      color: const Color(0x4091B3FA),
+                    ),
                   ],
                 ),
               ),
@@ -129,7 +145,9 @@ class Onboarding1Screen extends StatelessWidget {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(20),
                     onTap: () {
-                      Navigator.of(context).pushReplacementNamed('/onboarding2');
+                      Navigator.of(
+                        context,
+                      ).pushReplacementNamed('/onboarding2');
                     },
                     child: Center(
                       child: Text(
@@ -153,7 +171,11 @@ class Onboarding1Screen extends StatelessWidget {
     );
   }
 
-  Widget _buildDot({required double width, required double height, required Color color}) {
+  Widget _buildDot({
+    required double width,
+    required double height,
+    required Color color,
+  }) {
     return Container(
       width: width,
       height: height,
