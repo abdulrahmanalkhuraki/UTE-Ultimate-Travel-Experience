@@ -1,13 +1,17 @@
 namespace Domain.Enums
 {
     /// <summary>
-    /// Lifecycle state of a tour program. A program starts <see cref="Active"/> and
-    /// stays active until the company cancels it (<see cref="Cancelled"/>). Whether an
-    /// active program is "current" or "past" is derived from its dates, not stored here.
+    /// Lifecycle state of a tour program. A new program starts <see cref="Pending"/>
+    /// (awaiting admin approval). Once approved it becomes <see cref="Active"/>.
+    /// When its end date passes it becomes <see cref="Completed"/>. A company can
+    /// also <see cref="Cancelled"/> a program, and an admin can <see cref="Rejected"/> it.
     /// </summary>
     public enum TourPackageStatus
     {
-        Active = 0,
-        Cancelled = 1
+        Pending = 0,
+        Active = 1,
+        Completed = 2,
+        Cancelled = 3,
+        Rejected = 4
     }
 }

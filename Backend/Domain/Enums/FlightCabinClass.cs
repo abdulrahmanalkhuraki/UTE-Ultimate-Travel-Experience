@@ -6,16 +6,12 @@ namespace Domain.Enums
     /// </summary>
     public enum FlightCabinClass
     {
-        /// <summary>الدرجة الاقتصادية.</summary>
         Economy = 0,
 
-        /// <summary>الدرجة السياحية المميزة.</summary>
         PremiumEconomy = 1,
 
-        /// <summary>درجة رجال الأعمال.</summary>
         Business = 2,
 
-        /// <summary>الدرجة الأولى.</summary>
         First = 3
     }
 }

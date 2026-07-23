@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260711115127_initDatabase")]
+    [Migration("20260714103120_initDatabase")]
     partial class initDatabase
     {
         /// <inheritdoc />
@@ -993,16 +993,8 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ApprovalStatus")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
                     b.Property<int>("AvailableSeats")
                         .HasColumnType("int");
-
-                    b.Property<decimal>("BusinessClassPrice")
-                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<int>("CompanyId")
                         .HasColumnType("int");
@@ -1021,22 +1013,17 @@ namespace Infrastructure.Migrations
                         .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<int>("DurationInDays")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("EconomyClassPrice")
-                        .HasColumnType("decimal(10, 2)");
-
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
                     b.Property<string>("MeetingPoint")
@@ -1049,9 +1036,6 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<decimal>("PremiumClassPrice")
-                        .HasColumnType("decimal(10, 2)");
-
                     b.Property<decimal>("PricePerPerson")
                         .HasColumnType("decimal(10, 2)");
 
@@ -1062,6 +1046,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<DateTime?>("PublishedAtUtc")
                         .HasColumnType("datetime");
+
+                    b.Property<float>("Rate")
+                        .HasColumnType("real");
 
                     b.Property<DateOnly>("RegistrationDeadline")
                         .HasColumnType("date");
@@ -1082,6 +1069,9 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(0);
+
+                    b.Property<int>("TotalCapacity")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAtUtc")
                         .ValueGeneratedOnAdd()
@@ -1113,8 +1103,16 @@ namespace Infrastructure.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
+                    b.Property<bool>("IsDefault")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<int>("PackageId")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<DateTime>("UpdatedAtUtc")
                         .ValueGeneratedOnAdd()

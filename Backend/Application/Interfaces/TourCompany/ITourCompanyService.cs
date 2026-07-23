@@ -8,6 +8,7 @@ namespace Application.Interfaces.TourCompany
         Task<TourCompanyResponse> CreateAsync(int ownerUserId, TourCompanyCreateRequest request, CancellationToken cancellationToken = default);
         Task<TourCompanyResponse> GetAsync(int id, int? requestingUserId, bool isAdmin, CancellationToken cancellationToken = default);
         Task<IReadOnlyList<TourCompanyResponse>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<TourCompanyDashboardResponse> MyDashboard(CancellationToken cancellationToken = default);
         Task<IReadOnlyList<TourCompanyResponse>> GetPendingAsync(CancellationToken cancellationToken = default);
         Task<TourCompanyResponse> ApproveAsync(int id, CancellationToken cancellationToken = default);
         Task<TourCompanyResponse> RejectAsync(int id, string reason, CancellationToken cancellationToken = default);

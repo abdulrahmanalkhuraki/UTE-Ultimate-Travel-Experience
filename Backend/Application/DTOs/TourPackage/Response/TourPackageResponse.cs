@@ -16,15 +16,11 @@ namespace Application.DTOs.TourPackage.Response
 
         public decimal PricePerPerson { get; set; }
 
-        public decimal EconomyClassPrice { get; set; }
-
-        public decimal PremiumClassPrice { get; set; }
-
-        public decimal BusinessClassPrice { get; set; }
-
         public string Currency { get; set; } = null!;
 
         public int DurationInDays { get; set; }
+
+        public int TotalCapacity { get; set; }
 
         public int AvailableSeats { get; set; }
 
@@ -54,11 +50,7 @@ namespace Application.DTOs.TourPackage.Response
         };
         public List<TourPackageCabinClassResponse> AvailableCabinClasses { get; set; } = new();
 
-        public bool IsPublished { get; set; }
-
         public TourPackageStatus Status { get; set; }
-
-        public PackageApprovalStatus ApprovalStatus { get; set; }
 
         public float Rate { get; set; }
 
@@ -82,7 +74,7 @@ namespace Application.DTOs.TourPackage.Response
 
         public int DaysUntilStart => DaysFromToday(StartDate);
         public int? DaysSincePublished =>
-            IsPublished && PublishedAtUtc is not null
+            Status == TourPackageStatus.Active && PublishedAtUtc is not null
                 ? Math.Max(0, Today.DayNumber - DateOnly.FromDateTime(PublishedAtUtc.Value).DayNumber)
                 : (int?)null;
 

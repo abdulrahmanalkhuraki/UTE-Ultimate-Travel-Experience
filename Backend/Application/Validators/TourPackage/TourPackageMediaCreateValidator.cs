@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Domain.Validators
 {
-    public class TourPackageMediaValidator : AbstractValidator<MediaCreateRequest>
+    public class TourPackageMediaCreateValidator : AbstractValidator<MediaCreateRequest>
     {
         private static readonly string[] ImageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
         private static readonly string[] VideoExtensions = { ".mp4", ".mov", ".avi", ".wmv", ".flv", ".mkv" };
@@ -13,7 +13,7 @@ namespace Domain.Validators
         private const long MaxImageSize = 5 * 1024 * 1024;
         private const long MaxVideoSize = 50 * 1024 * 1024;
 
-        public TourPackageMediaValidator()
+        public TourPackageMediaCreateValidator()
         {
             RuleFor(x => x.Media)
                 .NotNull().WithMessage("Media file is required");

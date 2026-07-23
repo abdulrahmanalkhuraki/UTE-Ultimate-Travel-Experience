@@ -317,6 +317,7 @@ builder.Services.AddScoped<ITourCompanyService, TourCompanyService>();
 builder.Services.AddScoped<TourPackageCreateValidator>();
 builder.Services.AddScoped<TourPackageUpdateValidator>();
 builder.Services.AddScoped<ITourPackageService, TourPackageService>();
+builder.Services.AddScoped<IWishlistService, WishlistService>();
 
 // TouristGuide
 builder.Services.AddScoped<TouristGuideCreateValidator>();
@@ -442,6 +443,16 @@ RecurringJob.AddOrUpdate<BookingBackgroundJobs>(
     "send-upcoming-reminders",
     j => j.SendUpcomingBookingRemindersAsync(CancellationToken.None),
     "0 8 * * *");
+
+RecurringJob.AddOrUpdate<BookingBackgroundJobs>(
+    "send-registration-deadline-reminders",
+    j => j.SendRegistrationDeadlineRemindersAsync(CancellationToken.None),
+    "0 8 * * *");
+
+RecurringJob.AddOrUpdate<BookingBackgroundJobs>(
+    "process-completed-packages",
+    j => j.ProcessCompletedPackagesAsync(CancellationToken.None),
+    "0 0 * * *");
 
 // ==========================================
 // 13. RUN THE APPLICATION

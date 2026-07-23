@@ -9,15 +9,15 @@ namespace Application.Common
     public static class PackageApprovalMessages
     {
         public const string Accepted =
-            "Good news! Your tour package has been successfully approved. You can view and manage all its details in the 'My Programs' tab.\"";
+            "Good news! Your tour package has been successfully approved. You can view and manage all its details in the 'My Programs' tab.";
 
         public const string Rejected =
             "Thank you for your submission. Unfortunately, your tour package was not approved after review. You can check the reasons and view more details in the 'My Programs' tab.";
 
-        public static string For(PackageApprovalStatus status) => status switch
+        public static string For(TourPackageStatus status) => status switch
         {
-            PackageApprovalStatus.Accepted => Accepted,
-            PackageApprovalStatus.Rejected => Rejected,
+            TourPackageStatus.Active => Accepted,
+            TourPackageStatus.Rejected => Rejected,
             _ => string.Empty
         };
     }

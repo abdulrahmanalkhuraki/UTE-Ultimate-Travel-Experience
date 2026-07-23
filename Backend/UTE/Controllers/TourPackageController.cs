@@ -7,7 +7,6 @@ using Application.Exceptions;
 using Application.Interfaces.TourPackage;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ValidationException = Application.Exceptions.ValidationException;
 
@@ -27,7 +26,6 @@ namespace UTE.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>Lists all tour programs.</summary>
         [HttpGet]
         [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetAll(CancellationToken cancellationToken = default)
@@ -44,12 +42,13 @@ namespace UTE.Controllers
             }
         }
 
-        /// <summary>Lists the signed-in company's own programs.</summary>
         [HttpGet("mine")]
         [Authorize]
         [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMine(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMine(
+            [FromQuery] TourPackageStatus? status = null,
+            CancellationToken cancellationToken = default)
         {
             var userId = GetCurrentUserId();
             if (userId is null)
@@ -57,7 +56,7 @@ namespace UTE.Controllers
 
             try
             {
-                return Ok(await _service.GetMineAsync(userId.Value, cancellationToken));
+                return Ok(await _service.GetMineAsync(status, cancellationToken));
             }
             catch (ForbiddenException ex)
             {
@@ -72,110 +71,6 @@ namespace UTE.Controllers
             }
         }
 
-        /// <summary>Lists the signed-in company's current (ongoing/upcoming) programs (الحالية).</summary>
-        [HttpGet("mine/current")]
-        [Authorize]
-        [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMineCurrent(CancellationToken cancellationToken = default)
-            => GetMineByTimeline(TimeLine.Current, cancellationToken);
-
-        /// <summary>Lists the signed-in company's past (finished) programs (السابقة).</summary>
-        [HttpGet("mine/previous")]
-        [Authorize]
-        [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMinePrevious(CancellationToken cancellationToken = default)
-            => GetMineByTimeline(TimeLine.Previous, cancellationToken);
-
-        /// <summary>Lists the signed-in company's cancelled programs (الملغاة).</summary>
-        [HttpGet("mine/cancelled")]
-        [Authorize]
-        [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMineCancelled(CancellationToken cancellationToken = default)
-            => GetMineByTimeline(TimeLine.Cancelled, cancellationToken);
-
-        /// <summary>Aggregate counts of the signed-in company's programs for the dashboard stats card (إحصائيات البرامج).</summary>
-        [HttpGet("mine/stats")]
-        [Authorize]
-        [ProducesResponseType(typeof(CompanyProgramStatsResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<CompanyProgramStatsResponse>> GetMyStats(CancellationToken cancellationToken = default)
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
-
-            try
-            {
-                return Ok(await _service.GetMyStatsAsync(userId.Value, cancellationToken));
-            }
-            catch (ForbiddenException ex)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error retrieving company's program stats");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
-        }
-
-        /// <summary>Returns just the number of the signed-in company's published programs (عدد البرامج المنشورة).</summary>
-        [HttpGet("mine/published/count")]
-        [Authorize]
-        [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<int>> GetMyPublishedCount(CancellationToken cancellationToken = default)
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
-
-            try
-            {
-                return Ok(await _service.GetMyPublishedCountAsync(userId.Value, cancellationToken));
-            }
-            catch (ForbiddenException ex)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error retrieving company's published program count");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
-        }
-
-        private async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMineByTimeline(TimeLine timeline, CancellationToken cancellationToken)
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
-
-            try
-            {
-                return Ok(await _service.GetMineByTimelineAsync(userId.Value, timeline, cancellationToken));
-            }
-            catch (ForbiddenException ex)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error retrieving company's {Timeline} tour packages", timeline);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
-        }
-
-        /// <summary>Gets a single program by id.</summary>
         [HttpGet("{id:int:min(1)}")]
         [ProducesResponseType(typeof(TourPackageResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -201,58 +96,6 @@ namespace UTE.Controllers
             }
         }
 
-
-        [HttpGet("MyWishlist")]
-        [Authorize(Policy = "RequireCompletedProfile")]
-        [Authorize(Roles = "Tourist")]
-        [ProducesResponseType(typeof(ActionResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetWishlist(CancellationToken cancellationToken = default)
-        {
-            return Ok(await _service.GetWishlistAsync(cancellationToken));
-        }
-
-
-        [HttpPost("addToWishlist/{id:int:min(1)}")]
-        [Authorize(Policy = "RequireCompletedProfile")]
-        [Authorize(Roles = "Tourist")]
-        [ProducesResponseType(typeof(ActionResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        public async Task<ActionResult> AddToWishlist(int id,CancellationToken cancellationToken = default)
-        {
-            var success = await _service.AddToWishlistAsync(id,cancellationToken);
-
-            if (success)
-            {
-                return Ok(new { message = $"Tour Package With Id {id} Has been Added To Your Wishlist Successfully." });
-            }
-
-            return BadRequest();
-        }
-
-        [HttpPost("removeFromWishlist/{id:int:min(1)}")]
-        [Authorize(Policy = "RequireCompletedProfile")]
-        [Authorize(Roles = "Tourist")]
-        [ProducesResponseType(typeof(ActionResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        public async Task<ActionResult> RemoveFromWishlist(int id,CancellationToken cancellationToken = default)
-        {
-            var success = await _service.RemoveFromWishlistAsync(id,cancellationToken);
-
-            if (success)
-            {
-                return Ok(new { message = $"Tour Package With Id {id} Has been Removed From Your Wishlist Successfully." });
-            }
-
-            return BadRequest();
-        }
-
-
-        /// <summary>Filters published programs.</summary>
         [HttpGet("filter")]
         [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> Filter(
@@ -260,7 +103,6 @@ namespace UTE.Controllers
             [FromQuery] int? cityId = null,
             [FromQuery] decimal? minPrice = null,
             [FromQuery] decimal? maxPrice = null,
-            [FromQuery] bool publishedOnly = true,
             CancellationToken cancellationToken = default)
         {
             if (minPrice.HasValue && maxPrice.HasValue && minPrice > maxPrice)
@@ -268,7 +110,7 @@ namespace UTE.Controllers
 
             try
             {
-                return Ok(await _service.FilterAsync(countryId, cityId, minPrice, maxPrice, publishedOnly, cancellationToken));
+                return Ok(await _service.FilterAsync(countryId, cityId, minPrice, maxPrice, cancellationToken));
             }
             catch (ServiceException ex)
             {
@@ -278,10 +120,6 @@ namespace UTE.Controllers
             }
         }
 
-        /// <summary>
-        /// Creates a new program. Sent as multipart/form-data (carries the main
-        /// image and each activity image). The owning company comes from the JWT.
-        /// </summary>
         [HttpPost]
         [Authorize(Roles = "TourCompany")]
         [Consumes("multipart/form-data")]
@@ -298,7 +136,7 @@ namespace UTE.Controllers
 
             try
             {
-                var created = await _service.CreateAsync(userId.Value, request, cancellationToken);
+                var created = await _service.CreateAsync(request, cancellationToken);
                 return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
             }
             catch (ValidationException ex)
@@ -328,7 +166,6 @@ namespace UTE.Controllers
             }
         }
 
-        /// <summary>Updates an existing program (multipart/form-data). Owner only.</summary>
         [HttpPut("{id:int:min(1)}")]
         [Authorize]
         [Consumes("multipart/form-data")]
@@ -347,7 +184,7 @@ namespace UTE.Controllers
 
             try
             {
-                var updated = await _service.UpdateAsync(id, userId.Value, request, cancellationToken);
+                var updated = await _service.UpdateAsync(id, request, cancellationToken);
                 return Ok(updated);
             }
             catch (ValidationException ex)
@@ -377,7 +214,59 @@ namespace UTE.Controllers
             }
         }
 
-        /// <summary>Cancels a program (sets it to الملغاة). Owner only.</summary>
+        [HttpPost("{id:int:min(1)}/republish")]
+        [Authorize]
+        [Consumes("multipart/form-data")]
+        [ProducesResponseType(typeof(TourPackageResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<ActionResult<TourPackageResponse>> Republish(
+            int id,
+            [FromForm] TourPackageUpdateRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            var userId = GetCurrentUserId();
+            if (userId is null)
+                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
+
+            try
+            {
+                var result = await _service.RepublishAsync(id, request, cancellationToken);
+                return Ok(result);
+            }
+            catch (ValidationException ex)
+            {
+                var problem = CreateProblemDetails("Validation Error", "One or more validation errors occurred", StatusCodes.Status400BadRequest);
+                problem.Extensions["errors"] = ex.Errors;
+                return BadRequest(problem);
+            }
+            catch (ForbiddenException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(CreateProblemDetails("Not found", ex.Message, StatusCodes.Status404NotFound));
+            }
+            catch (BusinessRuleException ex)
+            {
+                return Conflict(CreateProblemDetails("Conflict", ex.Message, StatusCodes.Status409Conflict));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
+            }
+            catch (ServiceException ex)
+            {
+                _logger.LogError(ex, "Error republishing tour package {PackageId}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    CreateProblemDetails("Internal Server Error", ex.Message));
+            }
+        }
+
         [HttpPost("{id:int:min(1)}/cancel")]
         [Authorize]
         [ProducesResponseType(typeof(ProgramStatusResponse), StatusCodes.Status200OK)]
@@ -392,7 +281,7 @@ namespace UTE.Controllers
 
             try
             {
-                return Ok(await _service.CancelAsync(id, userId.Value, cancellationToken));
+                return Ok(await _service.CancelAsync(id, cancellationToken));
             }
             catch (ForbiddenException ex)
             {
@@ -419,36 +308,34 @@ namespace UTE.Controllers
             }
         }
 
-        /// <summary>Lists all programs awaiting moderation (قيد الانتظار), oldest first. Admin only.</summary>
-        [HttpGet("pending")]
+        [HttpGet("unApproved")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetPending(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetUnApproved(CancellationToken cancellationToken = default)
         {
             try
             {
-                return Ok(await _service.GetPendingAsync(cancellationToken));
+                return Ok(await _service.GetUnApprovedAsync(cancellationToken));
             }
             catch (ServiceException ex)
             {
-                _logger.LogError(ex, "Error retrieving pending tour packages");
+                _logger.LogError(ex, "Error retrieving unapproved tour packages");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     CreateProblemDetails("Internal Server Error", ex.Message));
             }
         }
 
-        /// <summary>Accepts a program (sets it to المقبولة) and notifies the company. Admin only.</summary>
-        [HttpPost("{id:int:min(1)}/accept")]
+        [HttpPost("{id:int:min(1)}/approve")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(ProgramStatusResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ProgramStatusResponse>> Accept(int id, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<ProgramStatusResponse>> Approve(int id, CancellationToken cancellationToken = default)
         {
             try
             {
-                return Ok(await _service.AcceptAsync(id, cancellationToken));
+                return Ok(await _service.ApproveAsync(id, cancellationToken));
             }
             catch (NotFoundException ex)
             {
@@ -460,13 +347,12 @@ namespace UTE.Controllers
             }
             catch (ServiceException ex)
             {
-                _logger.LogError(ex, "Error accepting tour package {PackageId}", id);
+                _logger.LogError(ex, "Error approving tour package {PackageId}", id);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     CreateProblemDetails("Internal Server Error", ex.Message));
             }
         }
 
-        /// <summary>Rejects a program (sets it to المرفوضة) with a reason and notifies the company. Admin only.</summary>
         [HttpPost("{id:int:min(1)}/reject")]
         [Authorize(Roles = "Admin")]
         [Consumes(MediaTypeNames.Application.Json)]
@@ -496,7 +382,6 @@ namespace UTE.Controllers
             }
         }
 
-        /// <summary>Deletes a program. Owner only.</summary>
         [HttpDelete("{id:int:min(1)}")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -510,7 +395,7 @@ namespace UTE.Controllers
 
             try
             {
-                var deleted = await _service.DeleteAsync(id, userId.Value, cancellationToken);
+                var deleted = await _service.DeleteAsync(id, cancellationToken);
                 if (!deleted)
                     return NotFound(CreateProblemDetails("Tour package not found", $"Tour package with ID {id} not found", StatusCodes.Status404NotFound));
                 return NoContent();

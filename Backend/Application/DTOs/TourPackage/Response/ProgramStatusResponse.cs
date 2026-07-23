@@ -13,11 +13,8 @@ namespace Application.DTOs.TourPackage.Response
 
         public string PackageName { get; set; } = null!;
 
-        /// <summary>Lifecycle status (حالة البرنامج): Active or Cancelled.</summary>
+        /// <summary>Lifecycle status (حالة البرنامج): Pending, Active, Completed, Cancelled, or Rejected.</summary>
         public TourPackageStatus Status { get; set; }
-
-        /// <summary>Admin moderation state (حالة الموافقة): Pending, Accepted, or Rejected.</summary>
-        public PackageApprovalStatus ApprovalStatus { get; set; }
 
         /// <summary>Reason shown to the company when rejected (سبب الرفض). Null otherwise.</summary>
         public string? RejectionReason { get; set; }
