@@ -6,5 +6,6 @@
         string? Email { get; }
         string? Name { get; }
         bool IsAuthenticated { get; }
+        bool IsAdmin { get; }
     }
 }

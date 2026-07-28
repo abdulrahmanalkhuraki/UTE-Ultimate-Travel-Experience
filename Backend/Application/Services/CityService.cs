@@ -1,4 +1,6 @@
-﻿using Application.DTOs.City.Response;
+﻿using Application.Common.Constants;
+using Application.Common.Logging;
+using Application.DTOs.City.Response;
 using Application.Exceptions;
 using Application.Interfaces.City;
 using AutoMapper;
@@ -15,6 +17,7 @@ namespace Application.Services
         private readonly IMapper _mapper;
         private readonly ILogger<CityService> _logger;
         private readonly IMemoryCache _cache;
+        private const string ObjectName = "City";
 
         // Cache constants
         private const string CityCacheKeyPrefix = "city_";
@@ -36,9 +39,9 @@ namespace Application.Services
         public async Task<CityResponse> GetAsync(int id, CancellationToken cancellationToken)
         {
             if (id <= 0)
-                throw new ArgumentException("Invalid City ID", nameof(id));
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(id));
 
-            _logger.LogDebug("Retrieving City with ID {CityId}", id);
+            _logger.StartOperation("Retrieve", ObjectName, id, 0);
 
             // Try cache first
             var cacheKey = $"{CityCacheKeyPrefix}{id}";
@@ -60,8 +63,8 @@ namespace Application.Services
 
                 if (entity == null)
                 {
-                    _logger.LogDebug("City with ID {CityId} not found", id);
-                    throw new NotFoundException($"City with ID {id} not found");
+                    _logger.EntityNotFound(ObjectName, id);
+                    throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, id));
                 }
 
                 var response = _mapper.Map<CityResponse>(entity);
@@ -76,14 +79,14 @@ namespace Application.Services
 
                 _cache.Set(cacheKey, response, cacheOptions);
 
-                _logger.LogDebug("Successfully retrieved City {CityId}", id);
+                _logger.SuccessfulOperation("Retrieve", ObjectName);
 
                 return response;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving City {CityId}", id);
-                throw new ServiceException($"Failed to retrieve City: {ex.Message}", ex);
+                _logger.ServerError("Retrieve", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
             }
         }
 
@@ -121,8 +124,8 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving all cities");
-                throw new ServiceException($"Failed to retrieve cities: {ex.Message}", ex);
+                _logger.ServerError("Retrieve All", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
             }
         }
 
@@ -139,8 +142,8 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error checking existence of city {CityId}", id);
-                throw new ServiceException($"Failed to check city existence: {ex.Message}", ex);
+                _logger.ServerError("Check Existence", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("check existence of", ObjectName, ex.Message), ex);
             }
         }
     }

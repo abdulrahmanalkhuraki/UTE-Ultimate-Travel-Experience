@@ -1,3 +1,5 @@
+using Application.Common.Constants;
+using Application.Common.Logging;
 using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
 using Application.Interfaces.TourPackage;
@@ -16,6 +18,7 @@ namespace Application.Services
         private readonly IMapper _mapper;
         private readonly ILogger<WishlistService> _logger;
         private readonly ICurrentUserService _currentUser;
+        private const string ObjectName = "Tour Package";
 
         public WishlistService(
             IUnitOfWork unitOfWork,
@@ -32,19 +35,18 @@ namespace Application.Services
         public async Task<bool> AddToWishlistAsync(int tourPackageId, CancellationToken cancellationToken = default)
         {
             if (tourPackageId <= 0)
-                throw new ArgumentException("Invalid tour package ID", nameof(tourPackageId));
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(tourPackageId));
 
-            var userId = _currentUser.UserId ?? throw new AuthException("User must be authenticated");
+            var userId = _currentUser.UserId ?? throw new AuthException(ExceptionMessages.Auth());
 
-            _logger.LogInformation("Attempting to add tour package {PackageId} to user {UserId} wishlist",
-                tourPackageId, userId);
+            _logger.StartOperation("Add to Wishlist", ObjectName, tourPackageId, userId);
 
             var exists = await _unitOfWork.TourPackages.AnyAsync(tp => tp.Id == tourPackageId && !tp.IsDeleted);
 
             if (!exists)
             {
-                _logger.LogWarning("Tour package {PackageId} not found", tourPackageId);
-                throw new NotFoundException($"Tour package with ID {tourPackageId} not found");
+                _logger.EntityNotFound(ObjectName, tourPackageId);
+                throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, tourPackageId));
             }
 
             var isAdded = await _unitOfWork.Wishlists
@@ -53,8 +55,8 @@ namespace Application.Services
 
             if (isAdded)
             {
-                _logger.LogWarning("Tour package {PackageId} already in user wishlist", tourPackageId);
-                throw new ConflictException($"Tour package with ID {tourPackageId} is already in your wishlist");
+                _logger.ConflictDetected(ObjectName, "This tour package is already in your wishlist");
+                throw new ConflictException(ExceptionMessages.Conflict(ObjectName, "already in your wishlist"));
             }
 
             try
@@ -70,32 +72,31 @@ namespace Application.Services
                 await _unitOfWork.Wishlists.AddAsync(wishlist, cancellationToken);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Tour package {PackageId} added to user wishlist", tourPackageId);
+                _logger.SuccessfulOperation(userId, "Add to Wishlist", ObjectName, tourPackageId);
                 return true;
             }
             catch (Exception ex) when (ex is not NotFoundException and not ConflictException and not ArgumentException)
             {
-                _logger.LogError(ex, "Unexpected error while adding tour package {PackageId} to user wishlist", tourPackageId);
-                throw new ServiceException($"Failed to add tour package to wishlist: {ex.Message}", ex);
+                _logger.ServerError("Add to Wishlist", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("add to wishlist", ObjectName, ex.Message), ex);
             }
         }
 
         public async Task<bool> RemoveFromWishlistAsync(int tourPackageId, CancellationToken cancellationToken = default)
         {
             if (tourPackageId <= 0)
-                throw new ArgumentException("Invalid tour package ID", nameof(tourPackageId));
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(tourPackageId));
 
-            var userId = _currentUser.UserId ?? throw new AuthException("User must be authenticated");
+            var userId = _currentUser.UserId ?? throw new AuthException(ExceptionMessages.Auth());
 
-            _logger.LogInformation("Attempting to remove tour package {PackageId} from user {UserId} wishlist",
-                tourPackageId, userId);
+            _logger.StartOperation("Remove from Wishlist", ObjectName, tourPackageId, userId);
 
             var exists = await _unitOfWork.TourPackages.AnyAsync(tp => tp.Id == tourPackageId && !tp.IsDeleted);
 
             if (!exists)
             {
-                _logger.LogWarning("Tour package {PackageId} not found", tourPackageId);
-                throw new NotFoundException($"Tour package with ID {tourPackageId} not found");
+                _logger.EntityNotFound(ObjectName, tourPackageId);
+                throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, tourPackageId));
             }
 
             var entity = await _unitOfWork.Wishlists
@@ -104,8 +105,8 @@ namespace Application.Services
 
             if (entity is null)
             {
-                _logger.LogWarning("Tour package {PackageId} is not in user wishlist", tourPackageId);
-                throw new NotFoundException($"Tour package with ID {tourPackageId} is not in your wishlist");
+                _logger.EntityNotFound(ObjectName, tourPackageId);
+                throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, tourPackageId));
             }
 
             try
@@ -113,19 +114,19 @@ namespace Application.Services
                 _unitOfWork.Wishlists.Remove(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Tour package {PackageId} removed from user wishlist", tourPackageId);
+                _logger.SuccessfulOperation(userId, "Remove from Wishlist", ObjectName, tourPackageId);
                 return true;
             }
             catch (Exception ex) when (ex is not NotFoundException and not ArgumentException)
             {
-                _logger.LogError(ex, "Unexpected error while removing tour package {PackageId} from user wishlist", tourPackageId);
-                throw new ServiceException($"Failed to remove tour package from wishlist: {ex.Message}", ex);
+                _logger.ServerError("Remove from Wishlist", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("remove from wishlist", ObjectName, ex.Message), ex);
             }
         }
 
         public async Task<IReadOnlyList<TourPackageResponse>> GetWishlistAsync(CancellationToken cancellationToken = default)
         {
-            var userId = _currentUser.UserId ?? throw new AuthException("User must be authenticated");
+            var userId = _currentUser.UserId ?? throw new AuthException(ExceptionMessages.Auth());
 
             var entities = await _unitOfWork.Wishlists.Query()
                 .Where(w => w.UserId == userId)

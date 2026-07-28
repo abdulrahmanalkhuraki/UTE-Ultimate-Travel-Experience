@@ -1,4 +1,6 @@
-﻿using Application.DTOs.Rate.Request;
+﻿using Application.Common.Constants;
+using Application.Common.Logging;
+using Application.DTOs.Rate.Request;
 using Application.DTOs.Rate.Response;
 using Application.DTOs.Review.Response;
 using Application.Exceptions;
@@ -11,7 +13,7 @@ using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 namespace Application.Services
 {
     public class RateService : IRateService
@@ -21,6 +23,7 @@ namespace Application.Services
         private readonly ILogger<RateService> _logger;
         private readonly RateCreateValidator _createValidator;
         private readonly ICurrentUserService _currentUser;
+        private const string ObjectName = "Rate";
 
         public RateService(
             IUnitOfWork unitOfWork,
@@ -40,28 +43,26 @@ namespace Application.Services
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
-            _logger.LogInformation("Attempting to create new Rate");
+            _logger.StartOperation("Create", ObjectName, 0);
 
             var validationResult = await _createValidator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
-                _logger.LogWarning("Rate creation validation failed: {Errors}",
-                    string.Join(", ", validationResult.Errors));
+                _logger.ValidationFailed("Create", ObjectName, string.Join(", ", validationResult.Errors));
                 throw new ValidationException(string.Join(", ", validationResult.Errors));
             }
 
             try
             {
-                // check if package Exists
-                var package = _unitOfWork.TourPackages
+                var package = await _unitOfWork.TourPackages
                     .FirstOrDefaultAsync(tp => tp.Id == request.PackageId);
 
                 if (package is null)
                 {
-                    _logger.LogWarning("Package with ID {PackageId} not found", request.PackageId);
-                    throw new NotFoundException($"Package with ID {request.PackageId} not found");
+                    _logger.EntityNotFound("Tour Package", request.PackageId);
+                    throw new NotFoundException(ExceptionMessages.NotFound("Tour Package", request.PackageId));
                 }
-                // check if user has one completed booking in this tourpackage
+
                 await EnsureUserBookedPackage(request.PackageId);
 
                 var rate = _mapper.Map<Rate>(request);
@@ -70,14 +71,14 @@ namespace Application.Services
                 await _unitOfWork.Rates.AddAsync(rate, cancellationToken);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Successfully created rate {ReviewId}", rate.Id);
+                _logger.SuccessfulOperation("Create", ObjectName);
 
                 return _mapper.Map<RateResponse>(rate);
             }
             catch (Exception ex) when (ex is NotFoundException)
             {
-                _logger.LogError(ex, "Unexpected error while creating rate");
-                throw new ServiceException($"Failed to create rate: {ex.Message}", ex);
+                _logger.ServerError("Create", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("create", ObjectName, ex.Message), ex);
             }
         }
 
@@ -89,7 +90,7 @@ namespace Application.Services
             if (tourPackageId.HasValue && tourPackageId <= 0)
                 throw new ArgumentException($"Invalid Tour Package Id {tourPackageId}");
 
-            _logger.LogDebug("Retrieving rates");
+            _logger.StartOperation("Retrieve", ObjectName, 0);
 
             try
             {
@@ -120,9 +121,8 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving rates");
-
-                throw new ServiceException("Failed to retrieve rates.", ex);
+                _logger.ServerError("Retrieve", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
             }
         }
 
@@ -138,8 +138,9 @@ namespace Application.Services
 
             if (!isBooked)
             {
-                _logger.LogWarning($"User {_currentUser.UserId} attempted to rate TourPackage {packageId} without a completed booking. Rating rejected.");
-                throw new BusinessRuleException("Unable to submit rating. A completed booking is required before rating a tour package.");
+                _logger.BusinessRuleViolated("Tour Package", "A completed booking is required before rating");
+                throw new BusinessRuleException(ExceptionMessages.BusinessRule(
+                    "Unable to submit rating. A completed booking is required before rating a tour package."));
             }
         }
         #endregion

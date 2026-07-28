@@ -1,3 +1,5 @@
+using Application.Common.Constants;
+using Application.Common.Logging;
 using Application.DTOs.User.Request;
 using Application.DTOs.User.Response;
 using Application.Exceptions;
@@ -33,6 +35,7 @@ namespace Application.Services
         private const string UsersListCacheKey = "all_users";
         private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan SlidingCacheDuration = TimeSpan.FromMinutes(2);
+        private const string ObjectName = "User";
 
         public UserService(
             IUnitOfWork unitOfWork,
@@ -185,18 +188,18 @@ namespace Application.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                _logger.LogError(ex, "Concurrency conflict while completing profile for user {UserId}", userId);
-                throw new ConcurrencyException("The user was modified by another user. Please refresh and try again.", ex);
+                _logger.ConcurrencyConflict(ObjectName);
+                throw new ConcurrencyException(ExceptionMessages.Concurrency(ObjectName), ex);
             }
             catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE") == true)
             {
-                _logger.LogError(ex, "Unique constraint violation while completing profile for user {UserId}", userId);
-                throw new ConflictException("A unique field value is already taken.");
+                _logger.ConflictDetected(ObjectName, "unique field value already taken");
+                throw new ConflictException(ExceptionMessages.Conflict(ObjectName, "unique field value already taken"));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while completing profile for user {UserId}", userId);
-                throw new ServiceException($"Failed to complete profile: {ex.Message}", ex);
+                _logger.ServerError("Complete Profile", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("complete profile", ObjectName, ex.Message), ex);
             }
         }
 
@@ -347,13 +350,13 @@ namespace Application.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                _logger.LogError(ex, "Concurrency conflict while updating user {UserId}", userId);
-                throw new ConcurrencyException("The user was modified by another user. Please refresh and try again.", ex);
+                _logger.ConcurrencyConflict(ObjectName);
+                throw new ConcurrencyException(ExceptionMessages.Concurrency(ObjectName), ex);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while updating user {UserId}", userId);
-                throw new ServiceException($"Failed to update user: {ex.Message}", ex);
+                _logger.ServerError("Update", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("update", ObjectName, ex.Message), ex);
             }
         }
 
@@ -403,8 +406,8 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while deleting user {UserId}", userId);
-                throw new ServiceException($"Failed to delete user: {ex.Message}", ex);
+                _logger.ServerError("Delete Account", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("delete", ObjectName, ex.Message), ex);
             }
         }
 
@@ -469,8 +472,8 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while admin-deleting user {UserId}", userId);
-                throw new ServiceException($"Failed to delete user: {ex.Message}", ex);
+                _logger.ServerError("Admin Delete", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("delete", ObjectName, ex.Message), ex);
             }
         }
 
@@ -527,8 +530,8 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving user {UserId}", id);
-                throw new ServiceException($"Failed to retrieve user: {ex.Message}", ex);
+                _logger.ServerError("Retrieve", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
             }
         }
 
@@ -569,8 +572,8 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving all users");
-                throw new ServiceException($"Failed to retrieve users: {ex.Message}", ex);
+                _logger.ServerError("Retrieve All", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
             }
         }
 
@@ -651,10 +654,8 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error filtering users with parameters - FirstName: {FirstName}, LastName: {LastName}, " +
-                                     "Email: {Email}, RoleId: {RoleId}",
-                    firstName ?? "Any", lastName ?? "Any", email ?? "Any", roleName ?? "Any");
-                throw new ServiceException($"Failed to filter users: {ex.Message}", ex);
+                _logger.ServerError("Filter", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("filter", ObjectName, ex.Message), ex);
             }
         }
 
@@ -711,13 +712,13 @@ namespace Application.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                _logger.LogError(ex, "Concurrency conflict while updating location for user {UserId}", userId);
-                throw new ConcurrencyException("The user was modified by another user. Please refresh and try again.", ex);
+                _logger.ConcurrencyConflict(ObjectName);
+                throw new ConcurrencyException(ExceptionMessages.Concurrency(ObjectName), ex);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while updating location for user {UserId}", userId);
-                throw new ServiceException($"Failed to update location: {ex.Message}", ex);
+                _logger.ServerError("Update Location", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("update location", ObjectName, ex.Message), ex);
             }
         }
 
@@ -788,13 +789,13 @@ namespace Application.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                _logger.LogError(ex, "Concurrency conflict while changing password for user {UserId}", userId);
-                throw new ConcurrencyException("The user was modified by another user. Please refresh and try again.", ex);
+                _logger.ConcurrencyConflict(ObjectName);
+                throw new ConcurrencyException(ExceptionMessages.Concurrency(ObjectName), ex);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while changing password for user {UserId}", userId);
-                throw new ServiceException($"Failed to change password: {ex.Message}", ex);
+                _logger.ServerError("Change Password", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("change password", ObjectName, ex.Message), ex);
             }
         }
 
@@ -829,8 +830,8 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving deleted users");
-                throw new ServiceException($"Failed to retrieve deleted users: {ex.Message}", ex);
+                _logger.ServerError("Retrieve Deleted", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve deleted", ObjectName, ex.Message), ex);
             }
         }
 

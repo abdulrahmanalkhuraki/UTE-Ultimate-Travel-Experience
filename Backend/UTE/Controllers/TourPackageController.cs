@@ -1,5 +1,6 @@
 using System.Net.Mime;
 using System.Security.Claims;
+using Application.DTOs.Pagination;
 using Application.DTOs.TourPackage;
 using Application.DTOs.TourPackage.Request;
 using Application.DTOs.TourPackage.Response;
@@ -18,82 +19,57 @@ namespace UTE.Controllers
     public class TourPackageController : ControllerBase
     {
         private readonly ITourPackageService _service;
-        private readonly ILogger<TourPackageController> _logger;
 
-        public TourPackageController(ITourPackageService service, ILogger<TourPackageController> logger)
+        public TourPackageController(ITourPackageService service)
         {
             _service = service ?? throw new ArgumentNullException(nameof(service));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         [HttpGet]
         [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetAll(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                return Ok(await _service.GetAllAsync(cancellationToken));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error retrieving tour packages");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            return Ok(await _service.GetAllAsync(cancellationToken));
         }
 
-        [HttpGet("mine")]
-        [Authorize]
-        [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
+        [HttpGet("mine/all")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "TourCompany")]
+        [ProducesResponseType(typeof(PaginatedResponse<TourPackageResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMine(
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PaginatedResponse<TourPackageResponse>>> GetMineAll(
             [FromQuery] TourPackageStatus? status = null,
+            [FromQuery] int? page = null,
+            [FromQuery] int? pageSize = null,
             CancellationToken cancellationToken = default)
         {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
+            return Ok(await _service.GetMineAsync(page ?? 1,
+                pageSize ?? 20,
+                status,
+                cancellationToken));
+        }
 
-            try
-            {
-                return Ok(await _service.GetMineAsync(status, cancellationToken));
-            }
-            catch (ForbiddenException ex)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error retrieving company's tour packages");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+        [HttpGet("mine/{id:int:min(1)}")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "TourCompany")]
+        [ProducesResponseType(typeof(TourPackageResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<TourPackageResponse>> GetMineById(int id, 
+            CancellationToken cancellationToken = default)
+        {
+            return Ok(await _service.GetMineAsync(id,cancellationToken));
         }
 
         [HttpGet("{id:int:min(1)}")]
         [ProducesResponseType(typeof(TourPackageResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<TourPackageResponse>> GetById(int id, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                return Ok(await _service.GetAsync(id, cancellationToken));
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(CreateProblemDetails("Tour package not found", ex.Message, StatusCodes.Status404NotFound));
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error retrieving tour package {PackageId}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+             return Ok(await _service.GetAsync(id, cancellationToken));
         }
 
         [HttpGet("filter")]
@@ -108,16 +84,8 @@ namespace UTE.Controllers
             if (minPrice.HasValue && maxPrice.HasValue && minPrice > maxPrice)
                 return BadRequest(CreateProblemDetails("Invalid search parameters", "minPrice cannot be greater than maxPrice", StatusCodes.Status400BadRequest));
 
-            try
-            {
                 return Ok(await _service.FilterAsync(countryId, cityId, minPrice, maxPrice, cancellationToken));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error filtering tour packages");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+
         }
 
         [HttpPost]
@@ -130,40 +98,8 @@ namespace UTE.Controllers
             [FromForm] TourPackageCreateRequest request,
             CancellationToken cancellationToken = default)
         {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
-
-            try
-            {
-                var created = await _service.CreateAsync(request, cancellationToken);
-                return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-            }
-            catch (ValidationException ex)
-            {
-                var problem = CreateProblemDetails("Validation Error", "One or more validation errors occurred", StatusCodes.Status400BadRequest);
-                problem.Extensions["errors"] = ex.Errors;
-                return BadRequest(problem);
-            }
-            catch (ForbiddenException ex)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(CreateProblemDetails("Not found", ex.Message, StatusCodes.Status404NotFound));
-            }
-            catch (ConflictException ex)
-            {
-                return Conflict(CreateProblemDetails("Conflict", ex.Message, StatusCodes.Status409Conflict));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error creating tour package");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            var created = await _service.CreateAsync(request, cancellationToken);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
         [HttpPut("{id:int:min(1)}")]
@@ -178,40 +114,8 @@ namespace UTE.Controllers
             [FromForm] TourPackageUpdateRequest request,
             CancellationToken cancellationToken = default)
         {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
-
-            try
-            {
                 var updated = await _service.UpdateAsync(id, request, cancellationToken);
                 return Ok(updated);
-            }
-            catch (ValidationException ex)
-            {
-                var problem = CreateProblemDetails("Validation Error", "One or more validation errors occurred", StatusCodes.Status400BadRequest);
-                problem.Extensions["errors"] = ex.Errors;
-                return BadRequest(problem);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
-            }
-            catch (ForbiddenException ex)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(CreateProblemDetails("Not found", ex.Message, StatusCodes.Status404NotFound));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error updating tour package {PackageId}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
         }
 
         [HttpPost("{id:int:min(1)}/republish")]
@@ -227,44 +131,8 @@ namespace UTE.Controllers
             [FromForm] TourPackageUpdateRequest request,
             CancellationToken cancellationToken = default)
         {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
-
-            try
-            {
-                var result = await _service.RepublishAsync(id, request, cancellationToken);
-                return Ok(result);
-            }
-            catch (ValidationException ex)
-            {
-                var problem = CreateProblemDetails("Validation Error", "One or more validation errors occurred", StatusCodes.Status400BadRequest);
-                problem.Extensions["errors"] = ex.Errors;
-                return BadRequest(problem);
-            }
-            catch (ForbiddenException ex)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(CreateProblemDetails("Not found", ex.Message, StatusCodes.Status404NotFound));
-            }
-            catch (BusinessRuleException ex)
-            {
-                return Conflict(CreateProblemDetails("Conflict", ex.Message, StatusCodes.Status409Conflict));
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error republishing tour package {PackageId}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            var result = await _service.RepublishAsync(id, request, cancellationToken);
+            return Ok(result);
         }
 
         [HttpPost("{id:int:min(1)}/cancel")]
@@ -275,37 +143,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ProgramStatusResponse>> Cancel(int id, CancellationToken cancellationToken = default)
         {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
-
-            try
-            {
-                return Ok(await _service.CancelAsync(id, cancellationToken));
-            }
-            catch (ForbiddenException ex)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(CreateProblemDetails("Tour package not found", ex.Message, StatusCodes.Status404NotFound));
-            }
-            catch (BusinessRuleException ex)
-            {
-                return Conflict(CreateProblemDetails("Conflict", ex.Message, StatusCodes.Status409Conflict));
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error cancelling tour package {PackageId}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            return Ok(await _service.CancelAsync(id, cancellationToken));
         }
 
         [HttpGet("unApproved")]
@@ -314,16 +152,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetUnApproved(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                return Ok(await _service.GetUnApprovedAsync(cancellationToken));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error retrieving unapproved tour packages");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            return Ok(await _service.GetUnApprovedAsync(cancellationToken));
         }
 
         [HttpPost("{id:int:min(1)}/approve")]
@@ -333,24 +162,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ProgramStatusResponse>> Approve(int id, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                return Ok(await _service.ApproveAsync(id, cancellationToken));
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(CreateProblemDetails("Tour package not found", ex.Message, StatusCodes.Status404NotFound));
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error approving tour package {PackageId}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            return Ok(await _service.ApproveAsync(id, cancellationToken));
         }
 
         [HttpPost("{id:int:min(1)}/reject")]
@@ -362,24 +174,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ProgramStatusResponse>> Reject(int id, [FromBody] TourPackageRejectRequest request, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                return Ok(await _service.RejectAsync(id, request.Reason, cancellationToken));
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(CreateProblemDetails("Tour package not found", ex.Message, StatusCodes.Status404NotFound));
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error rejecting tour package {PackageId}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            return Ok(await _service.RejectAsync(id, request.Reason, cancellationToken));
         }
 
         [HttpDelete("{id:int:min(1)}")]
@@ -389,36 +184,10 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
         {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
-
-            try
-            {
-                var deleted = await _service.DeleteAsync(id, cancellationToken);
-                if (!deleted)
-                    return NotFound(CreateProblemDetails("Tour package not found", $"Tour package with ID {id} not found", StatusCodes.Status404NotFound));
-                return NoContent();
-            }
-            catch (ForbiddenException ex)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
-            }
-            catch (BusinessRuleException ex)
-            {
-                return Conflict(CreateProblemDetails("Conflict", ex.Message, StatusCodes.Status409Conflict));
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error deleting tour package {PackageId}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            var deleted = await _service.DeleteAsync(id, cancellationToken);
+            if (!deleted)
+                return NotFound(CreateProblemDetails("Tour package not found", $"Tour package with ID {id} not found", StatusCodes.Status404NotFound));
+            return NoContent();
         }
 
         #region Helpers

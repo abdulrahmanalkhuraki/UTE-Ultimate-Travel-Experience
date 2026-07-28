@@ -1,3 +1,5 @@
+using Application.Common.Constants;
+using Application.Common.Logging;
 using Application.DTOs.Ticket.Request;
 using Application.DTOs.Ticket.Response;
 using Application.Exceptions;
@@ -21,6 +23,7 @@ namespace Application.Services
         private readonly TicketCreateValidator _createValidator;
         private readonly ICurrentUserService _currentUser;
         private readonly IFileStorage _fileStorage;
+        private const string ObjectName = "Ticket";
 
         public TicketService(
             IUnitOfWork unitOfWork,
@@ -42,13 +45,12 @@ namespace Application.Services
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
-            _logger.LogInformation("Attempting to create new Ticket");
+            _logger.StartOperation("Create", ObjectName, 0);
 
             var validationResult = await _createValidator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
-                _logger.LogWarning("Ticket creation validation failed: {Errors}",
-                    string.Join(", ", validationResult.Errors));
+                _logger.ValidationFailed("Create", ObjectName, string.Join(", ", validationResult.Errors));
                 throw new ValidationException(string.Join(", ", validationResult.Errors));
             }
 
@@ -67,14 +69,14 @@ namespace Application.Services
                 await _unitOfWork.Tickets.AddAsync(ticket, cancellationToken);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Successfully created ticket {TicketId}", ticket.Id);
+                _logger.SuccessfulOperation(userId: _currentUser.UserId ?? 0, "Create", ObjectName, ticket.Id);
 
                 return _mapper.Map<TicketResponse>(ticket);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating ticket");
-                throw new ServiceException("Failed to create ticket.", ex);
+                _logger.ServerError("Create", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("create", ObjectName, ex.Message), ex);
             }
         }
 
@@ -83,7 +85,7 @@ namespace Application.Services
             if (userId.HasValue && userId <= 0)
                 throw new ArgumentException($"Invalid User Id {userId}");
 
-            _logger.LogDebug("Retrieving tickets");
+            _logger.StartOperation("Retrieve", ObjectName, 0);
 
             try
             {
@@ -108,9 +110,8 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving tickets");
-
-                throw new ServiceException("Failed to retrieve tickets.", ex);
+                _logger.ServerError("Retrieve", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
             }
         }
     }

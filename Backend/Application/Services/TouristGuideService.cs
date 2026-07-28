@@ -1,3 +1,5 @@
+using Application.Common.Constants;
+using Application.Common.Logging;
 using Application.DTOs.TouristGuide.Request;
 using Application.DTOs.TouristGuide.Response;
 using Application.Exceptions;
@@ -23,6 +25,7 @@ namespace Application.Services
         private readonly TouristGuideUpdateValidator _updateValidator;
 
         private const string GuideImageFolder = "guide-images";
+        private const string ObjectName = "Tourist Guide";
 
         public TouristGuideService(
             IUnitOfWork unitOfWork,
@@ -43,6 +46,8 @@ namespace Application.Services
         public async Task<TouristGuideResponse> CreateAsync(int ownerUserId, TouristGuideCreateRequest request, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
+
+            _logger.StartOperation("Create", ObjectName, 0);
 
             var validationResult = await _createValidator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
@@ -82,7 +87,7 @@ namespace Application.Services
                 await _unitOfWork.TouristGuides.AddAsync(entity, cancellationToken);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Created guide {GuideId} for company {CompanyId}", entity.Id, companyId);
+                _logger.SuccessfulOperation("Create", ObjectName);
 
                 return await BuildResponseAsync(entity.Id, cancellationToken);
             }
@@ -91,8 +96,8 @@ namespace Application.Services
             and not ForbiddenException 
             and not ConflictException)
             {
-                _logger.LogError(ex, "Unexpected error while creating guide {Email}", request.Email);
-                throw new ServiceException($"Failed to create guide: {ex.Message}", ex);
+                _logger.ServerError("Create", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("create", ObjectName, ex.Message), ex);
             }
         }
 
@@ -100,7 +105,9 @@ namespace Application.Services
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
             if (id <= 0)
-                throw new ArgumentException("Invalid guide ID", nameof(id));
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(id));
+
+            _logger.StartOperation("Update", ObjectName, id, 0);
 
             var validationResult = await _updateValidator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
@@ -121,7 +128,7 @@ namespace Application.Services
                     .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
 
                 if (entity is null)
-                    throw new NotFoundException($"Guide with ID {id} not found");
+                    throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, id));
 
                 await EnsureGuideBelongsToCompanyAsync(id, companyId, cancellationToken);
 
@@ -145,7 +152,7 @@ namespace Application.Services
                 _unitOfWork.TouristGuides.Update(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Updated guide {GuideId}", id);
+                _logger.SuccessfulOperation("Update", ObjectName);
 
                 return await BuildResponseAsync(id, cancellationToken);
             }
@@ -154,8 +161,8 @@ namespace Application.Services
             and not ForbiddenException 
             and not ConflictException)
             {
-                _logger.LogError(ex, "Unexpected error while updating guide {GuideId}", id);
-                throw new ServiceException($"Failed to update guide: {ex.Message}", ex);
+                _logger.ServerError("Update", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("update", ObjectName, ex.Message), ex);
             }
         }
 
@@ -178,13 +185,13 @@ namespace Application.Services
 
                 var link = entity.CompanyGuides.FirstOrDefault(cg => cg.CompanyId == companyId);
                 if (link is null)
-                    throw new ForbiddenException("You can only delete guides that belong to your company.");
+                    throw new ForbiddenException(ExceptionMessages.Forbidden("delete", ObjectName));
 
                 var isAssigned = await _unitOfWork.TourPackage_TouristGuide
                     .Query()
                     .AnyAsync(pg => pg.TouristGuideId == id && pg.Package.CompanyId == companyId, cancellationToken);
                 if (isAssigned)
-                    throw new BusinessRuleException("Cannot delete a guide assigned to one of your programs.");
+                    throw new BusinessRuleException(ExceptionMessages.BusinessRule("Cannot delete a guide assigned to one of your programs."));
 
                 _unitOfWork.Company_TouristGuide.Remove(link);
 
@@ -194,20 +201,23 @@ namespace Application.Services
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Deleted/unlinked guide {GuideId} for company {CompanyId}", id, companyId);
+                _logger.SuccessfulOperation("Delete", ObjectName);
+
                 return true;
             }
             catch (Exception ex) when (ex is not NotFoundException and not ForbiddenException and not BusinessRuleException and not ArgumentException)
             {
-                _logger.LogError(ex, "Unexpected error while deleting guide {GuideId}", id);
-                throw new ServiceException($"Failed to delete guide: {ex.Message}", ex);
+                _logger.ServerError("Delete", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("delete", ObjectName, ex.Message), ex);
             }
         }
 
         public async Task<TouristGuideResponse> GetAsync(int id, int ownerUserId, CancellationToken cancellationToken = default)
         {
             if (id <= 0)
-                throw new ArgumentException("Invalid guide ID", nameof(id));
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(id));
+
+            _logger.StartOperation("Retrieve", ObjectName, id, 0);
 
             var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
             await EnsureGuideBelongsToCompanyAsync(id, companyId, cancellationToken);
@@ -240,7 +250,7 @@ namespace Application.Services
         {
             var entity = await QueryWithGraph().FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
             if (entity is null)
-                throw new NotFoundException($"Guide with ID {id} not found");
+                throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, id));
             return _mapper.Map<TouristGuideResponse>(entity);
         }
 
@@ -250,7 +260,7 @@ namespace Application.Services
                 .Query().AsNoTracking()
                 .AnyAsync(cg => cg.TouristGuideId == guideId && cg.CompanyId == companyId, cancellationToken);
             if (!linked)
-                throw new ForbiddenException("This guide does not belong to your company.");
+                throw new ForbiddenException(ExceptionMessages.Forbidden("access", ObjectName));
         }
 
         private async Task<int> ResolveCompanyIdAsync(int ownerUserId, CancellationToken cancellationToken)
@@ -275,7 +285,7 @@ namespace Application.Services
                 .Query().AsNoTracking()
                 .AnyAsync(c => c.Id == countryId, cancellationToken);
             if (!countryExists)
-                throw new NotFoundException($"Country with ID {countryId} not found");
+                throw new NotFoundException(ExceptionMessages.NotFound("Country", countryId));
         }
 
         private async Task EnsureCityExistsAsync(int cityId, CancellationToken cancellationToken)
@@ -284,7 +294,7 @@ namespace Application.Services
                 .Query().AsNoTracking()
                 .AnyAsync(c => c.Id == cityId, cancellationToken);
             if (!cityExists)
-                throw new NotFoundException($"City with ID {cityId} not found");
+                throw new NotFoundException(ExceptionMessages.NotFound("City", cityId));
         }
 
         #endregion

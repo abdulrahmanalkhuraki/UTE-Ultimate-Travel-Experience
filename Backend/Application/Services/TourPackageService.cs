@@ -1,4 +1,7 @@
 using Application.Common;
+using Application.Common.Constants;
+using Application.Common.Logging;
+using Application.DTOs.Pagination;
 using Application.DTOs.TourPackage.Request;
 using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
@@ -6,6 +9,7 @@ using Application.Interfaces.Notifications;
 using Application.Interfaces.TourPackage;
 using Application.Interfaces.User;
 using AutoMapper;
+using Azure;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Interfaces;
@@ -13,6 +17,7 @@ using Domain.Validators;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel.Design;
 using ValidationException = Application.Exceptions.ValidationException;
 
 namespace Application.Services
@@ -40,6 +45,7 @@ namespace Application.Services
         private static readonly TimeSpan SlidingCacheDuration = TimeSpan.FromMinutes(2);
         private static readonly TimeSpan UnapprovedCacheDuration = TimeSpan.FromMinutes(2);
         private static readonly TimeSpan MineCacheDuration = TimeSpan.FromMinutes(3);
+        private const string ObjectName = "Tour Package";
 
         public TourPackageService(
             IUnitOfWork unitOfWork,
@@ -75,10 +81,12 @@ namespace Application.Services
             }
 
             var currentUserId = _currentUser.UserId
-                ?? throw new AuthException("User must be authenticated");
+                ?? throw new AuthException(ExceptionMessages.Auth());
             var companyId = await ResolveCompanyIdAsync(currentUserId, cancellationToken);
-            await EnsureCountryExistsAsync(request.CountryId,cancellationToken);
+            await EnsureCountryExistsAsync(request.CountryId, cancellationToken);
             await EnsureGuidesBelongToCompanyAsync(request.TouristGuideIds, companyId, cancellationToken);
+
+            _logger.StartOperation("Create", ObjectName, currentUserId);
 
             try
             {
@@ -157,8 +165,8 @@ namespace Application.Services
             }
             catch (Exception ex) when (ex is not ValidationException and not NotFoundException and not ForbiddenException and not ConflictException)
             {
-                _logger.LogError(ex, "Unexpected error while creating tour package {PackageName}", request.PackageName);
-                throw new ServiceException($"Failed to create tour package: {ex.Message}", ex);
+                _logger.ServerError("Create", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("create", ObjectName, ex.Message), ex);
             }
         }
 
@@ -176,7 +184,7 @@ namespace Application.Services
             }
 
             var currentUserId = _currentUser.UserId
-                ?? throw new AuthException("User must be authenticated");
+                ?? throw new AuthException(ExceptionMessages.Auth());
             var companyId = await ResolveCompanyIdAsync(currentUserId, cancellationToken);
 
             // Partial update: only validate the foreign keys that are actually being changed.
@@ -199,15 +207,14 @@ namespace Application.Services
 
                 if (entity is null)
                 {
-                    _logger.LogWarning("Update target tour package {PackageId} not found", id);
-                    throw new NotFoundException($"Tour package with ID {id} not found");
+                    _logger.EntityNotFound(ObjectName, id);
+                    throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, id));
                 }
 
                 if (entity.CompanyId != companyId)
                 {
-                    _logger.LogWarning("User {UserId} tried to update tour package {PackageId} belonging to company {CompanyId}",
-                        currentUserId, id, entity.CompanyId);
-                    throw new ForbiddenException("You can only modify your own tour packages.");
+                    _logger.ForbiddenAction(currentUserId, "Update", ObjectName, id);
+                    throw new ForbiddenException(ExceptionMessages.Forbidden("update", ObjectName));
                 }
 
                 if (entity.Status == TourPackageStatus.Completed)
@@ -246,8 +253,8 @@ namespace Application.Services
             }
             catch (Exception ex) when (ex is not ValidationException and not NotFoundException and not ForbiddenException and not ConflictException and not BusinessRuleException)
             {
-                _logger.LogError(ex, "Unexpected error while updating tour package {PackageId}", id);
-                throw new ServiceException($"Failed to update tour package: {ex.Message}", ex);
+                _logger.ServerError("Update", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("update", ObjectName, ex.Message), ex);
             }
         }
 
@@ -359,7 +366,7 @@ namespace Application.Services
                 throw new ArgumentException("Invalid tour package ID", nameof(id));
 
             var currentUserId = _currentUser.UserId
-                ?? throw new AuthException("User must be authenticated");
+                ?? throw new AuthException(ExceptionMessages.Auth());
             var companyId = await ResolveCompanyIdAsync(currentUserId, cancellationToken);
 
             try
@@ -370,21 +377,20 @@ namespace Application.Services
 
                 if (entity is null)
                 {
-                    _logger.LogWarning("Cancel target tour package {PackageId} not found", id);
-                    throw new NotFoundException($"Tour package with ID {id} not found");
+                    _logger.EntityNotFound(ObjectName, id);
+                    throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, id));
                 }
 
                 if (entity.CompanyId != companyId)
                 {
-                    _logger.LogWarning("User {UserId} tried to cancel tour package {PackageId} belonging to company {CompanyId}",
-                        currentUserId, id, entity.CompanyId);
-                    throw new ForbiddenException("You can only cancel your own tour packages.");
+                    _logger.ForbiddenAction(currentUserId, "cancel", ObjectName, id);
+                    throw new ForbiddenException(ExceptionMessages.Forbidden("cancel", ObjectName));
                 }
 
                 if (entity.Status == TourPackageStatus.Cancelled)
                 {
-                    _logger.LogWarning("Attempted to cancel already-cancelled tour package {PackageId}", id);
-                    throw new BusinessRuleException("This tour package is already cancelled.");
+                    _logger.BusinessRuleViolated(ObjectName, "already cancelled");
+                    throw new BusinessRuleException(ExceptionMessages.BusinessRule("This tour package is already cancelled."));
                 }
 
                 var oldStatus = entity.Status;
@@ -408,8 +414,8 @@ namespace Application.Services
             }
             catch (Exception ex) when (ex is not NotFoundException and not ForbiddenException and not BusinessRuleException)
             {
-                _logger.LogError(ex, "Unexpected error while cancelling tour package {PackageId}", id);
-                throw new ServiceException($"Failed to cancel tour package: {ex.Message}", ex);
+                _logger.ServerError("Cancel", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("cancel", ObjectName, ex.Message), ex);
             }
         }
 
@@ -489,8 +495,8 @@ namespace Application.Services
             }
             catch (Exception ex) when (ex is not NotFoundException and not ArgumentException)
             {
-                _logger.LogError(ex, "Unexpected error while approving tour package {PackageId}", id);
-                throw new ServiceException($"Failed to approve tour package: {ex.Message}", ex);
+                _logger.ServerError("Approve", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("approve", ObjectName, ex.Message), ex);
             }
         }
 
@@ -554,8 +560,8 @@ namespace Application.Services
             }
             catch (Exception ex) when (ex is not NotFoundException and not ArgumentException)
             {
-                _logger.LogError(ex, "Unexpected error while rejecting tour package {PackageId}", id);
-                throw new ServiceException($"Failed to reject tour package: {ex.Message}", ex);
+                _logger.ServerError("Reject", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("reject", ObjectName, ex.Message), ex);
             }
         }
 
@@ -565,8 +571,10 @@ namespace Application.Services
                 throw new ArgumentException("Invalid tour package ID", nameof(id));
 
             var currentUserId = _currentUser.UserId
-                ?? throw new AuthException("User must be authenticated");
+                ?? throw new AuthException(ExceptionMessages.Auth());
             var companyId = await ResolveCompanyIdAsync(currentUserId, cancellationToken);
+
+            _logger.StartOperation("Delete", ObjectName, id, currentUserId);
 
             try
             {
@@ -586,9 +594,8 @@ namespace Application.Services
 
                 if (entity.CompanyId != companyId)
                 {
-                    _logger.LogWarning("User {UserId} tried to delete tour package {PackageId} belonging to company {CompanyId}",
-                        currentUserId, id, entity.CompanyId);
-                    throw new ForbiddenException("You can only delete your own tour packages.");
+                    _logger.ForbiddenAction(currentUserId, "delete", ObjectName, id);
+                    throw new ForbiddenException(ExceptionMessages.Forbidden("delete", ObjectName));
                 }
 
                 var hasBookings = await _unitOfWork.TourPackages
@@ -623,8 +630,8 @@ namespace Application.Services
             }
             catch (Exception ex) when (ex is not NotFoundException and not ForbiddenException and not BusinessRuleException)
             {
-                _logger.LogError(ex, "Unexpected error while deleting tour package {PackageId}", id);
-                throw new ServiceException($"Failed to delete tour package: {ex.Message}", ex);
+                _logger.ServerError("Delete", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("delete", ObjectName, ex.Message), ex);
             }
         }
 
@@ -637,12 +644,12 @@ namespace Application.Services
             if (_cache.TryGetValue(cacheKey, out TourPackageResponse? cached) && cached is not null)
                 return cached;
 
-            var entity = await QueryWithGraph()
+            var entity = await WherePubliclyVisible(QueryWithGraph())
                 .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
             if (entity is null)
             {
-                _logger.LogWarning("GetAsync: tour package {PackageId} not found", id);
+                _logger.LogWarning("tour package {PackageId} not found", id);
                 throw new NotFoundException($"Tour package with ID {id} not found");
             }
 
@@ -663,54 +670,139 @@ namespace Application.Services
             if (_cache.TryGetValue(AllCacheKey, out IReadOnlyList<TourPackageResponse>? cached) && cached is not null)
                 return cached;
 
-            // Public endpoint: only show published, admin-accepted, non-cancelled programs.
-            var entities = await WherePubliclyVisible(QueryWithGraph())
-                .OrderByDescending(p => p.CreatedAtUtc)
-                .ToListAsync(cancellationToken);
-
-            var response = _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
-
-            _cache.Set(AllCacheKey, response, new MemoryCacheEntryOptions
+            try
             {
-                AbsoluteExpirationRelativeToNow = CacheDuration,
-                Priority = CacheItemPriority.Low
-            });
+                var entities = await WherePubliclyVisible(QueryWithGraph())
+                    .OrderByDescending(p => p.CreatedAtUtc)
+                    .ToListAsync(cancellationToken);
 
-            return response;
+                var response = _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
+
+                _cache.Set(AllCacheKey, response, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = CacheDuration,
+                    Priority = CacheItemPriority.Low
+                });
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.ServerError("Retrieve All", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
+            }
         }
 
-        public async Task<IReadOnlyList<TourPackageResponse>> GetMineAsync(TourPackageStatus? status = null, CancellationToken cancellationToken = default)
+        public async Task<PaginatedResponse<TourPackageResponse>> GetMineAsync(int page = 1, int pageSize = 20,
+            TourPackageStatus? status = null, CancellationToken cancellationToken = default)
         {
             var currentUserId = _currentUser.UserId
                 ?? throw new AuthException("User must be authenticated");
+
             var companyId = await ResolveCompanyIdAsync(currentUserId, cancellationToken);
 
-            var mineKey = status.HasValue
-                ? $"{MineCacheKeyPrefix}{companyId}_{status.Value}"
-                : $"{MineCacheKeyPrefix}{companyId}_all";
-
-            if (_cache.TryGetValue(mineKey, out IReadOnlyList<TourPackageResponse>? cached) && cached is not null)
-                return cached;
-
-            var query = QueryWithGraph()
-                .Where(p => p.CompanyId == companyId);
-
-            if (status.HasValue)
-                query = query.Where(p => p.Status == status.Value);
-
-            var entities = await query
-                .OrderByDescending(p => p.CreatedAtUtc)
-                .ToListAsync(cancellationToken);
-
-            var response = _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
-
-            _cache.Set(mineKey, response, new MemoryCacheEntryOptions
+            try
             {
-                AbsoluteExpirationRelativeToNow = MineCacheDuration,
-                Priority = CacheItemPriority.Normal
-            });
+                var mineKey = status.HasValue
+                    ? $"{MineCacheKeyPrefix}{companyId}_{status.Value}"
+                    : $"{MineCacheKeyPrefix}{companyId}_all";
 
-            return response;
+                mineKey = mineKey + $"page{page}_pageSize{pageSize}"; 
+
+                if (_cache.TryGetValue(mineKey, out PaginatedResponse<TourPackageResponse>? cached) && cached is not null)
+                    return cached;
+
+                var query = QueryWithGraph()
+                    .Where(p => p.CompanyId == companyId);
+
+                if (status.HasValue)
+                    query = query.Where(p => p.Status == status.Value);
+
+                var entities = await query
+                    .Skip((page-1) * pageSize)
+                    .Take(pageSize)
+                    .OrderByDescending(p => p.CreatedAtUtc)
+                    .ToListAsync(cancellationToken);
+
+                var packageResponses = _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
+                var paginationMetadata = new PaginationMetadata()
+                {
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalItems = await query.CountAsync(cancellationToken)
+                };
+                var paginatedResponse = new PaginatedResponse<TourPackageResponse>()
+                {
+                    Items = packageResponses,
+                    Pagination = paginationMetadata
+                };
+
+
+                _cache.Set(mineKey, paginatedResponse, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = MineCacheDuration,
+                    Priority = CacheItemPriority.Normal
+                });
+
+                return paginatedResponse;
+            }
+            catch (Exception ex)
+            {
+                _logger.ServerError("Retrieve Mine", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
+            }
+        }
+
+        public async Task<TourPackageResponse> GetMineAsync(int id, CancellationToken cancellationToken)
+        {
+            if (id <= 0)
+                throw new ArgumentException("Invalid tour package ID", nameof(id));
+
+            int userId = _currentUser.UserId ?? throw new AuthException("User must be authenticated");
+            int companyId = await ResolveCompanyIdAsync(userId, cancellationToken);
+            try
+            {
+
+                var entity = await QueryWithGraph()
+                .SingleOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+                if (entity is null)
+                {
+                    _logger.LogWarning("tour package {PackageId} not found", id);
+                    throw new NotFoundException($"Tour package with ID {id} not found");
+                }
+
+                if (entity.CompanyId != companyId)
+                {
+                    _logger.LogWarning(
+                        "Authorization failed: User {UserId} from Company {UserCompanyId} attempted to access Package" +
+                        " {PackageId} belonging to Company {PackageCompanyId}",
+                        userId,
+                        companyId,
+                        entity.Id,
+                        entity.CompanyId);
+
+                    throw new ForbiddenException("Access denied: You do not have permission to access " +
+                        $"package '{entity.Id}' as it belongs to a different company.");
+                }
+
+                var response = _mapper.Map<TourPackageResponse>(entity);
+
+                return response;
+            }
+            catch (NotFoundException)
+            {
+                throw;
+            }
+            catch (ForbiddenException)
+            {
+                throw;
+            }
+            catch(Exception ex)
+            {
+                _logger.ServerError("Retrieve Mine By Id", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
+            }
         }
 
         public async Task<IReadOnlyList<TourPackageResponse>> FilterAsync(
@@ -912,7 +1004,13 @@ namespace Application.Services
             _cache.Remove(UnapprovedCacheKey);
 
             if (companyId.HasValue)
+            {
                 _cache.Remove($"{MineCacheKeyPrefix}{companyId.Value}_all");
+                foreach (var status in Enum.GetValues<TourPackageStatus>())
+                {
+                    _cache.Remove($"mine_{companyId}_{status}");
+                }
+            }
         }
 
         /// <summary>Base query that eager-loads everything needed to build a response.</summary>
@@ -929,7 +1027,7 @@ namespace Application.Services
                 .Include(p => p.Media)
                 .Include(p => p.PackageAttractions).ThenInclude(pa => pa.Attraction)
                 .Include(p => p.PackageItineraries).ThenInclude(d => d.Activities);
-                
+
 
         /// <summary>
         /// Restricts a query to programs that should be visible to the public/tourists:
@@ -1129,6 +1227,8 @@ namespace Application.Services
                 _logger.LogError(ex, "Error notifying wishlist users about price drop on package {PackageId}", package.Id);
             }
         }
+
+
 
         #endregion
     }
