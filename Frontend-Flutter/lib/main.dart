@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:ute_app/screen/login_screen.dart';
+
+import 'screen/onboarding1_screen.dart';
+import 'screen/onboarding2_screen.dart';
+
 void main() {
   runApp(const MyApp());
- 
 }
 
 class MyApp extends StatelessWidget {
@@ -13,7 +16,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      designSize: const Size(384, 837),
+      //designSize: const Size(384, 837),
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
@@ -24,7 +27,7 @@ class MyApp extends StatelessWidget {
             fontFamily: 'Cairo',
             scaffoldBackgroundColor: Colors.white,
           ),
-          home:  LoginScreen(),
+          home: Onboarding2Screen(),
         );
       },
     );

@@ -38,6 +38,7 @@ dependencies:
   flutter_bloc: ^9.1.1
   dio: ^5.9.2
   get: ^4.7.3
+  flutter_svg: ^2.3.0
 
 dev_dependencies:
   flutter_test:

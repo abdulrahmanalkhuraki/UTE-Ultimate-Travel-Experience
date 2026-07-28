@@ -1,10 +1,10 @@
-import 'package:tourism_app/wishlist.dart';
-import 'package:tourism_app/wishlist_data.dart';
+import 'wishlist_data.dart';
+import 'wishlist.dart';
 
 import 'bottomNavigationBar.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart' hide BottomNavigationBar;
-import 'package:tourism_app/search_screen.dart';
+import 'search_screen.dart';
 import 'app_constants.dart';
 
 class AvailableProgramsPage extends StatefulWidget {
@@ -15,7 +15,6 @@ class AvailableProgramsPage extends StatefulWidget {
 }
 
 class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
-
   final List<Map<String, dynamic>> programsData = [
     {
       'id': '1',
@@ -59,9 +58,12 @@ class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
-
                     Padding(
-                      padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
+                      padding: const EdgeInsets.only(
+                        top: 20,
+                        left: 20,
+                        right: 20,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -69,7 +71,8 @@ class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
                             onTap: () => Navigator.push(
                               context,
                               PageRouteBuilder(
-                                pageBuilder: (_, __, ___) => const SearchScreen(),
+                                pageBuilder: (_, __, ___) =>
+                                    const SearchScreen(),
                               ),
                             ),
                             child: Hero(
@@ -79,8 +82,13 @@ class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
                                 height: 49 * context.scale,
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.10),
-                                  borderRadius: BorderRadius.circular(20 * context.scale),
-                                  border: Border.all(color: Colors.black, width: 2),
+                                  borderRadius: BorderRadius.circular(
+                                    20 * context.scale,
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.black,
+                                    width: 2,
+                                  ),
                                 ),
                                 child: Center(
                                   child: Image.asset(
@@ -96,13 +104,13 @@ class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
                           Expanded(
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
-                              child: CustomHeaderTitle(title: 'البرامج المتاحة'),
-
+                              child: CustomHeaderTitle(
+                                title: 'البرامج المتاحة',
+                              ),
                             ),
                           ),
                           const SizedBox(width: 4),
                           const CustomBackButton(),
-
                         ],
                       ),
                     ),
@@ -134,7 +142,10 @@ class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
                         final currentProgram = programsData[index];
 
                         return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           child: LayoutBuilder(
                             builder: (context, constraints) {
                               final cardWidth = constraints.maxWidth;
@@ -148,7 +159,9 @@ class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0x00000000).withOpacity(0.25),
+                                      color: const Color(
+                                        0x00000000,
+                                      ).withOpacity(0.25),
                                       offset: const Offset(0, 4),
                                       blurRadius: 4,
                                       spreadRadius: 5,
@@ -159,7 +172,6 @@ class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
                                   borderRadius: BorderRadius.circular(20),
                                   child: Stack(
                                     children: [
-
                                       Positioned.fill(
                                         child: Image.asset(
                                           currentProgram['image'],
@@ -173,16 +185,27 @@ class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
                                         child: GestureDetector(
                                           onTap: () {
                                             setState(() {
-                                              WishlistData.instance.toggleWishlist(currentProgram['id']);
+                                              WishlistData.instance
+                                                  .toggleWishlist(
+                                                    currentProgram['id'],
+                                                  );
                                             });
                                           },
                                           child: Image.asset(
                                             'assets/icons/addToWishList.png',
                                             fit: BoxFit.contain,
-                                            color: WishlistData.instance.isWishlisted(currentProgram['id'])
+                                            color:
+                                                WishlistData.instance
+                                                    .isWishlisted(
+                                                      currentProgram['id'],
+                                                    )
                                                 ? Colors.orange
                                                 : null,
-                                            colorBlendMode: WishlistData.instance.isWishlisted(currentProgram['id'])
+                                            colorBlendMode:
+                                                WishlistData.instance
+                                                    .isWishlisted(
+                                                      currentProgram['id'],
+                                                    )
                                                 ? BlendMode.srcIn
                                                 : null,
                                           ),
@@ -202,28 +225,44 @@ class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
                                             children: [
                                               Positioned.fill(
                                                 child: BackdropFilter(
-                                                  filter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
-                                                  child: const SizedBox.expand(),
+                                                  filter: ImageFilter.blur(
+                                                    sigmaX: 1,
+                                                    sigmaY: 1,
+                                                  ),
+                                                  child:
+                                                      const SizedBox.expand(),
                                                 ),
                                               ),
                                               Positioned.fill(
                                                 child: Container(
                                                   decoration: BoxDecoration(
-                                                    borderRadius: const BorderRadius.only(
-                                                      topLeft: Radius.circular(20),
-                                                      topRight: Radius.circular(20),
-                                                    ),
-                                                    gradient: const LinearGradient(
-                                                      begin: Alignment.topCenter,
-                                                      end: Alignment.bottomCenter,
-                                                      colors: [
-                                                        Color(0x1A91B3FA),
-                                                        Color(0x1A000000),
-                                                      ],
-                                                    ),
+                                                    borderRadius:
+                                                        const BorderRadius.only(
+                                                          topLeft:
+                                                              Radius.circular(
+                                                                20,
+                                                              ),
+                                                          topRight:
+                                                              Radius.circular(
+                                                                20,
+                                                              ),
+                                                        ),
+                                                    gradient:
+                                                        const LinearGradient(
+                                                          begin: Alignment
+                                                              .topCenter,
+                                                          end: Alignment
+                                                              .bottomCenter,
+                                                          colors: [
+                                                            Color(0x1A91B3FA),
+                                                            Color(0x1A000000),
+                                                          ],
+                                                        ),
                                                     boxShadow: [
                                                       BoxShadow(
-                                                        color: Color(0x40000000),
+                                                        color: Color(
+                                                          0x40000000,
+                                                        ),
                                                         offset: Offset(0, -10),
                                                         blurRadius: 4,
                                                         spreadRadius: 0,
@@ -233,54 +272,104 @@ class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
                                                 ),
                                               ),
                                               Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 8,
+                                                    ),
                                                 child: Column(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.end,
                                                   children: [
                                                     Row(
-                                                      mainAxisAlignment: MainAxisAlignment.end,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.end,
                                                       children: [
                                                         Flexible(
                                                           child: Text(
                                                             currentProgram['location'],
-                                                            style: const TextStyle(fontFamily: 'Tajawal', fontSize: 16, color: Colors.white),
-                                                            overflow: TextOverflow.ellipsis,
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontFamily:
+                                                                      'Tajawal',
+                                                                  fontSize: 16,
+                                                                  color: Colors
+                                                                      .white,
+                                                                ),
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
                                                             maxLines: 1,
-                                                            textAlign: TextAlign.right,
+                                                            textAlign:
+                                                                TextAlign.right,
                                                           ),
                                                         ),
-                                                        const SizedBox(width: 8),
-                                                        Image.asset('assets/icons/Location.png', width: 20, height: 20),
+                                                        const SizedBox(
+                                                          width: 8,
+                                                        ),
+                                                        Image.asset(
+                                                          'assets/icons/Location.png',
+                                                          width: 20,
+                                                          height: 20,
+                                                        ),
                                                       ],
                                                     ),
                                                     const SizedBox(height: 6),
                                                     Row(
-                                                      mainAxisAlignment: MainAxisAlignment.end,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.end,
                                                       children: [
                                                         Text(
                                                           currentProgram['date'],
-                                                          style: const TextStyle(fontFamily: 'Tajawal', fontSize: 14, color: Colors.white70),
+                                                          style:
+                                                              const TextStyle(
+                                                                fontFamily:
+                                                                    'Tajawal',
+                                                                fontSize: 14,
+                                                                color: Colors
+                                                                    .white70,
+                                                              ),
                                                         ),
-                                                        const SizedBox(width: 8),
-                                                        Image.asset('assets/icons/Calender 2.png', width: 20, height: 20),
+                                                        const SizedBox(
+                                                          width: 8,
+                                                        ),
+                                                        Image.asset(
+                                                          'assets/icons/Calender 2.png',
+                                                          width: 20,
+                                                          height: 20,
+                                                        ),
                                                       ],
                                                     ),
                                                     const SizedBox(height: 6),
 
                                                     Row(
-                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
                                                       children: [
                                                         Row(
-                                                          children: List.generate(5, (starIndex) {
+                                                          children: List.generate(5, (
+                                                            starIndex,
+                                                          ) {
                                                             return GestureDetector(
                                                               onTap: () {
                                                                 setState(() {
-                                                                  WishlistData.instance.setRating(currentProgram['id'], starIndex + 1);
+                                                                  WishlistData
+                                                                      .instance
+                                                                      .setRating(
+                                                                        currentProgram['id'],
+                                                                        starIndex +
+                                                                            1,
+                                                                      );
                                                                 });
                                                               },
                                                               child: Image.asset(
-                                                                WishlistData.instance.getRating(currentProgram['id']) > starIndex
+                                                                WishlistData.instance.getRating(
+                                                                          currentProgram['id'],
+                                                                        ) >
+                                                                        starIndex
                                                                     ? 'assets/icons/star1.png'
                                                                     : 'assets/icons/star2.png',
                                                                 width: 18,
@@ -293,10 +382,25 @@ class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
                                                           children: [
                                                             Text(
                                                               currentProgram['price'],
-                                                              style: const TextStyle(fontFamily: 'Tajawal', fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
+                                                              style: const TextStyle(
+                                                                fontFamily:
+                                                                    'Tajawal',
+                                                                fontSize: 16,
+                                                                color: Colors
+                                                                    .white,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
                                                             ),
-                                                            const SizedBox(width: 4),
-                                                            Image.asset('assets/icons/Wallet.png', width: 20, height: 20),
+                                                            const SizedBox(
+                                                              width: 4,
+                                                            ),
+                                                            Image.asset(
+                                                              'assets/icons/Wallet.png',
+                                                              width: 20,
+                                                              height: 20,
+                                                            ),
                                                           ],
                                                         ),
                                                       ],
@@ -327,11 +431,8 @@ class _AvailableProgramsPageState extends State<AvailableProgramsPage> {
             bottom: 0,
             left: 0,
             right: 0,
-            child: AppBottomNavBar(
-              selectedIndex: 0,
-            ),
+            child: AppBottomNavBar(selectedIndex: 0),
           ),
-
         ],
       ),
     );

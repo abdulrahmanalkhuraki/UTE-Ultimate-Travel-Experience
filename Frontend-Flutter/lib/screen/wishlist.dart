@@ -1,9 +1,9 @@
 import 'dart:ui';
-import 'package:tourism_app/wishlist_data.dart';
+import 'wishlist_data.dart';
 
 import 'bottomNavigationBar.dart';
 import 'package:flutter/material.dart' hide BottomNavigationBar;
-import 'package:tourism_app/search_screen.dart';
+import 'search_screen.dart';
 import 'app_constants.dart';
 
 class WishlistScreen extends StatefulWidget {

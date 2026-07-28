@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'onboarding3_screen.dart';
+
 class Onboarding2Screen extends StatelessWidget {
   const Onboarding2Screen({Key? key}) : super(key: key);
 
@@ -32,7 +34,7 @@ class Onboarding2Screen extends StatelessWidget {
               right: 23 * scaleW,
               child: GestureDetector(
                 onTap: () {
-                  Navigator.of(context).pushReplacementNamed('/areyoucompany');
+                  Navigator.of(context).pushReplacementNamed('/onboarding3');
                 },
                 child: Text(
                   'تخطي',
@@ -99,13 +101,29 @@ class Onboarding2Screen extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildRect(width: 20 * scaleW, height: 15 * scaleH, color: const Color(0x4091B3FA)),
+                    _buildRect(
+                      width: 20 * scaleW,
+                      height: 15 * scaleH,
+                      color: const Color(0x4091B3FA),
+                    ),
                     SizedBox(width: 10 * scaleW),
-                    _buildRect(width: 30 * scaleW, height: 15 * scaleH, color: const Color(0xFF91B3FA)),
+                    _buildRect(
+                      width: 30 * scaleW,
+                      height: 15 * scaleH,
+                      color: const Color(0xFF91B3FA),
+                    ),
                     SizedBox(width: 10 * scaleW),
-                    _buildRect(width: 20 * scaleW, height: 15 * scaleH, color: const Color(0x4091B3FA)),
+                    _buildRect(
+                      width: 20 * scaleW,
+                      height: 15 * scaleH,
+                      color: const Color(0x4091B3FA),
+                    ),
                     SizedBox(width: 10 * scaleW),
-                    _buildRect(width: 20 * scaleW, height: 15 * scaleH, color: const Color(0x4091B3FA)),
+                    _buildRect(
+                      width: 20 * scaleW,
+                      height: 15 * scaleH,
+                      color: const Color(0x4091B3FA),
+                    ),
                   ],
                 ),
               ),
@@ -123,14 +141,18 @@ class Onboarding2Screen extends StatelessWidget {
                       icon: Icons.arrow_back_ios_new_rounded,
                       backgroundColor: const Color(0x2691B3FA),
                       onTap: () {
-                        Navigator.of(context).pushReplacementNamed('/onboarding1');
+                        Navigator.of(
+                          context,
+                        ).pushReplacementNamed('/onboarding1');
                       },
                     ),
                     _buildSideButton(
                       icon: Icons.arrow_forward_ios_rounded,
                       backgroundColor: const Color(0x8091B3FA),
                       onTap: () {
-                        Navigator.of(context).pushReplacementNamed('/onboarding3');
+                        Navigator.of(
+                          context,
+                        ).pushReplacementNamed('/onboarding3');
                       },
                     ),
                   ],
@@ -143,7 +165,11 @@ class Onboarding2Screen extends StatelessWidget {
     );
   }
 
-  Widget _buildRect({required double width, required double height, required Color color}) {
+  Widget _buildRect({
+    required double width,
+    required double height,
+    required Color color,
+  }) {
     return Container(
       width: width,
       height: height,
