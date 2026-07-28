@@ -1,15 +1,12 @@
 using System.Net.Mime;
 using System.Security.Claims;
 using Application.DTOs.Pagination;
-using Application.DTOs.TourPackage;
 using Application.DTOs.TourPackage.Request;
 using Application.DTOs.TourPackage.Response;
-using Application.Exceptions;
 using Application.Interfaces.TourPackage;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ValidationException = Application.Exceptions.ValidationException;
 
 namespace UTE.Controllers
 {
@@ -188,6 +185,168 @@ namespace UTE.Controllers
             if (!deleted)
                 return NotFound(CreateProblemDetails("Tour package not found", $"Tour package with ID {id} not found", StatusCodes.Status404NotFound));
             return NoContent();
+        }
+
+        /// <summary>
+        /// Retrieves paginated completed tour packages for the authenticated company.
+        /// Each package includes earning analytics, engagement metrics, and publication history.
+        /// </summary>
+        /// <param name="page">Page number (1-based). Default: 1</param>
+        /// <param name="pageSize">Items per page. Default: 20. Max: 100</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Paginated collection of CompletedTourPackageResponse.</returns>
+        /// <response code="200">Successfully retrieved completed packages.</response>
+        /// <response code="400">Invalid pagination parameters.</response>
+        /// <response code="401">User not authenticated.</response>
+        /// <response code="403">User is not a tour company or profile not completed.</response>
+        /// <response code="500">Internal server error.</response>
+        [HttpGet("mine/completed")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "TourCompany")]
+        [ProducesResponseType(typeof(PaginatedResponse<CompletedTourPackageResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PaginatedResponse<CompletedTourPackageResponse>>> GetMineCompleted(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken cancellationToken = default)
+        {
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                return BadRequest(CreateProblemDetails(
+                    "Invalid Pagination",
+                    "Page must be >= 1, PageSize must be between 1 and 100.",
+                    StatusCodes.Status400BadRequest));
+
+            return Ok(await _service.GetMineCompletedAsync(page, pageSize, cancellationToken));
+        }
+
+        /// <summary>
+        /// Retrieves paginated active tour packages for the authenticated company.
+        /// Each package includes time-sensitive information (days until start/registration close) and ratings.
+        /// </summary>
+        /// <param name="page">Page number (1-based). Default: 1</param>
+        /// <param name="pageSize">Items per page. Default: 20. Max: 100</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Paginated collection of ActiveTourPackageResponse.</returns>
+        /// <response code="200">Successfully retrieved active packages.</response>
+        /// <response code="400">Invalid pagination parameters.</response>
+        /// <response code="401">User not authenticated.</response>
+        /// <response code="403">User is not a tour company or profile not completed.</response>
+        /// <response code="500">Internal server error.</response>
+        [HttpGet("mine/active")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "TourCompany")]
+        [ProducesResponseType(typeof(PaginatedResponse<ActiveTourPackageResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PaginatedResponse<ActiveTourPackageResponse>>> GetMineActive(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken cancellationToken = default)
+        {
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                return BadRequest(CreateProblemDetails(
+                    "Invalid Pagination",
+                    "Page must be >= 1, PageSize must be between 1 and 100.",
+                    StatusCodes.Status400BadRequest));
+
+            return Ok(await _service.GetMineActiveAsync(page, pageSize, cancellationToken));
+        }
+
+        /// <summary>
+        /// Retrieves paginated cancelled tour packages for the authenticated company.
+        /// Each package includes cancellation timestamp for audit and display purposes.
+        /// </summary>
+        /// <param name="page">Page number (1-based). Default: 1</param>
+        /// <param name="pageSize">Items per page. Default: 20. Max: 100</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Paginated collection of CancelledTourPackageResponse.</returns>
+        /// <response code="200">Successfully retrieved cancelled packages.</response>
+        /// <response code="400">Invalid pagination parameters.</response>
+        /// <response code="401">User not authenticated.</response>
+        /// <response code="403">User is not a tour company or profile not completed.</response>
+        /// <response code="500">Internal server error.</response>
+        [HttpGet("mine/cancelled")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "TourCompany")]
+        [ProducesResponseType(typeof(PaginatedResponse<CancelledTourPackageResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PaginatedResponse<CancelledTourPackageResponse>>> GetMineCancelled(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken cancellationToken = default)
+        {
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                return BadRequest(CreateProblemDetails(
+                    "Invalid Pagination",
+                    "Page must be >= 1, PageSize must be between 1 and 100.",
+                    StatusCodes.Status400BadRequest));
+
+            return Ok(await _service.GetMineCancelledAsync(page, pageSize, cancellationToken));
+        }
+
+        /// <summary>
+        /// Retrieves paginated rejected tour packages for the authenticated company.
+        /// Each package includes the admin's rejection reason for transparency.
+        /// </summary>
+        /// <param name="page">Page number (1-based). Default: 1</param>
+        /// <param name="pageSize">Items per page. Default: 20. Max: 100</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Paginated collection of RejectedTourPackageResponse.</returns>
+        /// <response code="200">Successfully retrieved rejected packages.</response>
+        /// <response code="400">Invalid pagination parameters.</response>
+        /// <response code="401">User not authenticated.</response>
+        /// <response code="403">User is not a tour company or profile not completed.</response>
+        /// <response code="500">Internal server error.</response>
+        [HttpGet("mine/rejected")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "TourCompany")]
+        [ProducesResponseType(typeof(PaginatedResponse<RejectedTourPackageResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PaginatedResponse<RejectedTourPackageResponse>>> GetMineRejected(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken cancellationToken = default)
+        {
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                return BadRequest(CreateProblemDetails(
+                    "Invalid Pagination",
+                    "Page must be >= 1, PageSize must be between 1 and 100.",
+                    StatusCodes.Status400BadRequest));
+
+return Ok(await _service.GetMineRejectedAsync(page, pageSize, cancellationToken));
+        }
+
+        /// <summary>
+        /// Retrieves package statistics for the authenticated company's dashboard.
+        /// Includes status breakdown and monthly published chart data.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Package statistics response.</returns>
+        /// <response code="200">Successfully retrieved package statistics.</response>
+        /// <response code="401">User not authenticated.</response>
+        /// <response code="403">User is not a tour company or profile not completed.</response>
+        /// <response code="500">Internal server error.</response>
+        [HttpGet("mine/stats")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "TourCompany")]
+        [ProducesResponseType(typeof(PackageStatsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PackageStatsResponse>> GetPackageStats(CancellationToken cancellationToken = default)
+        {
+            return Ok(await _service.GetPackageStatsAsync(cancellationToken));
         }
 
         #region Helpers

@@ -40,6 +40,9 @@ namespace Domain.Entities;
 
     public DateTime? PublishedAtUtc { get; set; }
 
+    /// <summary>Timestamp when package was cancelled (if applicable). Null for active/completed/rejected packages.</summary>
+    public DateTime? CancelledAtUtc { get; set; }
+
     public bool IsDeleted { get; set; }
 
     public int CompanyId { get; set; }

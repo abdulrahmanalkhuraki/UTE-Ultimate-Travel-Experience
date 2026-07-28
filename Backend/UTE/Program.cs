@@ -42,7 +42,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
 using Hangfire;
-using Hangfire.SqlServer;
 using UTE.Middleware;
 using UTE.Security;
 
@@ -382,6 +381,10 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<ReviewProfile>();
     cfg.AddProfile<TicketProfile>();
     cfg.AddProfile<SupportReplyProfile>();
+    cfg.AddProfile<CompletedTourPackageProfile>();
+    cfg.AddProfile<ActiveTourPackageProfile>();
+    cfg.AddProfile<CancelledTourPackageProfile>();
+    cfg.AddProfile<RejectedTourPackageProfile>();
 });
 
 // ==========================================

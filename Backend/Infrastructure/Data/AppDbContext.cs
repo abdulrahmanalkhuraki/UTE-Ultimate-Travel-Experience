@@ -559,6 +559,10 @@ namespace Infrastructure.Data;
                 .HasDefaultValue(0);
             entity.Property(e => e.PublishedAtUtc)
                 .HasColumnType("datetime");
+            
+            entity.Property(e => e.CancelledAtUtc)
+                .HasColumnType("datetime2");
+
             entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -572,6 +576,10 @@ namespace Infrastructure.Data;
                 .HasForeignKey(d => d.CountryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TourPackages_Countries");
+
+            entity.HasIndex(p => new { p.CompanyId, p.Status, p.PublishedAtUtc })
+                .HasDatabaseName("IX_TourPackages_CompanyId_Status_PublishedAtUtc")
+                .HasFilter("[IsDeleted] = 0");
         });
 
         modelBuilder.Entity<Person>(entity =>

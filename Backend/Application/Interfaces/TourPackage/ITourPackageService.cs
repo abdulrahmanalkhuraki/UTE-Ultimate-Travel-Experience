@@ -13,7 +13,7 @@ namespace Application.Interfaces.TourPackage
 
         Task<IReadOnlyList<TourPackageResponse>> GetAllAsync(CancellationToken cancellationToken = default);
 
-        Task<PaginatedResponse<TourPackageResponse>> GetMineAsync(int page = 1,int pageSize = 20,TourPackageStatus? status = null, CancellationToken cancellationToken = default);
+        Task<PaginatedResponse<TourPackageResponse>> GetMineAsync(int page = 1, int pageSize = 20, TourPackageStatus? status = null, CancellationToken cancellationToken = default);
 
         Task<TourPackageResponse> GetMineAsync(int id, CancellationToken cancellationToken = default);
 
@@ -37,5 +37,20 @@ namespace Application.Interfaces.TourPackage
             decimal? minPrice = null,
             decimal? maxPrice = null,
             CancellationToken cancellationToken = default);
+
+        /// <summary>Retrieves paginated completed tour packages for the authenticated company.</summary>
+        Task<PaginatedResponse<CompletedTourPackageResponse>> GetMineCompletedAsync(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
+
+        /// <summary>Retrieves paginated active tour packages for the authenticated company.</summary>
+        Task<PaginatedResponse<ActiveTourPackageResponse>> GetMineActiveAsync(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
+
+        /// <summary>Retrieves paginated cancelled tour packages for the authenticated company.</summary>
+        Task<PaginatedResponse<CancelledTourPackageResponse>> GetMineCancelledAsync(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
+
+        /// <summary>Retrieves paginated rejected tour packages for the authenticated company.</summary>
+        Task<PaginatedResponse<RejectedTourPackageResponse>> GetMineRejectedAsync(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
+
+        /// <summary>Retrieves package statistics for the authenticated company's dashboard.</summary>
+        Task<PackageStatsResponse> GetPackageStatsAsync(CancellationToken cancellationToken = default);
     }
 }

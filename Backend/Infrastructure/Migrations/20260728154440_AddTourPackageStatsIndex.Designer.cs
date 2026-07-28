@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260714103120_initDatabase")]
-    partial class initDatabase
+    [Migration("20260728154440_AddTourPackageStatsIndex")]
+    partial class AddTourPackageStatsIndex
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -996,6 +996,9 @@ namespace Infrastructure.Migrations
                     b.Property<int>("AvailableSeats")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("CancelledAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("CompanyId")
                         .HasColumnType("int");
 
@@ -1080,9 +1083,11 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("CountryId");
+
+                    b.HasIndex("CompanyId", "Status", "PublishedAtUtc")
+                        .HasDatabaseName("IX_TourPackages_CompanyId_Status_PublishedAtUtc")
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("TourPackages");
                 });

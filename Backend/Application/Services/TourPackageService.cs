@@ -18,11 +18,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.Design;
+using System.Globalization;
+using System.Security.Authentication;
 using ValidationException = Application.Exceptions.ValidationException;
 
 namespace Application.Services
 {
-    public class TourPackageService : ITourPackageService
+    public partial class TourPackageService : ITourPackageService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -395,6 +397,7 @@ namespace Application.Services
 
                 var oldStatus = entity.Status;
                 entity.Status = TourPackageStatus.Cancelled;
+                entity.CancelledAtUtc = DateTime.UtcNow;
                 entity.UpdatedAtUtc = DateTime.UtcNow;
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -830,6 +833,67 @@ namespace Application.Services
                 .ToListAsync(cancellationToken);
 
             return _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
+        }
+
+        public async Task<PackageStatsResponse> GetPackageStatsAsync(CancellationToken cancellationToken = default)
+        {
+            var currentUserId = _currentUser.UserId
+                ?? throw new AuthenticationException(ExceptionMessages.AuthFailure("not authenticated"));
+
+            var companyId = await ResolveCompanyIdAsync(currentUserId, cancellationToken);
+
+            var raw = await _unitOfWork.TourPackages
+                .Query()
+                .AsNoTracking()
+                .Where(p => p.CompanyId == companyId && !p.IsDeleted)
+                .GroupBy(p => 1)
+                .Select(g => new
+                {
+                    Total = g.Count(),
+                    Active = g.Count(p => p.Status == TourPackageStatus.Active),
+                    Rejected = g.Count(p => p.Status == TourPackageStatus.Rejected),
+                    Completed = g.Count(p => p.Status == TourPackageStatus.Completed),
+                    Cancelled = g.Count(p => p.Status == TourPackageStatus.Cancelled),
+                })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            var monthlyRaw = await _unitOfWork.TourPackages
+                .Query()
+                .AsNoTracking()
+                .Where(p => p.CompanyId == companyId && !p.IsDeleted && p.PublishedAtUtc != null)
+                .GroupBy(p => new { p.PublishedAtUtc!.Value.Year, p.PublishedAtUtc!.Value.Month })
+                .Select(m => new { m.Key.Year, m.Key.Month, Count = m.Count() })
+                .ToListAsync(cancellationToken);
+
+            var monthlyLookup = monthlyRaw.ToDictionary(
+                m => (Year: m.Year, Month: m.Month),
+                m => m.Count);
+
+            var today = DateTime.UtcNow;
+            var monthlyPublished = new List<MonthlyPackageCount>(12);
+            for (var i = 11; i >= 0; i--)
+            {
+                var date = today.AddMonths(-i);
+                var year = date.Year;
+                var month = date.Month;
+                monthlyPublished.Add(new MonthlyPackageCount
+                {
+                    Year = year,
+                    Month = month,
+                    MonthName = CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(month),
+                    PublishedCount = monthlyLookup.GetValueOrDefault((Year: year, Month: month), 0)
+                });
+            }
+
+            return new PackageStatsResponse
+            {
+                TotalPackages = raw?.Total ?? 0,
+                ActivePackages = raw?.Active ?? 0,
+                RejectedPackages = raw?.Rejected ?? 0,
+                CompletedPackages = raw?.Completed ?? 0,
+                CancelledPackages = raw?.Cancelled ?? 0,
+                MonthlyPublished = monthlyPublished.AsReadOnly()
+            };
         }
 
         #region Helpers

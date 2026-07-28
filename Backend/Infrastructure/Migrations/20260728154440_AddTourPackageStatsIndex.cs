@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class initDatabase : Migration
+    public partial class AddTourPackageStatsIndex : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -482,6 +482,7 @@ namespace Infrastructure.Migrations
                     RejectionReason = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     PublishCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     PublishedAtUtc = table.Column<DateTime>(type: "datetime", nullable: true),
+                    CancelledAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     CompanyId = table.Column<int>(type: "int", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())"),
@@ -1068,9 +1069,10 @@ namespace Infrastructure.Migrations
                 column: "TourPackageId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TourPackages_CompanyId",
+                name: "IX_TourPackages_CompanyId_Status_PublishedAtUtc",
                 table: "TourPackages",
-                column: "CompanyId");
+                columns: new[] { "CompanyId", "Status", "PublishedAtUtc" },
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TourPackages_CountryId",

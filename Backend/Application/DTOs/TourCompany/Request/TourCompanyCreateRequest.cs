@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Application.DTOs.TourCompany.Request
 {
-    public class TourCompanyCreateRequest
+    public sealed record TourCompanyCreateRequest
     {
         public string Name { get; set; } = null!;
 

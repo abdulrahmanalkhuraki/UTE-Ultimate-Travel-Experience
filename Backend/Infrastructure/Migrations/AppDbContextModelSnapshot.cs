@@ -993,6 +993,9 @@ namespace Infrastructure.Migrations
                     b.Property<int>("AvailableSeats")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("CancelledAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("CompanyId")
                         .HasColumnType("int");
 
@@ -1077,9 +1080,11 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("CountryId");
+
+                    b.HasIndex("CompanyId", "Status", "PublishedAtUtc")
+                        .HasDatabaseName("IX_TourPackages_CompanyId_Status_PublishedAtUtc")
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("TourPackages");
                 });
