@@ -1,3 +1,5 @@
+using Application.Common.Constants;
+using Application.Common.Logging;
 using Application.DTOs.SupportReply.Request;
 using Application.DTOs.SupportReply.Response;
 using Application.Exceptions;
@@ -22,6 +24,7 @@ namespace Application.Services
         private readonly SupportReplyCreateValidator _createValidator;
         private readonly ICurrentUserService _currentUser;
         private readonly INotificationService _notificationService;
+        private const string ObjectName = "Support Reply";
 
         public SupportReplyService(
             IUnitOfWork unitOfWork,
@@ -43,13 +46,12 @@ namespace Application.Services
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
-            _logger.LogInformation("Attempting to create new SupportReply for ticket {TicketId}", request.TicketId);
+            _logger.StartOperation("Create", ObjectName, request.TicketId, 0);
 
             var validationResult = await _createValidator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
-                _logger.LogWarning("SupportReply creation validation failed: {Errors}",
-                    string.Join(", ", validationResult.Errors));
+                _logger.ValidationFailed("Create", ObjectName, string.Join(", ", validationResult.Errors));
                 throw new ValidationException(string.Join(", ", validationResult.Errors));
             }
 
@@ -62,14 +64,15 @@ namespace Application.Services
 
                 if (ticket is null)
                 {
-                    _logger.LogWarning("Ticket with ID {TicketId} not found", request.TicketId);
-                    throw new NotFoundException($"Ticket with ID {request.TicketId} not found");
+                    _logger.EntityNotFound("Ticket", request.TicketId);
+                    throw new NotFoundException(ExceptionMessages.NotFound("Ticket", request.TicketId));
                 }
 
                 if (ticket.Status == TicketStatus.Closed)
                 {
-                    _logger.LogWarning("Attempted to reply to closed ticket {TicketId}", request.TicketId);
-                    throw new BusinessRuleException($"Cannot reply to ticket '{request.TicketId}' because it is already closed.");
+                    _logger.BusinessRuleViolated("Ticket", "Cannot reply to a closed ticket");
+                    throw new BusinessRuleException(ExceptionMessages.BusinessRule(
+                        $"Cannot reply to ticket '{request.TicketId}' because it is already closed."));
                 }
 
                 var reply = _mapper.Map<SupportReply>(request);
@@ -83,7 +86,7 @@ namespace Application.Services
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Successfully created SupportReply {ReplyId} for ticket {TicketId}", reply.Id, reply.TicketId);
+                _logger.SuccessfulOperation("Create", ObjectName);
 
                 try
                 {
@@ -100,25 +103,25 @@ namespace Application.Services
             }
             catch (Exception ex) when (ex is NotFoundException or BusinessRuleException)
             {
-                _logger.LogError(ex, "Error creating SupportReply for ticket {TicketId}", request.TicketId);
-                throw new ServiceException($"Failed to create reply: {ex.Message}", ex);
+                _logger.ServerError("Create", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("create", ObjectName, ex.Message), ex);
             }
         }
 
         public async Task<IReadOnlyList<SupportReplyResponse>> GetAsync(int ticketId, CancellationToken cancellationToken)
         {
             if (ticketId <= 0)
-                throw new ArgumentException($"Invalid Ticket Id {ticketId}");
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName));
 
-            _logger.LogDebug("Retrieving SupportReplies for ticket {TicketId}", ticketId);
+            _logger.StartOperation("Retrieve", ObjectName, ticketId, 0);
 
             try
             {
                 var exists = await _unitOfWork.Tickets.AnyAsync(t => t.Id == ticketId, cancellationToken);
                 if (!exists)
                 {
-                    _logger.LogWarning("Ticket with ID {TicketId} not found", ticketId);
-                    throw new NotFoundException($"Ticket with ID {ticketId} not found");
+                    _logger.EntityNotFound("Ticket", ticketId);
+                    throw new NotFoundException(ExceptionMessages.NotFound("Ticket", ticketId));
                 }
 
                 var replies = await _unitOfWork.SupportReplies
@@ -139,8 +142,8 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving SupportReplies for ticket {TicketId}", ticketId);
-                throw new ServiceException("Failed to retrieve replies.", ex);
+                _logger.ServerError("Retrieve", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
             }
         }
     }

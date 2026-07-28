@@ -22,6 +22,8 @@ namespace Infrastructure.Security
         public bool IsAuthenticated =>
             User?.Identity?.IsAuthenticated ?? false;
 
+        bool ICurrentUserService.IsAdmin => User?.IsInRole("Admin") ?? false;
+
         public int? UserId
         {
             get
@@ -36,5 +38,7 @@ namespace Infrastructure.Security
 
         public string? Name =>
             User?.Identity?.Name;
+
+        
     }
 }

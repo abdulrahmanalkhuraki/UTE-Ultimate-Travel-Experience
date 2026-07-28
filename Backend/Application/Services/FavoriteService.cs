@@ -1,3 +1,5 @@
+using Application.Common.Constants;
+using Application.Common.Logging;
 using Application.DTOs.Favorite.Response;
 using Application.Exceptions;
 using Application.Interfaces.Favorite;
@@ -16,6 +18,7 @@ namespace Application.Services
         private readonly IMapper _mapper;
         private readonly ILogger<FavoriteService> _logger;
         private readonly ICurrentUserService _currentUser;
+        private const string ObjectName = "Favorite";
 
         public FavoriteService(
             IUnitOfWork unitOfWork,
@@ -32,11 +35,11 @@ namespace Application.Services
         public async Task<FavoriteResponse> AddAsync(int companyId, CancellationToken cancellationToken)
         {
             if (companyId <= 0)
-                throw new ArgumentException($"Invalid Company Id {companyId}");
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName));
 
             var userId = _currentUser.UserId ?? 0;
 
-            _logger.LogInformation("User {UserId} attempting to add company {CompanyId} to favorites", userId, companyId);
+            _logger.StartOperation("Add", ObjectName, userId);
 
             try
             {
@@ -45,14 +48,14 @@ namespace Application.Services
 
                 if (company is null)
                 {
-                    _logger.LogWarning("Company with ID {CompanyId} not found", companyId);
-                    throw new NotFoundException($"Company with ID {companyId} not found");
+                    _logger.EntityNotFound(ObjectName, companyId);
+                    throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, companyId));
                 }
 
                 if (company.UserId == userId)
                 {
-                    _logger.LogWarning("User {UserId} attempted to favorite their own company {CompanyId}", userId, companyId);
-                    throw new BusinessRuleException("You cannot add your own company to favorites");
+                    _logger.BusinessRuleViolated(ObjectName, "You cannot add your own company to favorites");
+                    throw new BusinessRuleException(ExceptionMessages.BusinessRule("You cannot add your own company to favorites"));
                 }
 
                 var existing = await _unitOfWork.Favorites
@@ -60,8 +63,8 @@ namespace Application.Services
 
                 if (existing is not null)
                 {
-                    _logger.LogWarning("Company {CompanyId} is already in user {UserId} favorites", companyId, userId);
-                    throw new BusinessRuleException("This company is already in your favorites");
+                    _logger.BusinessRuleViolated(ObjectName, "This company is already in your favorites");
+                    throw new BusinessRuleException(ExceptionMessages.BusinessRule("This company is already in your favorites"));
                 }
 
                 var favorite = new Favorite
@@ -73,7 +76,7 @@ namespace Application.Services
                 await _unitOfWork.Favorites.AddAsync(favorite, cancellationToken);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Successfully added company {CompanyId} to user {UserId} favorites", companyId, userId);
+                _logger.SuccessfulOperation(userId, "Add", ObjectName, companyId);
 
                 return new FavoriteResponse
                 {
@@ -86,8 +89,8 @@ namespace Application.Services
             }
             catch (Exception ex) when (ex is NotFoundException or BusinessRuleException)
             {
-                _logger.LogError(ex, "Error adding company {CompanyId} to favorites for user {UserId}", companyId, userId);
-                throw new ServiceException($"Failed to add favorite: {ex.Message}", ex);
+                _logger.ServerError("Add", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("add", ObjectName, ex.Message), ex);
             }
         }
 
@@ -121,8 +124,8 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving favorites for user {UserId}", userId);
-                throw new ServiceException("Failed to retrieve favorites.", ex);
+                _logger.ServerError("Retrieve", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
             }
         }
     }

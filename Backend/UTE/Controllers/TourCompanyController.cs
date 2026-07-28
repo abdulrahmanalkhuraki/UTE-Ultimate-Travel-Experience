@@ -2,6 +2,7 @@ using Application.DTOs.TourCompany.Request;
 using Application.DTOs.TourCompany.Response;
 using Application.Exceptions;
 using Application.Interfaces.TourCompany;
+using Application.Interfaces.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
@@ -16,13 +17,12 @@ namespace UTE.Controllers
     public class TourCompanyController : ControllerBase
     {
         private readonly ITourCompanyService _tourCompanyService;
-        private readonly ILogger<TourCompanyController> _logger;
 
-        public TourCompanyController(ITourCompanyService tourCompanyService, ILogger<TourCompanyController> logger)
+        public TourCompanyController(ITourCompanyService tourCompanyService)
         {
             _tourCompanyService = tourCompanyService ?? throw new ArgumentNullException(nameof(tourCompanyService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
 
         /// <summary>
         /// Retrieves a specific tour company by ID.
@@ -39,27 +39,26 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<TourCompanyResponse>> GetById(int id, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var company = await _tourCompanyService.GetAsync(id, GetCurrentUserId(), IsAdmin(), cancellationToken);
-                return Ok(company);
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning(ex, "Invalid argument for tour company ID: {CompanyId}", id);
-                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
-            }
-            catch (NotFoundException ex)
-            {
-                _logger.LogWarning(ex, "Tour company with ID {CompanyId} not found", id);
-                return NotFound(CreateProblemDetails("Tour company not found", ex.Message, StatusCodes.Status404NotFound));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error retrieving tour company {CompanyId}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            var company = await _tourCompanyService.GetAsync(id, cancellationToken);
+            return Ok(company);
+        }
+
+        /// <summary>
+        /// Retrieves tour company That Attached To The Current User.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>The requested tour company</returns>
+        /// <response code="200">Returns the requested tour company</response>
+        /// <response code="409">If the user doesn't attached to a Tour Company</response>
+        /// <response code="500">If there was an internal server error</response>
+        [HttpGet("mine")]
+        [ProducesResponseType(typeof(TourCompanyResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<TourCompanyResponse>> GetMine(CancellationToken cancellationToken = default)
+        {
+            var company = await _tourCompanyService.GetMineAsync(cancellationToken);
+            return Ok(company);
         }
 
         /// <summary>
@@ -90,49 +89,12 @@ namespace UTE.Controllers
             [FromForm] TourCompanyCreateRequest request,
             CancellationToken cancellationToken = default)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(CreateValidationProblemDetails());
-            }
+            var created = await _tourCompanyService.CreateAsync(request, cancellationToken);
 
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid or missing authentication token", StatusCodes.Status401Unauthorized));
-            }
-
-            try
-            {
-                var created = await _tourCompanyService.CreateAsync(userId.Value, request, cancellationToken);
-
-                return CreatedAtAction(
-                    nameof(GetById),
-                    new { id = created.Id },
-                    created);
-            }
-            catch (ValidationException ex)
-            {
-                _logger.LogWarning(ex, "Validation error creating tour company {CompanyName}", request.Name);
-                var problem = CreateProblemDetails("Validation Error", "One or more validation errors occurred", StatusCodes.Status400BadRequest);
-                problem.Extensions["errors"] = ex.Errors;
-                return BadRequest(problem);
-            }
-            catch (NotFoundException ex)
-            {
-                _logger.LogWarning(ex, "Owner not found while creating tour company {CompanyName}", request.Name);
-                return NotFound(CreateProblemDetails("Not Found", ex.Message, StatusCodes.Status404NotFound));
-            }
-            catch (ConflictException ex)
-            {
-                _logger.LogWarning(ex, "Conflict creating tour company {CompanyName}", request.Name);
-                return Conflict(CreateProblemDetails("Conflict", ex.Message, StatusCodes.Status409Conflict));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error creating tour company {CompanyName}", request.Name);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = created.Id },
+                created);
         }
 
         /// <summary>
@@ -145,17 +107,8 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<IReadOnlyList<TourCompanyResponse>>> GetAll(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var companies = await _tourCompanyService.GetAllAsync(cancellationToken);
-                return Ok(companies);
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error retrieving all tour companies");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            var companies = await _tourCompanyService.GetAllAsync(cancellationToken);
+            return Ok(companies);          
         }
 
         /// <summary>
@@ -176,17 +129,8 @@ namespace UTE.Controllers
             [FromQuery] int? userId = null,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var companies = await _tourCompanyService.FilterAsync(name, location, userId, cancellationToken);
-                return Ok(companies);
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error filtering tour companies");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            var companies = await _tourCompanyService.FilterAsync(name, location, userId, cancellationToken);
+            return Ok(companies);
         }
 
         /// <summary>
@@ -220,61 +164,9 @@ namespace UTE.Controllers
             [FromForm] TourCompanyUpdateRequest request,
             CancellationToken cancellationToken = default)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(CreateValidationProblemDetails());
-            }
 
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid or missing authentication token", StatusCodes.Status401Unauthorized));
-            }
-
-            try
-            {
-                var updated = await _tourCompanyService.UpdateAsync(id, userId.Value, IsAdmin(), request, cancellationToken);
-                return Ok(updated);
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning(ex, "Invalid argument updating tour company {CompanyId}", id);
-                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
-            }
-            catch (ValidationException ex)
-            {
-                _logger.LogWarning(ex, "Validation error updating tour company {CompanyId}", id);
-                var problem = CreateProblemDetails("Validation Error", "One or more validation errors occurred", StatusCodes.Status400BadRequest);
-                problem.Extensions["errors"] = ex.Errors;
-                return BadRequest(problem);
-            }
-            catch (ForbiddenException ex)
-            {
-                _logger.LogWarning(ex, "Forbidden updating tour company {CompanyId}", id);
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
-            }
-            catch (NotFoundException ex)
-            {
-                _logger.LogWarning(ex, "Tour company not found for update: {CompanyId}", id);
-                return NotFound(CreateProblemDetails("Tour company not found", ex.Message, StatusCodes.Status404NotFound));
-            }
-            catch (ConflictException ex)
-            {
-                _logger.LogWarning(ex, "Conflict updating tour company {CompanyId}", id);
-                return Conflict(CreateProblemDetails("Conflict", ex.Message, StatusCodes.Status409Conflict));
-            }
-            catch (ConcurrencyException ex)
-            {
-                _logger.LogWarning(ex, "Concurrency conflict updating tour company {CompanyId}", id);
-                return Conflict(CreateProblemDetails("Concurrency Conflict", ex.Message, StatusCodes.Status409Conflict));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error updating tour company {CompanyId}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            var updated = await _tourCompanyService.UpdateAsync(id, request, cancellationToken);
+            return Ok(updated);
         }
 
         /// <summary>
@@ -297,45 +189,9 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
         {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid or missing authentication token", StatusCodes.Status401Unauthorized));
-            }
 
-            try
-            {
-                var deleted = await _tourCompanyService.DeleteAsync(id, userId.Value, IsAdmin(), cancellationToken);
-
-                if (!deleted)
-                {
-                    _logger.LogWarning("Tour company not found for deletion: {CompanyId}", id);
-                    return NotFound(CreateProblemDetails(
-                        "Tour company not found",
-                        $"Tour company with ID {id} not found",
-                        StatusCodes.Status404NotFound));
-                }
-
-                _logger.LogInformation("Tour company {CompanyId} successfully deleted", id);
+                var deleted = await _tourCompanyService.DeleteAsync(id, cancellationToken);
                 return NoContent();
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning(ex, "Invalid argument deleting tour company {CompanyId}", id);
-                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
-            }
-            catch (ForbiddenException ex)
-            {
-                _logger.LogWarning(ex, "Forbidden deleting tour company {CompanyId}", id);
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error deleting tour company {CompanyId}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
         }
 
         /// <summary>
@@ -353,17 +209,8 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<IReadOnlyList<TourCompanyResponse>>> GetPending(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var companies = await _tourCompanyService.GetPendingAsync(cancellationToken);
-                return Ok(companies);
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error retrieving pending tour companies");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            var companies = await _tourCompanyService.GetPendingAsync(cancellationToken);
+            return Ok(companies);
         }
 
 
@@ -410,27 +257,8 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<TourCompanyResponse>> Approve(int id, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var company = await _tourCompanyService.ApproveAsync(id, cancellationToken);
-                return Ok(company);
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning(ex, "Invalid argument approving tour company {CompanyId}", id);
-                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
-            }
-            catch (NotFoundException ex)
-            {
-                _logger.LogWarning(ex, "Tour company not found for approval: {CompanyId}", id);
-                return NotFound(CreateProblemDetails("Tour company not found", ex.Message, StatusCodes.Status404NotFound));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error approving tour company {CompanyId}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            var company = await _tourCompanyService.ApproveAsync(id, cancellationToken);
+            return Ok(company);
         }
 
         /// <summary>
@@ -456,30 +284,8 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<TourCompanyResponse>> Reject(int id, [FromBody] TourCompanyRejectRequest request, CancellationToken cancellationToken = default)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(CreateValidationProblemDetails());
-
-            try
-            {
-                var company = await _tourCompanyService.RejectAsync(id, request.Reason, cancellationToken);
-                return Ok(company);
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning(ex, "Invalid argument rejecting tour company {CompanyId}", id);
-                return BadRequest(CreateProblemDetails("Invalid request", ex.Message, StatusCodes.Status400BadRequest));
-            }
-            catch (NotFoundException ex)
-            {
-                _logger.LogWarning(ex, "Tour company not found for rejection: {CompanyId}", id);
-                return NotFound(CreateProblemDetails("Tour company not found", ex.Message, StatusCodes.Status404NotFound));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error rejecting tour company {CompanyId}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            var company = await _tourCompanyService.RejectAsync(id, request.Reason, cancellationToken);
+            return Ok(company);
         }
 
         #region Private Helper Methods

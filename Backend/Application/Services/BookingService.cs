@@ -6,7 +6,7 @@ using Application.Interfaces.Notifications;
 using Application.Interfaces.User;
 using Application.Validators.Booking;
 using AutoMapper;
-using Azure.Core;
+using Application.Common.Logging;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Interfaces;
@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using ValidationException = Application.Exceptions.ValidationException;
+using Application.Common.Constants;
 
 namespace Application.Services
 {
@@ -36,6 +37,9 @@ namespace Application.Services
         private static readonly TimeSpan SlidingCacheDuration = TimeSpan.FromMinutes(2);
         private static readonly TimeSpan FilterCacheDuration = TimeSpan.FromMinutes(3);
         private static readonly TimeSpan UnapprovedCacheDuration = TimeSpan.FromMinutes(2);
+
+        // Logging Messages constant
+        private const string ObjectName = "Booking";
 
         public BookingService(
             IUnitOfWork unitOfWork,
@@ -62,18 +66,17 @@ namespace Application.Services
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
-            _logger.LogInformation("Attempting to create new booking");
+            var userId = _currentUser.UserId
+                ?? throw new AuthException(ExceptionMessages.Auth());
+
+            _logger.StartOperation("Create", ObjectName, userId);
 
             var validationResult = await _createValidator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
-                _logger.LogWarning("Booking creation validation failed: {Errors}",
-                    string.Join(", ", validationResult.Errors));
+                _logger.ValidationFailed("Create", ObjectName, string.Join(", ", validationResult.Errors));
                 throw new ValidationException(string.Join(", ", validationResult.Errors));
             }
-
-            var userId = _currentUser.UserId
-                ?? throw new AuthException("You must be loged in to create new booking.");
 
             var transactionStarted = false;
 
@@ -86,8 +89,8 @@ namespace Application.Services
                 // check if package exists
                 if (package is null)
                 {
-                    _logger.LogWarning("Package with ID {PackageId} not found", request.PackageId);
-                    throw new NotFoundException($"Package with ID {request.PackageId} not found");
+                    _logger.EntityNotFound("Tour Package", request.PackageId);
+                    throw new NotFoundException(ExceptionMessages.NotFound("Tour Package", request.PackageId));
                 }
 
                 var companionIds = request.CompanionIds.ToHashSet();
@@ -101,16 +104,16 @@ namespace Application.Services
                 var childrenCompanions = existingCompanions.Count - adultCompanions;
                 var totalSeatesNeeded = adultCompanions + 1; // user and his/her adult companions
 
-                _EnsureCompanionsExists(existingCompanions,companionIds);
+                _EnsureCompanionsExists(existingCompanions, companionIds);
                 _EnsureSeatAvailability(package, totalSeatesNeeded);
-                await _EnsureNoBookingConflicts(package,cancellationToken);
+                await _EnsureNoBookingConflicts(package, cancellationToken);
 
 
                 await _unitOfWork.BeginTransactionAsync(cancellationToken);
                 transactionStarted = true;
 
                 var totalAmount = package.PricePerPerson * totalSeatesNeeded;
-                
+
                 // create payment record
                 var payment = new Payment();
                 payment.UserId = userId;
@@ -145,7 +148,7 @@ namespace Application.Services
 
                 var response = _mapper.Map<BookingResponse>(booking);
 
-                _logger.LogInformation("Successfully created booking {BookingId}", booking.Id);
+                _logger.SuccessfulOperation(userId, "Create", ObjectName, booking.Id);
 
                 InvalidateBookingCache(userId: userId, companyId: package.CompanyId);
 
@@ -187,8 +190,8 @@ namespace Application.Services
             {
                 if (transactionStarted)
                     await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                _logger.LogError(ex, "Unexpected error while creating booking");
-                throw new ServiceException($"Failed to create booking: {ex.Message}", ex);
+                _logger.ServerError("Create", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("Creating",ObjectName,ex.Message), ex);
             }
         }
 
@@ -478,7 +481,7 @@ namespace Application.Services
                 var company = await _unitOfWork.TourCompanies
                     .FirstOrDefaultAsync(tc => tc.UserId == userId, cancellationToken);
 
-                if(company is null)
+                if (company is null)
                 {
                     _logger.LogWarning("User with id {userId} is not associated with any tour company", userId);
                     throw new ForbiddenException("You are not associated with any tour company.");
@@ -837,7 +840,7 @@ namespace Application.Services
                 _EnsureBookingBelongsToCurrentUser(entity);
 
                 // prevent editing if the booking status isn't pending
-                _EnsureBookingIsPending(entity,BookingOperation.Update);
+                _EnsureBookingIsPending(entity, BookingOperation.Update);
 
 
                 var companionIds = request.CompanionIds.ToHashSet();
@@ -1057,7 +1060,7 @@ namespace Application.Services
             }
         }
 
-        private void _EnsureCompanionsExists(List<Companion> existingCompanions,HashSet<int> companionIds)
+        private void _EnsureCompanionsExists(List<Companion> existingCompanions, HashSet<int> companionIds)
         {
             var foundIds = existingCompanions.Select(c => c.Id).ToHashSet();
             var missingIds = companionIds.Except(foundIds).ToList();

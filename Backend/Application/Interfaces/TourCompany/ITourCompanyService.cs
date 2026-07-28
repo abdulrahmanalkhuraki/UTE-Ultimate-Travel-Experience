@@ -5,15 +5,16 @@ namespace Application.Interfaces.TourCompany
 {
     public interface ITourCompanyService
     {
-        Task<TourCompanyResponse> CreateAsync(int ownerUserId, TourCompanyCreateRequest request, CancellationToken cancellationToken = default);
-        Task<TourCompanyResponse> GetAsync(int id, int? requestingUserId, bool isAdmin, CancellationToken cancellationToken = default);
-        Task<IReadOnlyList<TourCompanyResponse>> GetAllAsync(CancellationToken cancellationToken = default);
-        Task<TourCompanyDashboardResponse> MyDashboard(CancellationToken cancellationToken = default);
-        Task<IReadOnlyList<TourCompanyResponse>> GetPendingAsync(CancellationToken cancellationToken = default);
-        Task<TourCompanyResponse> ApproveAsync(int id, CancellationToken cancellationToken = default);
-        Task<TourCompanyResponse> RejectAsync(int id, string reason, CancellationToken cancellationToken = default);
-        Task<TourCompanyResponse> UpdateAsync(int id, int requestingUserId, bool isAdmin, TourCompanyUpdateRequest request, CancellationToken cancellationToken = default);
-        Task<bool> DeleteAsync(int id, int requestingUserId, bool isAdmin, CancellationToken cancellationToken = default);
+        Task<TourCompanyResponse> CreateAsync(TourCompanyCreateRequest request, CancellationToken cancellationToken);
+        Task<TourCompanyResponse> GetAsync(int id, CancellationToken cancellationToken);
+        Task<TourCompanyResponse> GetMineAsync(CancellationToken cancellationToken);
+        Task<IReadOnlyList<TourCompanyResponse>> GetAllAsync(CancellationToken cancellationToken);
+        Task<TourCompanyDashboardResponse> MyDashboard(CancellationToken cancellationToken);
+        Task<IReadOnlyList<TourCompanyResponse>> GetPendingAsync(CancellationToken cancellationToken);
+        Task<TourCompanyResponse> ApproveAsync(int id, CancellationToken cancellationToken);
+        Task<TourCompanyResponse> RejectAsync(int id, string reason, CancellationToken cancellationToken);
+        Task<TourCompanyResponse> UpdateAsync(int id, TourCompanyUpdateRequest request, CancellationToken cancellationToken);
+        Task<bool> DeleteAsync(int id, CancellationToken cancellationToken);
         Task<IReadOnlyList<TourCompanyResponse>> FilterAsync(
             string? name = null,
             string? location = null,

@@ -1,4 +1,6 @@
-﻿using Application.DTOs.Booking.Response;
+﻿using Application.Common.Constants;
+using Application.Common.Logging;
+using Application.DTOs.Booking.Response;
 using Application.DTOs.Review.Request;
 using Application.DTOs.Review.Response;
 using Application.Exceptions;
@@ -21,6 +23,7 @@ namespace Application.Services
         private readonly ILogger<ReviewService> _logger;
         private readonly ReviewCreateValidator _createValidator;
         private readonly ICurrentUserService _currentUser;
+        private const string ObjectName = "Review";
 
         public ReviewService(
             IUnitOfWork unitOfWork,
@@ -40,25 +43,23 @@ namespace Application.Services
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
-            _logger.LogInformation("Attempting to create new Review");
+            _logger.StartOperation("Create", ObjectName, 0);
 
             var validationResult = await _createValidator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
-                _logger.LogWarning("Review creation validation failed: {Errors}",
-                    string.Join(", ", validationResult.Errors));
+                _logger.ValidationFailed("Create", ObjectName, string.Join(", ", validationResult.Errors));
                 throw new ValidationException(string.Join(", ", validationResult.Errors));
             }
 
             try
             {
-                // check if package Exists
-                var package = _unitOfWork.TourPackages.FirstOrDefaultAsync(tp => tp.Id == request.PackageId);
+                var package = await _unitOfWork.TourPackages.FirstOrDefaultAsync(tp => tp.Id == request.PackageId);
 
                 if (package is null)
                 {
-                    _logger.LogWarning("Package with ID {PackageId} not found", request.PackageId);
-                    throw new NotFoundException($"Package with ID {request.PackageId} not found");
+                    _logger.EntityNotFound("Tour Package", request.PackageId);
+                    throw new NotFoundException(ExceptionMessages.NotFound("Tour Package", request.PackageId));
                 }
 
                 await EnsureUserBookedPackage(request.PackageId);
@@ -69,14 +70,14 @@ namespace Application.Services
                 await _unitOfWork.Reviews.AddAsync(review, cancellationToken);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Successfully created review {ReviewId}", review.Id);
+                _logger.SuccessfulOperation("Create", ObjectName);
 
                 return _mapper.Map<ReviewResponse>(review);
             }
             catch (Exception ex) when (ex is NotFoundException)
             {
-                _logger.LogError(ex, "Unexpected error while creating review");
-                throw new ServiceException($"Failed to create review: {ex.Message}", ex);
+                _logger.ServerError("Create", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("create", ObjectName, ex.Message), ex);
             }
         }
 
@@ -91,7 +92,7 @@ namespace Application.Services
             if (tourPackageId.HasValue && tourPackageId <= 0)
                 throw new ArgumentException($"Invalid Tour Package Id {tourPackageId}");
 
-            _logger.LogDebug("Retrieving reviews");
+            _logger.StartOperation("Retrieve", ObjectName, 0);
 
             try
             {
@@ -122,9 +123,8 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving reviews");
-
-                throw new ServiceException("Failed to retrieve reviews.", ex);
+                _logger.ServerError("Retrieve", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
             }
         }
 
@@ -140,8 +140,9 @@ namespace Application.Services
 
             if (!isBooked)
             {
-                _logger.LogWarning($"User {_currentUser.UserId} attempted to review TourPackage {packageId} without a completed booking. review rejected.");
-                throw new BusinessRuleException("Unable to submit review. A completed booking is required before review a tour package.");
+                _logger.BusinessRuleViolated("Tour Package", "A completed booking is required before reviewing");
+                throw new BusinessRuleException(ExceptionMessages.BusinessRule(
+                    "Unable to submit review. A completed booking is required before reviewing a tour package."));
             }
         }
         #endregion

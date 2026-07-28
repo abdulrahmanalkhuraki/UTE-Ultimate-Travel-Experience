@@ -1,9 +1,10 @@
 using Application.Common;
+using Application.Common.Constants;
+using Application.Common.Logging;
 using Application.DTOs.TourCompany.Request;
 using Application.DTOs.TourCompany.Response;
 using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
-using Application.Interfaces;
 using Application.Interfaces.Notifications;
 using Application.Interfaces.TourCompany;
 using Application.Interfaces.User;
@@ -38,6 +39,9 @@ namespace Application.Services
         private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan SlidingCacheDuration = TimeSpan.FromMinutes(2);
 
+        // Logging Messages constant
+        private const string ObjectName = "Tour Company";
+
         public TourCompanyService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
@@ -60,15 +64,14 @@ namespace Application.Services
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
 
-        public async Task<TourCompanyResponse> CreateAsync(int ownerUserId, TourCompanyCreateRequest request, CancellationToken cancellationToken = default)
+        public async Task<TourCompanyResponse> CreateAsync(TourCompanyCreateRequest request, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
-            if (ownerUserId <= 0)
-                throw new ArgumentException("Invalid owner user ID", nameof(ownerUserId));
+            int userId = _currentUser.UserId ?? throw new AuthException("You Must Be Logged in To Continue this Action.");
 
             _logger.LogInformation("Attempting to create tour company {CompanyName} for user {UserId}",
-                request.Name, ownerUserId);
+                request.Name, userId);
 
             // Validate request
             var validationResult = await _createValidator.ValidateAsync(request, cancellationToken);
@@ -81,32 +84,23 @@ namespace Application.Services
 
             try
             {
-                // The owner must exist.
-                var ownerExists = await _unitOfWork.Users
-                    .Query()
-                    .AnyAsync(u => u.Id == ownerUserId, cancellationToken);
-
-                if (!ownerExists)
-                {
-                    _logger.LogWarning("Owner user {UserId} not found while creating tour company", ownerUserId);
-                    throw new NotFoundException($"User with ID '{ownerUserId}' not found");
-                }
-
-                // One company per owner with the same name.
+                // One company per owner.
                 var exists = await _unitOfWork.TourCompanies
                     .Query()
-                    .AnyAsync(c => c.UserId == ownerUserId && c.Name == request.Name, cancellationToken);
+                    .AnyAsync(c => c.UserId == userId, cancellationToken);
 
                 if (exists)
                 {
-                    _logger.LogWarning("Duplicate tour company attempt: {CompanyName} for user {UserId}",
-                        request.Name, ownerUserId);
-                    throw new ConflictException($"You already have a company named '{request.Name}'");
+                    _logger.LogWarning(
+                        "Duplicate company creation attempt: User {UserId} attempted to create company '{CompanyName}' but already has an existing company",
+                        userId,
+                        request.Name);
+                    throw new ConflictException(
+                        "You already have a tour company associated with your account. Only one company per user is allowed.");
                 }
 
                 var entity = _mapper.Map<TourCompanyEntity>(request);
-                entity.UserId = ownerUserId;
-                // New companies await admin approval before becoming publicly visible.
+                entity.UserId = userId;
                 entity.Status = TourCompanyStatus.Pending;
                 entity.CreatedAtUtc = DateTime.UtcNow;
                 entity.UpdatedAtUtc = DateTime.UtcNow;
@@ -126,7 +120,7 @@ namespace Application.Services
                 var response = _mapper.Map<TourCompanyResponse>(entity);
 
                 _logger.LogInformation("Successfully created tour company {CompanyId} ({CompanyName}) for user {UserId}",
-                    entity.Id, entity.Name, ownerUserId);
+                    entity.Id, entity.Name, userId);
 
                 return response;
             }
@@ -150,7 +144,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<TourCompanyResponse> GetAsync(int id, int? requestingUserId, bool isAdmin, CancellationToken cancellationToken = default)
+        public async Task<TourCompanyResponse> GetAsync(int id, CancellationToken cancellationToken = default)
         {
             if (id <= 0)
                 throw new ArgumentException("Invalid tour company ID", nameof(id));
@@ -171,8 +165,7 @@ namespace Application.Services
                 var entity = await _unitOfWork.TourCompanies
                     .Query()
                     .AsNoTracking()
-                    .Where(c => c.Id == id)
-                    .FirstOrDefaultAsync(cancellationToken);
+                    .SingleOrDefaultAsync(c => c.Id == id,cancellationToken);
 
                 if (entity == null)
                 {
@@ -183,11 +176,11 @@ namespace Application.Services
                 // A company that is not approved is only visible to its owner or an admin.
                 // To everyone else it behaves as if it does not exist.
                 if (entity.Status != TourCompanyStatus.Approved
-                    && !isAdmin
-                    && entity.UserId != requestingUserId)
+                    && !_currentUser.IsAdmin
+                    && entity.UserId != _currentUser.UserId)
                 {
                     _logger.LogDebug("Tour company {CompanyId} is {Status}; hidden from user {UserId}",
-                        id, entity.Status, requestingUserId?.ToString() ?? "anonymous");
+                        id, entity.Status, _currentUser.UserId?.ToString() ?? "anonymous");
                     throw new NotFoundException($"Tour company with ID {id} not found");
                 }
 
@@ -216,7 +209,35 @@ namespace Application.Services
             }
         }
 
-        public async Task<IReadOnlyList<TourCompanyResponse>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<TourCompanyResponse> GetMineAsync(CancellationToken cancellationToken)
+        {
+            int userId = _currentUser.UserId ?? 
+                throw new AuthException("You Must Be Logged in To Continue this Action.");
+            int? companyId;
+            try
+            {
+                companyId = await _unitOfWork.TourCompanies
+                    .Query()
+                    .Where(tc => tc.UserId == userId)
+                    .Select(tc => tc.Id)
+                    .SingleOrDefaultAsync(cancellationToken);
+
+                if (companyId is null)
+                {
+                    _logger.LogWarning("User {userId} doesn't attached to any Tour Company", userId);
+                    throw new ForbiddenException("You Are Not Attached To Any Tour Company");
+                }
+            }
+            catch (Exception ex) when (ex is not ForbiddenException)
+            {
+                _logger.LogError(ex, "Error retrieving tour company for user {CompanyId}", userId);
+                throw new ServiceException($"Failed to retrieve tour company: {ex.Message}", ex);
+            }
+
+            return await GetAsync(companyId.Value, cancellationToken);
+        }
+
+        public async Task<IReadOnlyList<TourCompanyResponse>> GetAllAsync(CancellationToken cancellationToken)
         {
             _logger.LogDebug("Retrieving all tour companies");
 
@@ -254,52 +275,43 @@ namespace Application.Services
             }
         }
 
-        public async Task<TourCompanyResponse> UpdateAsync(int id, int requestingUserId, bool isAdmin, TourCompanyUpdateRequest request, CancellationToken cancellationToken = default)
+        public async Task<TourCompanyResponse> UpdateAsync(int id, TourCompanyUpdateRequest request, CancellationToken cancellationToken)
         {
+            const string OperationName = "Update"; 
+
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
             if (id <= 0)
-                throw new ArgumentException("Invalid tour company ID", nameof(id));
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(id));
 
-            _logger.LogInformation("Attempting to update tour company {CompanyId} by user {UserId}", id, requestingUserId);
+            int userId = _currentUser.UserId ??
+            throw new AuthException(ExceptionMessages.Auth());
+
+            _logger.StartOperation(OperationName, ObjectName, id, userId);
 
             var validationResult = await _updateValidator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
-                _logger.LogWarning("Tour company update validation failed for {CompanyId}: {Errors}",
-                    id, string.Join(", ", validationResult.Errors));
+                _logger.ValidationFailed(OperationName,ObjectName,id,string.Join(", ",validationResult.Errors));
                 throw new ValidationException(string.Join(", ", validationResult.Errors));
             }
 
             try
             {
                 var entity = await _unitOfWork.TourCompanies.GetByIdAsync(id, cancellationToken);
+
                 if (entity == null)
                 {
-                    _logger.LogWarning("Tour company {CompanyId} not found for update", id);
-                    throw new NotFoundException($"Tour company with ID '{id}' not found");
+                    _logger.EntityNotFound(ObjectName, id);
+                    throw new NotFoundException(ExceptionMessages.NotFound(ObjectName,id));
                 }
 
-                // Ownership: only the owner or an admin may update.
-                if (!isAdmin && entity.UserId != requestingUserId)
+                if (entity.UserId != userId)
                 {
-                    _logger.LogWarning("User {UserId} forbidden from updating tour company {CompanyId}", requestingUserId, id);
-                    throw new ForbiddenException("You are not allowed to modify this company");
+                    _logger.ForbiddenAction(userId, OperationName, ObjectName, id);
+                    throw new ForbiddenException(ExceptionMessages.Forbidden(OperationName,ObjectName));
                 }
 
-                // Reject a duplicate name within the same owner's companies.
-                if (request.Name is not null && request.Name != entity.Name)
-                {
-                    var exists = await _unitOfWork.TourCompanies
-                        .Query()
-                        .AnyAsync(c => c.UserId == entity.UserId && c.Name == request.Name && c.Id != id, cancellationToken);
-
-                    if (exists)
-                    {
-                        _logger.LogWarning("Duplicate tour company name '{Name}' for user {UserId}", request.Name, entity.UserId);
-                        throw new ConflictException($"You already have a company named '{request.Name}'");
-                    }
-                }
 
                 _mapper.Map(request, entity);
 
@@ -319,7 +331,7 @@ namespace Application.Services
 
                 var response = _mapper.Map<TourCompanyResponse>(entity);
 
-                _logger.LogInformation("Successfully updated tour company {CompanyId}", id);
+                _logger.SuccessfulOperation(userId, OperationName, ObjectName, id);
 
                 return response;
             }
@@ -391,27 +403,30 @@ namespace Application.Services
             }
         }
 
-        public async Task<bool> DeleteAsync(int id, int requestingUserId, bool isAdmin, CancellationToken cancellationToken = default)
+        public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
         {
             if (id <= 0)
-                throw new ArgumentException("Invalid tour company ID", nameof(id));
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(id));
 
-            _logger.LogInformation("Attempting to delete tour company {CompanyId} by user {UserId}", id, requestingUserId);
+            int userId = _currentUser.UserId ??
+            throw new AuthException(ExceptionMessages.Auth());
+
+            _logger.StartOperation("Delete", ObjectName, id, userId);
 
             try
             {
                 var entity = await _unitOfWork.TourCompanies.GetByIdAsync(id, cancellationToken);
                 if (entity == null)
                 {
-                    _logger.LogWarning("Tour company {CompanyId} not found for deletion", id);
+                    _logger.EntityNotFound(ObjectName, id);
                     return false;
                 }
 
                 // Ownership: only the owner or an admin may delete.
-                if (!isAdmin && entity.UserId != requestingUserId)
+                if (entity.UserId != userId)
                 {
-                    _logger.LogWarning("User {UserId} forbidden from deleting tour company {CompanyId}", requestingUserId, id);
-                    throw new ForbiddenException("You are not allowed to delete this company");
+                    _logger.ForbiddenAction(userId, "Delete", ObjectName, id);
+                    throw new ForbiddenException(ExceptionMessages.Forbidden("Delete",ObjectName));
                 }
 
                 _unitOfWork.TourCompanies.Remove(entity);
@@ -419,7 +434,7 @@ namespace Application.Services
 
                 InvalidateTourCompanyCache(id);
 
-                _logger.LogInformation("Successfully deleted tour company {CompanyId}", id);
+                _logger.SuccessfulOperation(userId,"Delete", ObjectName,id);
                 return true;
             }
             catch (ForbiddenException)
@@ -428,8 +443,8 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while deleting tour company {CompanyId}", id);
-                throw new ServiceException($"Failed to delete tour company: {ex.Message}", ex);
+                _logger.ServerError("Deleting",ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("Delete",ObjectName,ex.Message), ex);
             }
         }
 

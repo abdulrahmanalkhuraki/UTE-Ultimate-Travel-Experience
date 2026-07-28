@@ -1,3 +1,5 @@
+using Application.Common.Constants;
+using Application.Common.Logging;
 using Application.DTOs.Notification.Response;
 using Application.Exceptions;
 using Application.Interfaces.Notifications;
@@ -17,6 +19,7 @@ namespace Application.Services
         private readonly IMapper _mapper;
         private readonly IRealtimeNotifier _realtimeNotifier;
         private readonly ILogger<NotificationService> _logger;
+        private const string ObjectName = "Notification";
 
         public NotificationService(
             IUnitOfWork unitOfWork,
@@ -33,9 +36,11 @@ namespace Application.Services
         public async Task<NotificationResponse> NotifyAsync(int userId, string message, NotificationType type, CancellationToken cancellationToken = default)
         {
             if (userId <= 0)
-                throw new ArgumentException("Invalid user ID", nameof(userId));
+                throw new ArgumentException(ExceptionMessages.InvalidId("User"), nameof(userId));
             if (string.IsNullOrWhiteSpace(message))
                 throw new ArgumentException("Message is required", nameof(message));
+
+            _logger.StartOperation("Send", ObjectName, 0);
 
             var entity = new NotificationEntity
             {
@@ -71,7 +76,9 @@ namespace Application.Services
         public async Task<IReadOnlyList<NotificationResponse>> GetForUserAsync(int userId, bool unreadOnly = false, CancellationToken cancellationToken = default)
         {
             if (userId <= 0)
-                throw new ArgumentException("Invalid user ID", nameof(userId));
+                throw new ArgumentException(ExceptionMessages.InvalidId("User"), nameof(userId));
+
+            _logger.StartOperation("Retrieve", ObjectName, 0);
 
             try
             {
@@ -91,15 +98,17 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving notifications for user {UserId}", userId);
-                throw new ServiceException($"Failed to retrieve notifications: {ex.Message}", ex);
+                _logger.ServerError("Retrieve", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
             }
         }
 
         public async Task<int> GetUnreadCountAsync(int userId, CancellationToken cancellationToken = default)
         {
             if (userId <= 0)
-                throw new ArgumentException("Invalid user ID", nameof(userId));
+                throw new ArgumentException(ExceptionMessages.InvalidId("User"), nameof(userId));
+
+            _logger.StartOperation("Count Unread", ObjectName, 0);
 
             try
             {
@@ -109,17 +118,19 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error counting unread notifications for user {UserId}", userId);
-                throw new ServiceException($"Failed to count notifications: {ex.Message}", ex);
+                _logger.ServerError("Count Unread", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("count", ObjectName, ex.Message), ex);
             }
         }
 
         public async Task<bool> MarkAsReadAsync(int userId, int notificationId, CancellationToken cancellationToken = default)
         {
             if (userId <= 0)
-                throw new ArgumentException("Invalid user ID", nameof(userId));
+                throw new ArgumentException(ExceptionMessages.InvalidId("User"), nameof(userId));
             if (notificationId <= 0)
-                throw new ArgumentException("Invalid notification ID", nameof(notificationId));
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(notificationId));
+
+            _logger.StartOperation("Mark Read", ObjectName, 0);
 
             try
             {
@@ -142,15 +153,17 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error marking notification {NotificationId} read for user {UserId}", notificationId, userId);
-                throw new ServiceException($"Failed to mark notification as read: {ex.Message}", ex);
+                _logger.ServerError("Mark Read", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("mark notification as read", ObjectName, ex.Message), ex);
             }
         }
 
         public async Task<int> MarkAllAsReadAsync(int userId, CancellationToken cancellationToken = default)
         {
             if (userId <= 0)
-                throw new ArgumentException("Invalid user ID", nameof(userId));
+                throw new ArgumentException(ExceptionMessages.InvalidId("User"), nameof(userId));
+
+            _logger.StartOperation("Mark All Read", ObjectName, 0);
 
             try
             {
@@ -174,17 +187,19 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error marking all notifications read for user {UserId}", userId);
-                throw new ServiceException($"Failed to mark notifications as read: {ex.Message}", ex);
+                _logger.ServerError("Mark All Read", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("mark notifications as read", ObjectName, ex.Message), ex);
             }
         }
 
         public async Task RegisterDeviceTokenAsync(int userId, string token, string? platform, CancellationToken cancellationToken = default)
         {
             if (userId <= 0)
-                throw new ArgumentException("Invalid user ID", nameof(userId));
+                throw new ArgumentException(ExceptionMessages.InvalidId("User"), nameof(userId));
             if (string.IsNullOrWhiteSpace(token))
                 throw new ArgumentException("Token is required", nameof(token));
+
+            _logger.StartOperation("Register Device", ObjectName, 0);
 
             try
             {
@@ -221,17 +236,19 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error registering device token for user {UserId}", userId);
-                throw new ServiceException($"Failed to register device token: {ex.Message}", ex);
+                _logger.ServerError("Register Device", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("register device token", ObjectName, ex.Message), ex);
             }
         }
 
         public async Task<bool> RemoveDeviceTokenAsync(int userId, string token, CancellationToken cancellationToken = default)
         {
             if (userId <= 0)
-                throw new ArgumentException("Invalid user ID", nameof(userId));
+                throw new ArgumentException(ExceptionMessages.InvalidId("User"), nameof(userId));
             if (string.IsNullOrWhiteSpace(token))
                 throw new ArgumentException("Token is required", nameof(token));
+
+            _logger.StartOperation("Remove Device", ObjectName, 0);
 
             try
             {
@@ -248,8 +265,8 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error removing device token for user {UserId}", userId);
-                throw new ServiceException($"Failed to remove device token: {ex.Message}", ex);
+                _logger.ServerError("Remove Device", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("remove device token", ObjectName, ex.Message), ex);
             }
         }
     }

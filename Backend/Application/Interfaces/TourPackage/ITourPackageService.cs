@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Application.DTOs.TourPackage;
+using Application.DTOs.Pagination;
 using Application.DTOs.TourPackage.Request;
 using Application.DTOs.TourPackage.Response;
 using Domain.Enums;
@@ -16,7 +13,9 @@ namespace Application.Interfaces.TourPackage
 
         Task<IReadOnlyList<TourPackageResponse>> GetAllAsync(CancellationToken cancellationToken = default);
 
-        Task<IReadOnlyList<TourPackageResponse>> GetMineAsync(TourPackageStatus? status = null, CancellationToken cancellationToken = default);
+        Task<PaginatedResponse<TourPackageResponse>> GetMineAsync(int page = 1,int pageSize = 20,TourPackageStatus? status = null, CancellationToken cancellationToken = default);
+
+        Task<TourPackageResponse> GetMineAsync(int id, CancellationToken cancellationToken = default);
 
         Task<TourPackageResponse> UpdateAsync(int id, TourPackageUpdateRequest request, CancellationToken cancellationToken = default);
 

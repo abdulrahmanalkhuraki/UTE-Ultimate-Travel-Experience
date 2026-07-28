@@ -1,3 +1,5 @@
+using Application.Common.Constants;
+using Application.Common.Logging;
 using Application.DTOs.Companion.Request;
 using Application.DTOs.Companion.Response;
 using Application.DTOs.TourPackage.Response;
@@ -33,6 +35,7 @@ namespace Application.Services
         private const string CompanionListCacheKey = "all_companions";
         private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan SlidingCacheDuration = TimeSpan.FromMinutes(2);
+        private const string ObjectName = "Companion";
 
         public CompanionService(
             IUnitOfWork unitOfWork,
@@ -63,9 +66,9 @@ namespace Application.Services
                 throw new ValidationException(validationResult.Errors);
 
             var userId = _currentUser.UserId ??
-                throw new AuthException("You must be logged in to proform this action.");
+                throw new AuthException(ExceptionMessages.Auth());
 
-            _logger.LogInformation("user with id {userId} is Attemping to create new Companion", userId);
+            _logger.StartOperation("Create", ObjectName, userId);
 
             await _EnsureCountryExistsAsync(request.NationalityCountryId, cancellationToken);
             await _EnsureCityExistsAsync(request.ResidentialCityId, cancellationToken);
@@ -95,27 +98,26 @@ namespace Application.Services
                 await _unitOfWork.Companions.AddAsync(companion, cancellationToken);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Companion {CompanionId} successfully created for user {UserId}", companion.Id, userId);
+                _logger.SuccessfulOperation("Create", ObjectName);
 
                 return await BuildResponseAsync(companion.Id, cancellationToken);
             }
             catch (Exception ex) when (ex is not ValidationException and not NotFoundException)
             {
-                _logger.LogError(ex, "Error creating companion for user {UserId}", userId);
-                throw new ServiceException($"Failed to create companion: {ex.Message}", ex);
+                _logger.ServerError("Create", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("create", ObjectName, ex.Message), ex);
             }
         }
 
         public async Task<CompanionResponse> GetAsync(int id, CancellationToken cancellationToken)
         {
             if (id <= 0)
-                throw new ArgumentException("Invalid companion ID", nameof(id));
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(id));
 
             var userId = _currentUser.UserId ??
-                throw new AuthException("You must be logged in to proform this action.");
+                throw new AuthException(ExceptionMessages.Auth());
 
-            _logger.LogInformation("user with id {userId} is Attemping to retrive Companion with id {companionId}"
-                , userId, id);
+            _logger.StartOperation("Retrieve", ObjectName, id, userId);
 
             var cacheKey = $"{CompanionCacheKeyPrefix}{id}";
             if(_cache.TryGetValue(cacheKey, out CompanionResponse? cached) && cached is not null)
@@ -127,7 +129,7 @@ namespace Application.Services
             await _EnsureCompanionBelongsToUserAsync(id, userId, cancellationToken);
 
             var response = await BuildResponseAsync(id, cancellationToken);
-            _logger.LogInformation($"Companion with id {id} successfully retrived");
+            _logger.SuccessfulOperation("Retrieve", ObjectName);
 
             _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
             {
@@ -142,9 +144,9 @@ namespace Application.Services
         public async Task<IReadOnlyList<CompanionResponse>> GetAllAsync(CancellationToken cancellationToken)
         {
             var userId = _currentUser.UserId ??
-                throw new AuthException("You must be logged in to proform this action.");
+                throw new AuthException(ExceptionMessages.Auth());
 
-            _logger.LogInformation("user with id {userId} is Attemping to retrive all Companions", userId);
+            _logger.StartOperation("Retrieve All", ObjectName, userId);
 
             if (_cache.TryGetValue(CompanionListCacheKey, out IReadOnlyList<CompanionResponse>? cached) && cached is not null)
             {
@@ -175,14 +177,13 @@ namespace Application.Services
         public async Task<CompanionResponse> UpdateAsync(int id, CompanionUpdateRequest request, CancellationToken cancellationToken)
         {
             if (id <= 0)
-                throw new ArgumentException("Invalid companion ID", nameof(id));
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(id));
 
             ArgumentNullException.ThrowIfNull(request, nameof(request));
             var userId = _currentUser.UserId ??
-    throw new AuthException("You must be logged in to proform this action.");
+                throw new AuthException(ExceptionMessages.Auth());
 
-            _logger.LogInformation("user with id {userId} is Attemping to Update Companion with id {companionId}"
-    , userId, id);
+            _logger.StartOperation("Update", ObjectName, id, userId);
 
             var validationResult = await _updateValidator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
@@ -208,7 +209,7 @@ namespace Application.Services
                     .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
 
                 if (entity is null)
-                    throw new NotFoundException($"Companion with ID {id} not found");
+                    throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, id));
 
                 await _EnsureCompanionBelongsToUserAsync(id, userId, cancellationToken);
 
@@ -216,7 +217,7 @@ namespace Application.Services
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Companion {CompanionId} updated", id);
+                _logger.SuccessfulOperation("Update", ObjectName);
 
                 InvalidateBookingCache(id);
 
@@ -224,21 +225,20 @@ namespace Application.Services
             }
             catch (Exception ex) when (ex is not ValidationException and not NotFoundException and not ForbiddenException)
             {
-                _logger.LogError(ex, "Error updating companion {CompanionId}", id);
-                throw new ServiceException($"Failed to update companion: {ex.Message}", ex);
+                _logger.ServerError("Update", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("update", ObjectName, ex.Message), ex);
             }
         }
 
         public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
         {
             if (id <= 0)
-                throw new ArgumentException("Invalid companion ID", nameof(id));
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(id));
 
             var userId = _currentUser.UserId ??
-                    throw new AuthException("You must be logged in to proform this action.");
+                    throw new AuthException(ExceptionMessages.Auth());
 
-            _logger.LogInformation("user with id {userId} is Attemping to Delete Companion with id {companionId}"
-                , userId, id);
+            _logger.StartOperation("Delete", ObjectName, id, userId);
 
             await _EnsureCompanionBelongsToUserAsync(id, userId, cancellationToken);
 
@@ -251,22 +251,22 @@ namespace Application.Services
 
                 if (entity is null)
                 {
-                    _logger.LogWarning("Companion with id {id} not found.", id);
-                    throw new NotFoundException($"Companion with id {id} not found.");
+                    _logger.EntityNotFound(ObjectName, id);
+                    throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, id));
                 }
 
                 _unitOfWork.Persons.Remove(entity.Person);
                 _unitOfWork.Companions.Remove(entity);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("Companion {CompanionId} Successfully deleted", id);
+                _logger.SuccessfulOperation("Delete", ObjectName);
                 InvalidateBookingCache(id);
                 return true;
             }
             catch (Exception ex) when (ex is not NotFoundException and not ForbiddenException)
             {
-                _logger.LogError(ex, "Error deleting companion {CompanionId}", id);
-                throw new ServiceException($"Failed to delete companion: {ex.Message}", ex);
+                _logger.ServerError("Delete", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("delete", ObjectName, ex.Message), ex);
             }
         }
 
@@ -320,7 +320,7 @@ namespace Application.Services
         {
             var entity = await QueryWithGraph().FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
             if (entity is null)
-                throw new NotFoundException($"Companion with ID {id} not found");
+                throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, id));
             return await BuildResponseFromEntity(entity, cancellationToken);
         }
 
@@ -364,7 +364,7 @@ namespace Application.Services
                 .AnyAsync(c => c.Id == companionId && c.UserId == userId, cancellationToken);
 
             if (!belongs)
-                throw new ForbiddenException("This companion does not belong to you.");
+                throw new ForbiddenException(ExceptionMessages.Forbidden("access", ObjectName));
         }
 
         private async Task _EnsureCountryExistsAsync(int countryId, CancellationToken cancellationToken)
@@ -375,8 +375,8 @@ namespace Application.Services
 
             if (!exists)
             {
-                _logger.LogWarning("Country With Id {id} not found", countryId);
-                throw new NotFoundException($"Country with ID {countryId} not found");
+                _logger.EntityNotFound("Country", countryId);
+                throw new NotFoundException(ExceptionMessages.NotFound("Country", countryId));
             }
         }
 
@@ -388,8 +388,8 @@ namespace Application.Services
 
             if (!exists)
             {
-                _logger.LogWarning("city With Id {id} not found", cityId);
-                throw new NotFoundException($"City with ID {cityId} not found");
+                _logger.EntityNotFound("City", cityId);
+                throw new NotFoundException(ExceptionMessages.NotFound("City", cityId));
             }
         }
 
