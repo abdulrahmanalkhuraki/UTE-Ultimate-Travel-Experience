@@ -11,7 +11,7 @@ namespace Application.Interfaces.TourPackage
 
         Task<TourPackageResponse> GetAsync(int id, CancellationToken cancellationToken = default);
 
-        Task<IReadOnlyList<TourPackageResponse>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<PaginatedResponse<TourPackageResponse>> GetAllAsync(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
 
         Task<PaginatedResponse<TourPackageResponse>> GetMineAsync(int page = 1, int pageSize = 20, TourPackageStatus? status = null, CancellationToken cancellationToken = default);
 
@@ -52,5 +52,8 @@ namespace Application.Interfaces.TourPackage
 
         /// <summary>Retrieves package statistics for the authenticated company's dashboard.</summary>
         Task<PackageStatsResponse> GetPackageStatsAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Retrieves aggregated rating and review statistics for the authenticated company.</summary>
+        Task<RateAndReviewStatsResponse> GetRateAndReviewStatsAsync(CancellationToken cancellationToken = default);
     }
 }

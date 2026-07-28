@@ -668,20 +668,39 @@ namespace Application.Services
             return response;
         }
 
-        public async Task<IReadOnlyList<TourPackageResponse>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<PaginatedResponse<TourPackageResponse>> GetAllAsync(int page = 1, int pageSize = 20,
+            CancellationToken cancellationToken = default)
         {
-            if (_cache.TryGetValue(AllCacheKey, out IReadOnlyList<TourPackageResponse>? cached) && cached is not null)
+            var cacheKey = $"{AllCacheKey}_page{page}_pageSize{pageSize}";
+
+            if (_cache.TryGetValue(cacheKey, out PaginatedResponse<TourPackageResponse>? cached) && cached is not null)
                 return cached;
 
             try
             {
-                var entities = await WherePubliclyVisible(QueryWithGraph())
+                var query = WherePubliclyVisible(QueryWithGraph());
+
+                var entities = await query
                     .OrderByDescending(p => p.CreatedAtUtc)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync(cancellationToken);
 
-                var response = _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
+                var packageResponses = _mapper.Map<IReadOnlyCollection<TourPackageResponse>>(entities);
+                var paginationMetadata = new PaginationMetadata
+                {
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalItems = await query.CountAsync(cancellationToken)
+                };
 
-                _cache.Set(AllCacheKey, response, new MemoryCacheEntryOptions
+                var response = new PaginatedResponse<TourPackageResponse>
+                {
+                    Items = packageResponses,
+                    Pagination = paginationMetadata
+                };
+
+                _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = CacheDuration,
                     Priority = CacheItemPriority.Low
@@ -893,6 +912,69 @@ namespace Application.Services
                 CompletedPackages = raw?.Completed ?? 0,
                 CancelledPackages = raw?.Cancelled ?? 0,
                 MonthlyPublished = monthlyPublished.AsReadOnly()
+            };
+        }
+
+        public async Task<RateAndReviewStatsResponse> GetRateAndReviewStatsAsync(CancellationToken cancellationToken = default)
+        {
+            var currentUserId = _currentUser.UserId
+                ?? throw new AuthenticationException(ExceptionMessages.AuthFailure("not authenticated"));
+
+            var companyId = await ResolveCompanyIdAsync(currentUserId, cancellationToken);
+
+            var summary = await _unitOfWork.TourPackages
+                .Query()
+                .AsNoTracking()
+                .Where(p => p.CompanyId == companyId && !p.IsDeleted)
+                .GroupBy(p => 1)
+                .Select(g => new
+                {
+                    TotalRatings = g.Sum(p => p.Rates.Count),
+                    TotalReviews = g.Sum(p => p.Reviews.Count),
+                    AverageRating = g.SelectMany(p => p.Rates).Average(r => (double)r.RateValue)
+                })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            var monthlyRatings = await _unitOfWork.Rates
+                .Query()
+                .AsNoTracking()
+                .Where(r => r.Package.CompanyId == companyId && !r.Package.IsDeleted)
+                .GroupBy(r => new { r.CreatedAtUtc.Year, r.CreatedAtUtc.Month })
+                .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
+                .ToListAsync(cancellationToken);
+
+            var monthlyReviews = await _unitOfWork.Reviews
+                .Query()
+                .AsNoTracking()
+                .Where(r => r.Package.CompanyId == companyId && !r.Package.IsDeleted)
+                .GroupBy(r => new { r.CreatedAtUtc.Year, r.CreatedAtUtc.Month })
+                .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
+                .ToListAsync(cancellationToken);
+
+            var ratingsLookup = monthlyRatings.ToDictionary(m => (m.Year, m.Month), m => m.Count);
+            var reviewsLookup = monthlyReviews.ToDictionary(m => (m.Year, m.Month), m => m.Count);
+
+            var today = DateTime.UtcNow;
+            var monthlyStats = new List<MonthlyRateReviewCount>(12);
+            for (var i = 11; i >= 0; i--)
+            {
+                var date = today.AddMonths(-i);
+                monthlyStats.Add(new MonthlyRateReviewCount
+                {
+                    Year = date.Year,
+                    Month = date.Month,
+                    MonthName = CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(date.Month),
+                    RatingCount = ratingsLookup.GetValueOrDefault((date.Year, date.Month), 0),
+                    ReviewCount = reviewsLookup.GetValueOrDefault((date.Year, date.Month), 0)
+                });
+            }
+
+            return new RateAndReviewStatsResponse
+            {
+                AverageRating = summary is not null ? Math.Round(summary.AverageRating, 2) : 0.0,
+                TotalRatings = summary?.TotalRatings ?? 0,
+                TotalReviews = summary?.TotalReviews ?? 0,
+                MonthlyStats = monthlyStats.AsReadOnly()
             };
         }
 

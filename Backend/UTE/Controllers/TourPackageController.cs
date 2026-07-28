@@ -22,12 +22,22 @@ namespace UTE.Controllers
             _service = service ?? throw new ArgumentNullException(nameof(service));
         }
 
-        [HttpGet]
-        [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
+[HttpGet]
+        [ProducesResponseType(typeof(PaginatedResponse<TourPackageResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetAll(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<PaginatedResponse<TourPackageResponse>>> GetAll(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken cancellationToken = default)
         {
-            return Ok(await _service.GetAllAsync(cancellationToken));
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                return BadRequest(CreateProblemDetails(
+                    "Invalid Pagination",
+                    "Page must be >= 1, PageSize must be between 1 and 100.",
+                    StatusCodes.Status400BadRequest));
+
+            return Ok(await _service.GetAllAsync(page, pageSize, cancellationToken));
         }
 
         [HttpGet("mine/all")]
@@ -347,6 +357,28 @@ return Ok(await _service.GetMineRejectedAsync(page, pageSize, cancellationToken)
         public async Task<ActionResult<PackageStatsResponse>> GetPackageStats(CancellationToken cancellationToken = default)
         {
             return Ok(await _service.GetPackageStatsAsync(cancellationToken));
+        }
+
+        /// <summary>
+        /// Retrieves aggregated rating and review statistics for the authenticated company's dashboard.
+        /// Includes weighted average rating, total counts, and monthly rating/review chart data.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Rating and review statistics response.</returns>
+        /// <response code="200">Successfully retrieved rating and review statistics.</response>
+        /// <response code="401">User not authenticated.</response>
+        /// <response code="403">User is not a tour company or profile not completed.</response>
+        /// <response code="500">Internal server error.</response>
+        [HttpGet("mine/rate-review-stats")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "TourCompany")]
+        [ProducesResponseType(typeof(RateAndReviewStatsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<RateAndReviewStatsResponse>> GetRateAndReviewStats(CancellationToken cancellationToken = default)
+        {
+            return Ok(await _service.GetRateAndReviewStatsAsync(cancellationToken));
         }
 
         #region Helpers
