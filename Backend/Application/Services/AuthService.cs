@@ -48,50 +48,61 @@ public class AuthService : IAuthService
         _logger = logger;
     }
 
-public async Task<RegisterResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
+    public async Task<RegisterResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("New User is Attempting to Register");
+
+        var email = request.Email.Trim().ToLowerInvariant();
+
+try
         {
-            _logger.StartOperation("Register", ObjectName, 0);
-
-            var email = request.Email.Trim().ToLowerInvariant();
-
-            if (await _users.EmailExistsAsync(email, ct))
+            if (await _users.EmailExistsAsync(email, cancellationToken))
                 throw new ConflictException(ExceptionMessages.Conflict("Email", "already registered"));
 
             var role = await _roles.Query()
-                .FirstOrDefaultAsync(r => r.RoleName == request.RoleName, ct)
-                ?? throw new NotFoundException(ExceptionMessages.NotFound("Role", 0));
+                .FirstOrDefaultAsync(r => r.RoleName == request.RoleName, cancellationToken)
+                ?? throw new NotFoundException($"Role {request.RoleName} Not Found.");
 
-        var now = DateTime.UtcNow;
-        var user = new User
+            var now = DateTime.UtcNow;
+            var user = new User
+            {
+                Email = email,
+                Password = _hasher.Hash(request.Password),
+                RoleId = role.RoleId,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
+                IsEmailVerified = false,
+            };
+
+            await _users.AddAsync(user, cancellationToken);
+            await _users.SaveChangesAsync(cancellationToken);
+
+await IssueAndSendOtpAsync(user, PurposeEmailVerification, cancellationToken);
+
+            return new RegisterResponse
+            {
+                UserId = user.Id,
+                Email = user.Email,
+                IsEmailVerified = false
+            };
+        }
+        catch (Exception ex) when (ex is not ConflictException and not NotFoundException)
         {
-            Email              = email,
-            Password           = _hasher.Hash(request.Password),
-            RoleId             = role.RoleId,
-            CreatedAtUtc       = now,
-            UpdatedAtUtc       = now,
-            IsEmailVerified    = false,
-        };
-
-        await _users.AddAsync(user, ct);
-        await _users.SaveChangesAsync(ct);
-
-        await IssueAndSendOtpAsync(user, PurposeEmailVerification, ct);
-
-        return new RegisterResponse
-        {
-            UserId          = user.Id,
-            Email           = user.Email,
-            IsEmailVerified = false
-        };
+            _logger.ServerError("Register", ObjectName, ex);
+            throw new ServiceException(ExceptionMessages.ServiceException("register", ObjectName, ex.Message), ex);
+        }
     }
 
-public async Task<AuthResponse> VerifyOtpAsync(VerifyOtpRequest request, CancellationToken ct = default)
-        {
-            _logger.StartOperation("Verify OTP", ObjectName, 0);
+    public async Task<AuthResponse> VerifyOtpAsync(VerifyOtpRequest request, CancellationToken cancellationToken)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
 
-            var email = request.Email.Trim().ToLowerInvariant();
-            var user = await _users.GetByEmailAsync(email, ct)
-                       ?? throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, 0));
+        _logger.LogInformation("Attempting to Verify OTP for user with Email {email}",email);
+
+try
+        {
+            var user = await _users.GetByEmailAsync(email, cancellationToken)
+                       ?? throw new NotFoundException("Cannot verify OTP. User is not registered.");
 
             if (user.IsEmailVerified)
                 throw new ConflictException(ExceptionMessages.Conflict("Email", "already verified"));
@@ -99,112 +110,145 @@ public async Task<AuthResponse> VerifyOtpAsync(VerifyOtpRequest request, Cancell
             var verification = await _verifications.Query()
                 .Where(v => v.UserId == user.Id && !v.IsUsed && v.Purpose == PurposeEmailVerification)
                 .OrderByDescending(v => v.CreatedAtUtc)
-                .FirstOrDefaultAsync(ct)
+                .FirstOrDefaultAsync(cancellationToken)
                 ?? throw new NotFoundException("No active verification code. Please request a new one.");
 
             if (verification.ExpiresAt < DateTime.UtcNow)
                 throw new AuthException(ExceptionMessages.AuthFailure("verification code expired"));
 
             if (verification.Attempts >= MaxOtpAttempts)
-                throw new ForbiddenException(ExceptionMessages.Forbidden("verify", ObjectName));
+                throw new BusinessRuleException("Maximum OTP verification attempts exceeded.");
 
             if (!FixedTimeEquals(verification.Code, request.Code))
             {
                 verification.Attempts++;
                 verification.UpdatedAtUtc = DateTime.UtcNow;
                 _verifications.Update(verification);
-                await _verifications.SaveChangesAsync(ct);
+                await _verifications.SaveChangesAsync(cancellationToken);
                 throw new AuthException(
                     ExceptionMessages.AuthFailure($"invalid code: {MaxOtpAttempts - verification.Attempts} attempts left"));
             }
 
-        verification.IsUsed = true;
-        verification.UsedAt = DateTime.UtcNow;
-        verification.UpdatedAtUtc = DateTime.UtcNow;
-        _verifications.Update(verification);
+            verification.IsUsed = true;
+            verification.UsedAt = DateTime.UtcNow;
+            verification.UpdatedAtUtc = DateTime.UtcNow;
+            _verifications.Update(verification);
 
-        user.IsEmailVerified = true;
-        user.UpdatedAtUtc = DateTime.UtcNow;
-        _users.Update(user);
+            user.IsEmailVerified = true;
+            user.UpdatedAtUtc = DateTime.UtcNow;
+            _users.Update(user);
 
-        await _users.SaveChangesAsync(ct);
+            await _users.SaveChangesAsync(cancellationToken);
 
-        var (token, expiresAt) = _tokens.GenerateToken(user, 30);
+            var (token, expiresAt) = _tokens.GenerateToken(user, 30);
 
-        return new AuthResponse
+            return new AuthResponse
+            {
+                UserId = user.Id,
+                Email = user.Email,
+                Role = user.Role?.RoleName,
+                IsEmailVerified = true,
+                IsProfileCompleted = user.PersonId.HasValue,
+                Token = token,
+                ExpiresAt = expiresAt
+            };
+        }
+        catch (Exception ex) when (ex is not NotFoundException and not AuthException and not BusinessRuleException and not ConflictException)
         {
-            UserId             = user.Id,
-            Email              = user.Email,
-            Role               = user.Role?.RoleName,
-            IsEmailVerified    = true,
-            IsProfileCompleted = user.PersonId.HasValue,
-            Token              = token,
-            ExpiresAt          = expiresAt
-        };
+            _logger.ServerError("Verify OTP", ObjectName, ex);
+            throw new ServiceException(ExceptionMessages.ServiceException("verify OTP", ObjectName, ex.Message), ex);
+        }
     }
 
-public async Task<OtpResponse> ResendOtpAsync(ResendOtpRequest request, CancellationToken ct = default)
-        {
-            _logger.StartOperation("Resend OTP", ObjectName, 0);
+    public async Task<OtpResponse> ResendOtpAsync(ResendOtpRequest request, CancellationToken cancellationToken = default)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
 
-            var email = request.Email.Trim().ToLowerInvariant();
-            var user = await _users.GetByEmailAsync(email, ct)
-                       ?? throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, 0));
+        _logger.LogInformation("Attempting To Resend verification code to {email}",email);
+
+try
+        {
+            var user = await _users.GetByEmailAsync(email, cancellationToken)
+                       ?? throw new NotFoundException("Cannot Resend OTP. User is not registered.");
 
             if (user.IsEmailVerified)
                 throw new ConflictException(ExceptionMessages.Conflict("Email", "already verified"));
 
-        var expiresAt = await IssueAndSendOtpAsync(user, PurposeEmailVerification, ct);
+            var expiresAt = await IssueAndSendOtpAsync(user, PurposeEmailVerification, cancellationToken);
 
-        return new OtpResponse
+            return new OtpResponse
+            {
+                Email = user.Email,
+                ExpiresAtUtc = expiresAt,
+                Message = "A new verification code has been sent to your email."
+            };
+        }
+        catch (Exception ex) when (ex is not NotFoundException and not ConflictException)
         {
-            Email        = user.Email,
-            ExpiresAtUtc = expiresAt,
-            Message      = "A new verification code has been sent to your email."
-        };
+            _logger.ServerError("Resend OTP", ObjectName, ex);
+            throw new ServiceException(ExceptionMessages.ServiceException("resend OTP", ObjectName, ex.Message), ex);
+        }
     }
 
-public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct = default)
+    public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+
+        _logger.LogInformation("User with Email {email} Attempting to log in",email);
+
+        var user = await _users.GetByEmailAsync(email, cancellationToken);
+
+        if (user is null || !_hasher.Verify(request.Password, user.Password))
         {
-            _logger.StartOperation("Login", ObjectName, 0);
+            _logger.AuthFailed("invalid email or password");
+            throw new AuthException(ExceptionMessages.AuthFailure("invalid email or password"));
+        }
 
-            var email = request.Email.Trim().ToLowerInvariant();
-            var user = await _users.GetByEmailAsync(email, ct);
-
-            if (user is null || !_hasher.Verify(request.Password, user.Password))
-                throw new AuthException(ExceptionMessages.AuthFailure("invalid email or password"));
-
-            if (!user.IsEmailVerified)
-                throw new ForbiddenException(ExceptionMessages.Forbidden("login", ObjectName));
+        if (!user.IsEmailVerified)
+        {
+            _logger.BusinessRuleViolated(ObjectName, "email not verified");
+            throw new BusinessRuleException(ExceptionMessages.BusinessRule(
+                "Email is not verified. Please verify your email using the OTP sent at registration."));
+        }
 
         var expiry = user.PersonId is null ? 30 : (int?)null;
         var (token, expiresAt) = _tokens.GenerateToken(user, expiry);
         return new AuthResponse
         {
-            UserId             = user.Id,
-            FirstName          = user.Person?.FirstName,
-            LastName           = user.Person?.LastName,
-            Email              = user.Email,
-            Image              = user.Person?.ProfileImage,
-            DateOfBirth        = user.Person?.DateOfBirth,
-            Role               = user.Role?.RoleName,
-            IsEmailVerified    = true,
+            UserId = user.Id,
+            FirstName = user.Person?.FirstName,
+            LastName = user.Person?.LastName,
+            Email = user.Email,
+            Image = user.Person?.ProfileImage,
+            DateOfBirth = user.Person?.DateOfBirth,
+            Role = user.Role?.RoleName,
+            IsEmailVerified = true,
             IsProfileCompleted = user.PersonId.HasValue,
-            Token              = token,
-            ExpiresAt          = expiresAt
+            Token = token,
+            ExpiresAt = expiresAt
         };
     }
 
-    public async Task<OtpResponse> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken ct = default)
+    public async Task<OtpResponse> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken = default)
     {
         var email = request.Email.Trim().ToLowerInvariant();
-        var user = await _users.GetByEmailAsync(email, ct);
+
+        _logger.LogInformation("Password reset requested for email {Email}", email);
+        var user = await _users.GetByEmailAsync(email, cancellationToken);
 
         // Always return success-looking response to avoid revealing whether the email exists.
         // But if the account does exist, send the reset code.
         if (user is not null)
         {
-            var _ = await IssueAndSendOtpAsync(user, PurposePasswordReset, ct);
+            try
+            {
+                await IssueAndSendOtpAsync(user, PurposePasswordReset, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.ServerError("Forgot Password", ObjectName, ex);
+                // Swallow — user-facing response is always success (security)
+            }
         }
         else
         {
@@ -213,24 +257,27 @@ public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationTok
 
         return new OtpResponse
         {
-            Email        = email,
+            Email = email,
             ExpiresAtUtc = DateTime.UtcNow.AddMinutes(OtpExpiryMinutes),
-            Message      = "If an account exists for this email, a password reset code has been sent."
+            Message = "If an account exists for this email, a password reset code has been sent."
         };
     }
 
-public async Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken ct = default)
-        {
-            _logger.StartOperation("Reset Password", ObjectName, 0);
+    public async Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default)
+    {
+var email = request.Email.Trim().ToLowerInvariant();
 
-            var email = request.Email.Trim().ToLowerInvariant();
-            var user = await _users.GetByEmailAsync(email, ct)
+        _logger.LogInformation("User with Email {email} Attempting to reset password", email);
+
+        try
+        {
+            var user = await _users.GetByEmailAsync(email, cancellationToken)
                        ?? throw new AuthException(ExceptionMessages.AuthFailure("invalid email or reset code"));
 
             var verification = await _verifications.Query()
                 .Where(v => v.UserId == user.Id && !v.IsUsed && v.Purpose == PurposePasswordReset)
                 .OrderByDescending(v => v.CreatedAtUtc)
-                .FirstOrDefaultAsync(ct)
+                .FirstOrDefaultAsync(cancellationToken)
                 ?? throw new AuthException(ExceptionMessages.AuthFailure("invalid email or reset code"));
 
             if (verification.ExpiresAt < DateTime.UtcNow)
@@ -239,69 +286,85 @@ public async Task ResetPasswordAsync(ResetPasswordRequest request, CancellationT
             if (verification.Attempts >= MaxOtpAttempts)
                 throw new ForbiddenException(ExceptionMessages.Forbidden("reset password", ObjectName));
 
-        if (!FixedTimeEquals(verification.Code, request.Code))
-        {
-            verification.Attempts++;
+            if (!FixedTimeEquals(verification.Code, request.Code))
+            {
+                verification.Attempts++;
+                verification.UpdatedAtUtc = DateTime.UtcNow;
+                _verifications.Update(verification);
+                await _verifications.SaveChangesAsync(cancellationToken);
+                throw new AuthException(
+                        ExceptionMessages.AuthFailure($"invalid code: {MaxOtpAttempts - verification.Attempts} attempts left"));
+            }
+
+            // Mark code as used and update password
+            verification.IsUsed = true;
+            verification.UsedAt = DateTime.UtcNow;
             verification.UpdatedAtUtc = DateTime.UtcNow;
             _verifications.Update(verification);
-            await _verifications.SaveChangesAsync(ct);
-            throw new AuthException(
-                    ExceptionMessages.AuthFailure($"invalid code: {MaxOtpAttempts - verification.Attempts} attempts left"));
+
+            user.Password = _hasher.Hash(request.NewPassword);
+            user.UpdatedAtUtc = DateTime.UtcNow;
+            _users.Update(user);
+
+            await _users.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Password reset successful for user {UserId}", user.Id);
         }
-
-        // Mark code as used and update password
-        verification.IsUsed = true;
-        verification.UsedAt = DateTime.UtcNow;
-        verification.UpdatedAtUtc = DateTime.UtcNow;
-        _verifications.Update(verification);
-
-        user.Password = _hasher.Hash(request.NewPassword);
-        user.UpdatedAtUtc = DateTime.UtcNow;
-        _users.Update(user);
-
-        await _users.SaveChangesAsync(ct);
-
-        _logger.LogInformation("Password reset successful for user {UserId}", user.Id);
+        catch (Exception ex) when (ex is not AuthException and not ForbiddenException)
+        {
+            _logger.ServerError("Reset Password", ObjectName, ex);
+            throw new ServiceException(ExceptionMessages.ServiceException("reset password", ObjectName, ex.Message), ex);
+        }
     }
 
-    private async Task<DateTime> IssueAndSendOtpAsync(User user, string purpose, CancellationToken ct)
+    private async Task<DateTime> IssueAndSendOtpAsync(User user, string purpose, CancellationToken cancellationToken)
     {
         // Invalidate any previous unused codes for this user with the same purpose.
-        var oldCodes = await _verifications.WhereAsync(
-            v => v.UserId == user.Id && !v.IsUsed && v.Purpose == purpose, ct);
-        foreach (var old in oldCodes)
+        string code;
+        DateTime expiresAt;
+        try
         {
-            old.IsUsed = true;
-            old.UsedAt = DateTime.UtcNow;
-            old.UpdatedAtUtc = DateTime.UtcNow;
-            _verifications.Update(old);
+            var oldCodes = await _verifications.WhereAsync(
+                v => v.UserId == user.Id && !v.IsUsed && v.Purpose == purpose, cancellationToken);
+            foreach (var old in oldCodes)
+            {
+                old.IsUsed = true;
+                old.UsedAt = DateTime.UtcNow;
+                old.UpdatedAtUtc = DateTime.UtcNow;
+                _verifications.Update(old);
+            }
+
+            code = GenerateNumericCode(OtpLength);
+            var now = DateTime.UtcNow;
+            expiresAt = now.AddMinutes(OtpExpiryMinutes);
+
+            var verification = new EmailVerification
+            {
+                UserId = user.Id,
+                Code = code,
+                Purpose = purpose,
+                ExpiresAt = expiresAt,
+                Attempts = 0,
+                IsUsed = false,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now
+            };
+
+            await _verifications.AddAsync(verification, cancellationToken);
+            await _verifications.SaveChangesAsync(cancellationToken);
         }
-
-        var code = GenerateNumericCode(OtpLength);
-        var now = DateTime.UtcNow;
-        var expiresAt = now.AddMinutes(OtpExpiryMinutes);
-
-        var verification = new EmailVerification
+        catch (Exception ex)
         {
-            UserId       = user.Id,
-            Code         = code,
-            Purpose      = purpose,
-            ExpiresAt    = expiresAt,
-            Attempts     = 0,
-            IsUsed       = false,
-            CreatedAtUtc = now,
-            UpdatedAtUtc = now
-        };
-
-        await _verifications.AddAsync(verification, ct);
-        await _verifications.SaveChangesAsync(ct);
+            _logger.ServerError("Issue OTP", ObjectName, ex);
+            throw new ServiceException(ExceptionMessages.ServiceException("issue OTP", ObjectName, ex.Message), ex);
+        }
 
         _logger.LogInformation("OTP for {Email} ({Purpose}) is {Code} (expires at {ExpiresAt:u})",
             user.Email, purpose, code, expiresAt);
 
         try
         {
-            await SendOtpEmailAsync(user, code, purpose, ct);
+            await SendOtpEmailAsync(user, code, purpose, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -313,7 +376,7 @@ public async Task ResetPasswordAsync(ResetPasswordRequest request, CancellationT
         return expiresAt;
     }
 
-    private async Task SendOtpEmailAsync(User user, string code, string purpose, CancellationToken ct)
+    private async Task SendOtpEmailAsync(User user, string code, string purpose, CancellationToken cancellationToken)
     {
         var displayName = !string.IsNullOrWhiteSpace(user.Person?.FirstName)
             ? $"{user.Person?.FirstName} {user.Person?.LastName}".Trim()
@@ -330,7 +393,7 @@ public async Task ResetPasswordAsync(ResetPasswordRequest request, CancellationT
             displayName,
             subject,
             html,
-            ct);
+            cancellationToken);
     }
 
     private static string Infrastructure_EmailTemplate(string firstName, string code, int minutes) => $@"

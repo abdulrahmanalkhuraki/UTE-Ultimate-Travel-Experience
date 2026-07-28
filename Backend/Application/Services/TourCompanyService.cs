@@ -64,7 +64,7 @@ namespace Application.Services
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
 
-        public async Task<TourCompanyResponse> CreateAsync(TourCompanyCreateRequest request, CancellationToken cancellationToken = default)
+        public async Task<TourCompanyResponse> CreateAsync(TourCompanyCreateRequest request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
@@ -144,7 +144,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<TourCompanyResponse> GetAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<TourCompanyResponse> GetAsync(int id, CancellationToken cancellationToken)
         {
             if (id <= 0)
                 throw new ArgumentException("Invalid tour company ID", nameof(id));
@@ -490,7 +490,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<IReadOnlyList<TourCompanyResponse>> GetPendingAsync(CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<TourCompanyResponse>> GetPendingAsync(CancellationToken cancellationToken)
         {
             _logger.LogDebug("Retrieving tour companies pending approval");
 
@@ -516,10 +516,10 @@ namespace Application.Services
             }
         }
 
-        public Task<TourCompanyResponse> ApproveAsync(int id, CancellationToken cancellationToken = default)
+        public Task<TourCompanyResponse> ApproveAsync(int id, CancellationToken cancellationToken)
             => SetStatusAsync(id, TourCompanyStatus.Approved, null, cancellationToken);
 
-        public Task<TourCompanyResponse> RejectAsync(int id, string reason, CancellationToken cancellationToken = default)
+        public Task<TourCompanyResponse> RejectAsync(int id, string reason, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(reason))
                 throw new ArgumentException("Rejection reason is required", nameof(reason));
