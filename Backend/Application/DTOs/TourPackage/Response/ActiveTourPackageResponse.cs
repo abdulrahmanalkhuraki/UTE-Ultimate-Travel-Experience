@@ -1,3 +1,4 @@
+using Application.DTOs.Booking.Response;
 using Domain.Enums;
 
 namespace Application.DTOs.TourPackage.Response
@@ -45,5 +46,8 @@ namespace Application.DTOs.TourPackage.Response
         /// Returns 0 if no ratings exist.
         /// </summary>
         public float AverageRating { get; set; }
+
+        /// <summary>Last 10 bookings for this package, ordered by most recent.</summary>
+        public IReadOnlyCollection<BookingBriefResponse>? RecentBookings { get; set; }
     }
 }

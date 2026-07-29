@@ -1,3 +1,4 @@
+using Application.DTOs.Booking.Response;
 using Application.DTOs.TourPackage.Response;
 using Application.Interfaces.TourPackage;
 using AutoMapper;
@@ -11,6 +12,10 @@ namespace Application.Mappings
     {
         public ActiveTourPackageProfile()
         {
+            CreateMap<Booking, BookingBriefResponse>()
+                .ForMember(d => d.TouristName, o => o.MapFrom(s =>
+                    s.User == null || s.User.Person == null ? string.Empty : s.User.Person.Fullname));
+
             CreateMap<TourPackage, ActiveTourPackageResponse>()
                 .ForMember(d => d.ImageUrl, o => o.MapFrom(s =>
                     GetFirstImageUrl(s.Media)))
@@ -19,7 +24,9 @@ namespace Application.Mappings
                 .ForMember(d => d.RemainingDaysUntilRegistration, o => o.MapFrom(s =>
                     CalculateDaysRemaining(s.RegistrationDeadline)))
                 .ForMember(d => d.AverageRating, o => o.MapFrom(s =>
-                    s.Rates.Count > 0 ? (float)s.Rates.Average(r => r.RateValue) : 0f));
+                    s.Rates.Count > 0 ? (float)s.Rates.Average(r => r.RateValue) : 0f))
+                .ForMember(d => d.RecentBookings, o => o.MapFrom(s =>
+                    s.Bookings.OrderByDescending(b => b.CreatedAtUtc).Take(10).ToList()));
         }
 
         /// <summary>

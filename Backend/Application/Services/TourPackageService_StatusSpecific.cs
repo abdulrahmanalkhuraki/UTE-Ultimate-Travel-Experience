@@ -118,6 +118,9 @@ namespace Application.Services
                 var entities = await query
                     .Include(p => p.Media)
                     .Include(p => p.Rates)
+                    .Include(p => p.Bookings)
+                        .ThenInclude(b => b.User)
+                            .ThenInclude(u => u.Person)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .OrderByDescending(p => p.CreatedAtUtc)
