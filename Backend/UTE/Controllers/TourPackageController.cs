@@ -381,6 +381,28 @@ return Ok(await _service.GetMineRejectedAsync(page, pageSize, cancellationToken)
             return Ok(await _service.GetRateAndReviewStatsAsync(cancellationToken));
         }
 
+        /// <summary>
+        /// Retrieves tourist statistics for the authenticated company's dashboard.
+        /// Includes unique tourist count, latest bookings, and monthly booking chart data.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Tourist statistics response.</returns>
+        /// <response code="200">Successfully retrieved tourist statistics.</response>
+        /// <response code="401">User not authenticated.</response>
+        /// <response code="403">User is not a tour company or profile not completed.</response>
+        /// <response code="500">Internal server error.</response>
+        [HttpGet("mine/tourist-stats")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "TourCompany")]
+        [ProducesResponseType(typeof(TouristStatsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<TouristStatsResponse>> GetTouristStats(CancellationToken cancellationToken = default)
+        {
+            return Ok(await _service.GetTouristStatsAsync(cancellationToken));
+        }
+
         #region Helpers
 
         private int? GetCurrentUserId()

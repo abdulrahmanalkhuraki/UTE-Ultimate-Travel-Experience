@@ -7,7 +7,6 @@ public sealed record PackageStatsResponse
     public int RejectedPackages { get; init; }
     public int CompletedPackages { get; init; }
     public int CancelledPackages { get; init; }
-
     public IReadOnlyList<MonthlyPackageCount> MonthlyPublished { get; init; } = [];
 }
 

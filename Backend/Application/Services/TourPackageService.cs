@@ -9,7 +9,6 @@ using Application.Interfaces.Notifications;
 using Application.Interfaces.TourPackage;
 using Application.Interfaces.User;
 using AutoMapper;
-using Azure;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Interfaces;
@@ -931,7 +930,7 @@ namespace Application.Services
                 {
                     TotalRatings = g.Sum(p => p.Rates.Count),
                     TotalReviews = g.Sum(p => p.Reviews.Count),
-                    AverageRating = g.SelectMany(p => p.Rates).Average(r => (double)r.RateValue)
+                    AverageRating = g.SelectMany(p => p.Rates).Select(r => (double)r.RateValue).DefaultIfEmpty().Average()
                 })
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -975,6 +974,80 @@ namespace Application.Services
                 TotalRatings = summary?.TotalRatings ?? 0,
                 TotalReviews = summary?.TotalReviews ?? 0,
                 MonthlyStats = monthlyStats.AsReadOnly()
+            };
+        }
+
+        public async Task<TouristStatsResponse> GetTouristStatsAsync(CancellationToken cancellationToken = default)
+        {
+            var currentUserId = _currentUser.UserId
+                ?? throw new AuthenticationException(ExceptionMessages.AuthFailure("not authenticated"));
+
+            var companyId = await ResolveCompanyIdAsync(currentUserId, cancellationToken);
+
+            var statusFilter = new[]
+            {
+                BookingStatus.Rejected_By_Company,
+                BookingStatus.Rejected_By_Tourist,
+                BookingStatus.Cancelled
+            };
+
+            var totalUniqueTourists = await _unitOfWork.Bookings
+                .Query()
+                .AsNoTracking()
+                .Where(b => b.TourPackage.CompanyId == companyId
+                         && !statusFilter.Contains(b.Status))
+                .Select(b => b.UserId)
+                .Distinct()
+                .CountAsync(cancellationToken);
+
+            var latestBookings = await _unitOfWork.Bookings
+                .Query()
+                .AsNoTracking()
+                .Where(b => b.TourPackage.CompanyId == companyId
+                         && !statusFilter.Contains(b.Status))
+                .OrderByDescending(b => b.BookingDate)
+                .ThenByDescending(b => b.Id)
+                .Take(10)
+                .Select(b => new LatestBookingItem
+                {
+                    Id = b.Id,
+                    TouristName = b.User.Person!.FirstName + " " + b.User.Person!.LastName,
+                    TouristImage = b.User.Person!.ProfileImage,
+                    BookingDate = b.BookingDate,
+                    PackageName = b.TourPackage.PackageName
+                })
+                .ToListAsync(cancellationToken);
+
+            var monthlyRaw = await _unitOfWork.Bookings
+                .Query()
+                .AsNoTracking()
+                .Where(b => b.TourPackage.CompanyId == companyId
+                         && !statusFilter.Contains(b.Status))
+                .GroupBy(b => new { b.BookingDate.Year, b.BookingDate.Month })
+                .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
+                .ToListAsync(cancellationToken);
+
+            var lookup = monthlyRaw.ToDictionary(m => (m.Year, m.Month), m => m.Count);
+
+            var today = DateTime.UtcNow;
+            var monthlyBookings = new List<MonthlyBookingCount>(12);
+            for (var i = 11; i >= 0; i--)
+            {
+                var date = today.AddMonths(-i);
+                monthlyBookings.Add(new MonthlyBookingCount
+                {
+                    Year = date.Year,
+                    Month = date.Month,
+                    MonthName = CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(date.Month),
+                    BookingCount = lookup.GetValueOrDefault((date.Year, date.Month), 0)
+                });
+            }
+
+            return new TouristStatsResponse
+            {
+                TotalUniqueTourists = totalUniqueTourists,
+                LatestBookings = latestBookings.AsReadOnly(),
+                MonthlyBookings = monthlyBookings.AsReadOnly()
             };
         }
 
