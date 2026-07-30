@@ -9,6 +9,7 @@ using Application.Interfaces.Notifications;
 using Application.Interfaces.TourPackage;
 using Application.Interfaces.User;
 using AutoMapper;
+using Azure;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Interfaces;
@@ -570,7 +571,7 @@ namespace Application.Services
         public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
             if (id <= 0)
-                throw new ArgumentException("Invalid tour package ID", nameof(id));
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(id));
 
             var currentUserId = _currentUser.UserId
                 ?? throw new AuthException(ExceptionMessages.Auth());
@@ -640,7 +641,7 @@ namespace Application.Services
         public async Task<TourPackageResponse> GetAsync(int id, CancellationToken cancellationToken = default)
         {
             if (id <= 0)
-                throw new ArgumentException("Invalid tour package ID", nameof(id));
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(id));
 
             var cacheKey = $"{CacheKeyPrefix}{id}";
             if (_cache.TryGetValue(cacheKey, out TourPackageResponse? cached) && cached is not null)
@@ -651,8 +652,8 @@ namespace Application.Services
 
             if (entity is null)
             {
-                _logger.LogWarning("tour package {PackageId} not found", id);
-                throw new NotFoundException($"Tour package with ID {id} not found");
+                _logger.EntityNotFound(ObjectName, id);
+                throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, id));
             }
 
             var response = _mapper.Map<TourPackageResponse>(entity);
@@ -728,7 +729,7 @@ namespace Application.Services
                     ? $"{MineCacheKeyPrefix}{companyId}_{status.Value}"
                     : $"{MineCacheKeyPrefix}{companyId}_all";
 
-                mineKey = mineKey + $"page{page}_pageSize{pageSize}"; 
+                mineKey = mineKey + $"page{page}_pageSize{pageSize}";
 
                 if (_cache.TryGetValue(mineKey, out PaginatedResponse<TourPackageResponse>? cached) && cached is not null)
                     return cached;
@@ -740,7 +741,7 @@ namespace Application.Services
                     query = query.Where(p => p.Status == status.Value);
 
                 var entities = await query
-                    .Skip((page-1) * pageSize)
+                    .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .OrderByDescending(p => p.CreatedAtUtc)
                     .ToListAsync(cancellationToken);
@@ -777,7 +778,7 @@ namespace Application.Services
         public async Task<TourPackageResponse> GetMineAsync(int id, CancellationToken cancellationToken)
         {
             if (id <= 0)
-                throw new ArgumentException("Invalid tour package ID", nameof(id));
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(id));
 
             int userId = _currentUser.UserId ?? throw new AuthException("User must be authenticated");
             int companyId = await ResolveCompanyIdAsync(userId, cancellationToken);
@@ -819,7 +820,7 @@ namespace Application.Services
             {
                 throw;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.ServerError("Retrieve Mine By Id", ObjectName, ex);
                 throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
@@ -831,8 +832,21 @@ namespace Application.Services
             int? cityId = null,
             decimal? minPrice = null,
             decimal? maxPrice = null,
+            int page = 1,
+            int pageSize = 20,
             CancellationToken cancellationToken = default)
         {
+            var cacheKey = $"tourpackages_country{countryId}_city{cityId}_minPrice{minPrice}_maxPrice{maxPrice}_page{page}_size{pageSize}";
+
+            if(_cache.TryGetValue(cacheKey, out IReadOnlyList<TourPackageResponse>? cached) && cached is not null)
+            {
+                _logger.LogInformation($"cache hit for tourpackages " +
+                    $"country {countryId} | city {cityId}" +
+                    $"minPrice {minPrice} | maxPrice {maxPrice}" +
+                    $"page {page}| page size {pageSize}");
+                return cached;
+            }
+
             var query = WherePubliclyVisible(QueryWithGraph());
 
             if (countryId is > 0)
@@ -843,14 +857,31 @@ namespace Application.Services
                 query = query.Where(p => p.PricePerPerson >= minPrice);
             if (maxPrice is > 0)
                 query = query.Where(p => p.PricePerPerson <= maxPrice);
-
-            var entities = await query
+            try
+            {
+                var entities = await query
                 .OrderBy(p => p.StartDate)
                 .ThenBy(p => p.PricePerPerson)
-                .Take(100)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync(cancellationToken);
 
-            return _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
+                var response = _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
+
+                _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = CacheDuration,
+                    Priority = CacheItemPriority.Low
+                });
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.ServerError("filtering", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("filtering", ObjectName, ex.Message), ex);
+            }
+
         }
 
         public async Task<PackageStatsResponse> GetPackageStatsAsync(CancellationToken cancellationToken = default)
@@ -1242,9 +1273,11 @@ namespace Application.Services
                 .Include(p => p.Company)
                 .Include(p => p.Rates)
                 .Include(p => p.TourPackageGuides).ThenInclude(g => g.TouristGuide)
+                    .ThenInclude(g => g.Person)
                 .Include(p => p.CabinClasses)
                 .Include(p => p.Media)
                 .Include(p => p.PackageAttractions).ThenInclude(pa => pa.Attraction)
+                    .ThenInclude(a => a.City)
                 .Include(p => p.PackageItineraries).ThenInclude(d => d.Activities);
 
 

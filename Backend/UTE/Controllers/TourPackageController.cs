@@ -22,14 +22,15 @@ namespace UTE.Controllers
             _service = service ?? throw new ArgumentNullException(nameof(service));
         }
 
-[HttpGet]
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(PaginatedResponse<TourPackageResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<PaginatedResponse<TourPackageResponse>>> GetAll(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20,
-            CancellationToken cancellationToken = default)
+                    [FromQuery] int page = 1,
+                    [FromQuery] int pageSize = 20,
+                    CancellationToken cancellationToken = default)
         {
             if (page < 1 || pageSize < 1 || pageSize > 100)
                 return BadRequest(CreateProblemDetails(
@@ -52,6 +53,12 @@ namespace UTE.Controllers
             [FromQuery] int? pageSize = null,
             CancellationToken cancellationToken = default)
         {
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                return BadRequest(CreateProblemDetails(
+                    "Invalid Pagination",
+                    "Page must be >= 1, PageSize must be between 1 and 100.",
+                    StatusCodes.Status400BadRequest));
+
             return Ok(await _service.GetMineAsync(page ?? 1,
                 pageSize ?? 20,
                 status,
@@ -64,10 +71,10 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(TourPackageResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<TourPackageResponse>> GetMineById(int id, 
+        public async Task<ActionResult<TourPackageResponse>> GetMineById(int id,
             CancellationToken cancellationToken = default)
         {
-            return Ok(await _service.GetMineAsync(id,cancellationToken));
+            return Ok(await _service.GetMineAsync(id, cancellationToken));
         }
 
         [HttpGet("{id:int:min(1)}")]
@@ -76,7 +83,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<TourPackageResponse>> GetById(int id, CancellationToken cancellationToken = default)
         {
-             return Ok(await _service.GetAsync(id, cancellationToken));
+            return Ok(await _service.GetAsync(id, cancellationToken));
         }
 
         [HttpGet("filter")]
@@ -86,12 +93,20 @@ namespace UTE.Controllers
             [FromQuery] int? cityId = null,
             [FromQuery] decimal? minPrice = null,
             [FromQuery] decimal? maxPrice = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
             CancellationToken cancellationToken = default)
         {
             if (minPrice.HasValue && maxPrice.HasValue && minPrice > maxPrice)
                 return BadRequest(CreateProblemDetails("Invalid search parameters", "minPrice cannot be greater than maxPrice", StatusCodes.Status400BadRequest));
 
-                return Ok(await _service.FilterAsync(countryId, cityId, minPrice, maxPrice, cancellationToken));
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                return BadRequest(CreateProblemDetails(
+                    "Invalid Pagination",
+                    "Page must be >= 1, PageSize must be between 1 and 100.",
+                    StatusCodes.Status400BadRequest));
+
+            return Ok(await _service.FilterAsync(countryId, cityId, minPrice, maxPrice, page, pageSize, cancellationToken));
 
         }
 
@@ -121,8 +136,8 @@ namespace UTE.Controllers
             [FromForm] TourPackageUpdateRequest request,
             CancellationToken cancellationToken = default)
         {
-                var updated = await _service.UpdateAsync(id, request, cancellationToken);
-                return Ok(updated);
+            var updated = await _service.UpdateAsync(id, request, cancellationToken);
+            return Ok(updated);
         }
 
         [HttpPost("{id:int:min(1)}/republish")]
@@ -334,7 +349,7 @@ namespace UTE.Controllers
                     "Page must be >= 1, PageSize must be between 1 and 100.",
                     StatusCodes.Status400BadRequest));
 
-return Ok(await _service.GetMineRejectedAsync(page, pageSize, cancellationToken));
+            return Ok(await _service.GetMineRejectedAsync(page, pageSize, cancellationToken));
         }
 
         /// <summary>

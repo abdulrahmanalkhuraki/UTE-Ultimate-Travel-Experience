@@ -5,7 +5,6 @@ using Application.DTOs.User.Response;
 using Domain.Enums;
 using System.Text.Json.Serialization;
 
-
 namespace Application.DTOs.Booking.Response
 {
     public sealed class BookingResponse

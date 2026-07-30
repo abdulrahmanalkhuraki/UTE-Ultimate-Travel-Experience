@@ -24,7 +24,14 @@ namespace Application.Mappings
                 .ForMember(dest => dest.NationalIdCard, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalIdCard : null))
                 .ForMember(dest => dest.PassportScan, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportScan : null))
                 .ForMember(dest => dest.NationalityCountryName,
-                    opt => opt.MapFrom(src => src.NatinalityCountry != null ? src.NatinalityCountry.EnCountryName : null));
+                    opt => opt.MapFrom(src => src.NatinalityCountry != null ? src.NatinalityCountry.EnCountryName : null))
+                .ForMember(dest => dest.LastTourPackageId,
+                    opt => opt.MapFrom(src => src.TourPackageGuides
+                        .OrderByDescending(tpg => tpg.CreatedAtUtc)
+                        .Select(tpg => tpg.PackageId)
+                        .FirstOrDefault()))
+                .ForMember(dest => dest.NumberOfPackagesGuided,
+                    opt => opt.MapFrom(src => src.TourPackageGuides.Count));
 
             CreateMap<TouristGuideUpdateRequest, TouristGuide>()
                 .ForMember(dest => dest.Email, opt =>

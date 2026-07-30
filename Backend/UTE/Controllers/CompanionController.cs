@@ -18,7 +18,6 @@ namespace UTE.Controllers
     {
         private readonly ICompanionService _companionService;
 
-
         public CompanionController(ICompanionService companionService)
         {
             _companionService = companionService ?? throw new ArgumentNullException(nameof(companionService));
@@ -34,9 +33,9 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(IReadOnlyList<CompanionResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<IReadOnlyList<CompanionResponse>>> GetAll(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IReadOnlyList<CompanionResponse>>> GetAll(int page = 1,int pageSize = 20,CancellationToken cancellationToken = default)
         {
-            return Ok(await _companionService.GetAllAsync(cancellationToken));
+            return Ok(await _companionService.GetAllAsync(page,pageSize,cancellationToken));
         }
 
         /// <summary>Retrieves a specific companion by ID.</summary>

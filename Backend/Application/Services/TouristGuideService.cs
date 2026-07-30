@@ -244,7 +244,8 @@ namespace Application.Services
                 .AsNoTracking()
                 .Include(g => g.NatinalityCountry)
                 .Include(g => g.Person)
-                    .ThenInclude(p => p.ResidentialCity);
+                    .ThenInclude(p => p.ResidentialCity)
+                .Include(g => g.TourPackageGuides);
 
         private async Task<TouristGuideResponse> BuildResponseAsync(int id, CancellationToken cancellationToken)
         {

@@ -1,6 +1,5 @@
 ﻿using Application.DTOs.Booking.Request;
 using Application.DTOs.Booking.Response;
-using Application.Exceptions;
 using Application.Interfaces.Booking;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -16,12 +15,10 @@ namespace UTE.Controllers
     public class BookingController : ControllerBase
     {
         private readonly IBookingService _bookingService;
-        private readonly ILogger<BookingController> _logger;
 
-        public BookingController(IBookingService bookingService, ILogger<BookingController> logger)
+        public BookingController(IBookingService bookingService)
         {
             _bookingService = bookingService;
-            _logger = logger;
         }
 
         /// <summary>
@@ -72,24 +69,25 @@ namespace UTE.Controllers
         }
 
         /// <summary>
-        /// Retrieves all bookings
+        /// Retrieves all bookings for specific Tourist by The Admin
         /// </summary>
         /// <param name="cancellationToken">Cancellation token</param>
+        /// <param name="touristId">the specific Tourist Id</param>
         /// <returns>List of all bookings</returns>
         /// <response code="200">Returns the list of bookings</response>
         /// <response code="401">If the user is not authenticated</response>
         /// <response code="403">If the user is not an admin</response>
         /// <response code="500">If there was an internal server error</response>
-        [HttpGet("UserBookings/{id:int:min(1)}")]
+        [HttpGet("UserBookings/{touristId:int:min(1)}")]
         [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(IReadOnlyList<BookingResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IReadOnlyList<BookingResponse>>> GetAll(int id,CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IReadOnlyList<BookingResponse>>> GetAll(int touristId,CancellationToken cancellationToken = default)
         {
-            var bookings = await _bookingService.GetAllAsync(id, cancellationToken);
+            var bookings = await _bookingService.GetAllAsync(touristId, cancellationToken);
             return Ok(bookings);
         }
 
@@ -338,34 +336,5 @@ namespace UTE.Controllers
             var declinedBooking = await _bookingService.DeclineAsync(id, cancellationToken);
             return Ok(declinedBooking);
         }
-
-        #region Private Helper Methods
-
-        private ProblemDetails CreateProblemDetails(string title, string detail, int statusCode = StatusCodes.Status500InternalServerError)
-        {
-            return new ProblemDetails
-            {
-                Title = title,
-                Detail = detail,
-                Status = statusCode,
-                Instance = HttpContext.Request.Path,
-                Type = $"https://httpstatuses.com/{statusCode}"
-            };
-        }
-
-        private ValidationProblemDetails CreateValidationProblemDetails()
-        {
-            var problemDetails = new ValidationProblemDetails(ModelState)
-            {
-                Type = "https://httpstatuses.com/400",
-                Title = "Validation Error",
-                Status = StatusCodes.Status400BadRequest,
-                Instance = HttpContext.Request.Path
-            };
-
-            return problemDetails;
-        }
-
-        #endregion
     }
 }

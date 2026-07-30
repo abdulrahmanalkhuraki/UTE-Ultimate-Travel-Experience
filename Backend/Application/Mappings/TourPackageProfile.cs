@@ -18,11 +18,13 @@ namespace Application.Mappings
 
             CreateMap<TouristGuide, TourPackageGuideResponse>()
                 .ForMember(dest => dest.FullName,
-                    opt => opt.MapFrom(src => src.Person.Fullname));
+                    opt => opt.MapFrom(src => src.Person != null ? src.Person.Fullname : null));
 
             CreateMap<TourPackageCabinClass, TourPackageCabinClassResponse>();
 
-            CreateMap<TourPackageMedia, TourPackageMediaResponse>();
+            CreateMap<TourPackageMedia, TourPackageMediaResponse>()
+                .ForMember(dest => dest.Type,
+                    opt => opt.MapFrom(src => src.MediaType));
 
             CreateMap<TourPackage, TourPackageResponse>()
                 .ForMember(dest => dest.CountryName,
@@ -41,7 +43,11 @@ namespace Application.Mappings
                 .ForMember(dest => dest.Media,
                     opt => opt.MapFrom(src => src.Media
                         .OrderBy(m => m.DisplayOrder)));
-                
+
+            CreateMap<TourPackage_Attraction, PackageCityResponse>()
+                .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Attraction.City.Id))
+                .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.Attraction.City.EnCityName));
+
         }
     }
 }

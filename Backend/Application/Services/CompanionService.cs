@@ -8,7 +8,6 @@ using Application.Interfaces.Companion;
 using Application.Interfaces.User;
 using Application.Validators.Companion;
 using AutoMapper;
-using Azure;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Interfaces;
@@ -141,21 +140,25 @@ namespace Application.Services
             return response;
         }
 
-        public async Task<IReadOnlyList<CompanionResponse>> GetAllAsync(CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<CompanionResponse>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken)
         {
             var userId = _currentUser.UserId ??
                 throw new AuthException(ExceptionMessages.Auth());
 
             _logger.StartOperation("Retrieve All", ObjectName, userId);
 
-            if (_cache.TryGetValue(CompanionListCacheKey, out IReadOnlyList<CompanionResponse>? cached) && cached is not null)
+            var cacheKey = $"companions_page{page}_size{pageSize}";
+
+            if (_cache.TryGetValue(cacheKey, out IReadOnlyList<CompanionResponse>? cached) && cached is not null)
             {
-                _logger.LogInformation("cache hit for all companions");
+                _logger.LogInformation($"cache hit for companions page {page}| page size {pageSize}");
                 return cached;
             }
 
             var entities = await QueryWithGraph()
                 .Where(c => c.UserId == userId)
+                .OrderByDescending(c => c.Person.CreatedAtUtc)
+                .Skip((page - 1) * pageSize)
                 .ToListAsync(cancellationToken);
 
             var responses = new List<CompanionResponse>(entities.Count);
@@ -164,7 +167,7 @@ namespace Application.Services
                 responses.Add(await BuildResponseFromEntity(entity, cancellationToken));
             }
 
-            _cache.Set(CompanionListCacheKey, responses, new MemoryCacheEntryOptions
+            _cache.Set(cacheKey, responses, new MemoryCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = CacheDuration,
                 Priority = CacheItemPriority.Low
@@ -193,9 +196,6 @@ namespace Application.Services
                 await _EnsureCountryExistsAsync(request.NationalityCountryId.Value, cancellationToken);
             if (request.ResidentialCityId.HasValue)
                 await _EnsureCityExistsAsync(request.ResidentialCityId.Value, cancellationToken);
-
-
-
 
 
             try

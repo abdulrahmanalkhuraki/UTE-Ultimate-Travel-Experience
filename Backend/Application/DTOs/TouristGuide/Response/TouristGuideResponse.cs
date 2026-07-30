@@ -44,6 +44,10 @@ namespace Application.DTOs.TouristGuide.Response
 
         public bool IsAvailable { get; set; }
 
+        public int? LastTourPackageId { get; set; }
+
+        public int NumberOfPackagesGuided { get; set; }
+
         public DateTime CreatedAtUtc { get; set; }
     }
 }
