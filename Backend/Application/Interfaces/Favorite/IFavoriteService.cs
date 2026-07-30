@@ -1,11 +1,12 @@
 using Application.DTOs.Favorite.Response;
+using Application.DTOs.Pagination;
 
 namespace Application.Interfaces.Favorite
 {
     public interface IFavoriteService
     {
-        Task<FavoriteResponse> AddAsync(int companyId, CancellationToken cancellationToken);
+        Task<bool> AddAsync(int companyId, CancellationToken cancellationToken);
 
-        Task<IReadOnlyList<FavoriteResponse>> GetUserFavoritesAsync(CancellationToken cancellationToken);
+        Task<PaginatedResponse<FavoriteResponse>> GetUserFavoritesAsync(int page, int pageSize, CancellationToken cancellationToken);
     }
 }

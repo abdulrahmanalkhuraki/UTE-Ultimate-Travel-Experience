@@ -1,11 +1,13 @@
 using Application.Common.Constants;
 using Application.Common.Logging;
 using Application.DTOs.Favorite.Response;
+using Application.DTOs.Pagination;
 using Application.Exceptions;
 using Application.Interfaces.Favorite;
 using Application.Interfaces.User;
 using AutoMapper;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -32,36 +34,30 @@ namespace Application.Services
             _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
         }
 
-        public async Task<FavoriteResponse> AddAsync(int companyId, CancellationToken cancellationToken)
+        public async Task<bool> AddAsync(int companyId, CancellationToken cancellationToken)
         {
             if (companyId <= 0)
                 throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName));
+            
+            var userId = _currentUser.UserId ?? throw new AuthException(ExceptionMessages.Auth());
 
-            var userId = _currentUser.UserId ?? 0;
-
-            _logger.StartOperation("Add", ObjectName, userId);
+            _logger.LogInformation("Attempting To Add Company {companyId} to user {userId} Favorites",companyId,userId);
 
             try
             {
-                var company = await _unitOfWork.TourCompanies
-                    .FirstOrDefaultAsync(tc => tc.Id == companyId, cancellationToken);
+                var isCompanyExists = await _unitOfWork.TourCompanies
+                    .AnyAsync(tc => tc.Id == companyId, cancellationToken);
 
-                if (company is null)
+                if (!isCompanyExists)
                 {
                     _logger.EntityNotFound(ObjectName, companyId);
                     throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, companyId));
                 }
 
-                if (company.UserId == userId)
-                {
-                    _logger.BusinessRuleViolated(ObjectName, "You cannot add your own company to favorites");
-                    throw new BusinessRuleException(ExceptionMessages.BusinessRule("You cannot add your own company to favorites"));
-                }
+                var isFavoritedBefore = await _unitOfWork.Favorites
+                    .AnyAsync(f => f.CompanyId == companyId && f.UserId == userId, cancellationToken);
 
-                var existing = await _unitOfWork.Favorites
-                    .FirstOrDefaultAsync(f => f.CompanyId == companyId && f.UserId == userId, cancellationToken);
-
-                if (existing is not null)
+                if (isFavoritedBefore)
                 {
                     _logger.BusinessRuleViolated(ObjectName, "This company is already in your favorites");
                     throw new BusinessRuleException(ExceptionMessages.BusinessRule("This company is already in your favorites"));
@@ -76,16 +72,9 @@ namespace Application.Services
                 await _unitOfWork.Favorites.AddAsync(favorite, cancellationToken);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.SuccessfulOperation(userId, "Add", ObjectName, companyId);
+                _logger.LogInformation("Company {companyId} has been add successfully to user {userId} favorites.",companyId,userId);
 
-                return new FavoriteResponse
-                {
-                    Id = favorite.Id,
-                    CompanyId = company.Id,
-                    CompanyName = company.Name,
-                    CompanyLogo = company.Logo,
-                    CreatedAtUtc = favorite.CreatedAtUtc
-                };
+                return true;
             }
             catch (Exception ex) when (ex is NotFoundException or BusinessRuleException)
             {
@@ -94,9 +83,9 @@ namespace Application.Services
             }
         }
 
-        public async Task<IReadOnlyList<FavoriteResponse>> GetUserFavoritesAsync(CancellationToken cancellationToken)
+        public async Task<PaginatedResponse<FavoriteResponse>> GetUserFavoritesAsync(int page, int pageSize, CancellationToken cancellationToken)
         {
-            var userId = _currentUser.UserId ?? 0;
+            var userId = _currentUser.UserId ?? throw new AuthException(ExceptionMessages.Auth());
 
             _logger.LogDebug("Retrieving favorites for user {UserId}", userId);
 
@@ -107,18 +96,35 @@ namespace Application.Services
                     .Include(f => f.Company)
                     .Where(f => f.UserId == userId)
                     .OrderByDescending(f => f.CreatedAtUtc)
+                    .Select(f => new FavoriteResponse
+                    {
+                        Id = f.Id,
+                        CompanyId = f.CompanyId,
+                        CompanyName = f.Company.Name,
+                        CompanyDescription = f.Company.Description,
+                        CompanyLogo = f.Company.Logo,
+                        NumberOfPackages = f.Company.TourPackages.Count,
+                        NumberOfTourists = f.Company.TourPackages
+                        .Sum(tp => tp.Bookings
+                        .Count(b => 
+                        b.Status == BookingStatus.Completed || 
+                        b.Status == BookingStatus.Confirmed || 
+                        b.Status == BookingStatus.In_Progress)),
+                        Rate = f.Company.TourPackages.Average(tp => tp.Rate)
+                    })
                     .ToListAsync(cancellationToken);
 
-                var response = favorites.Select(f => new FavoriteResponse
-                {
-                    Id = f.Id,
-                    CompanyId = f.Company.Id,
-                    CompanyName = f.Company.Name,
-                    CompanyLogo = f.Company.Logo,
-                    CreatedAtUtc = f.CreatedAtUtc
-                }).ToList();
 
-                _logger.LogDebug("Successfully retrieved {Count} favorites for user {UserId}", response.Count, userId);
+                var paginationMetadata = new PaginationMetadata
+                {
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalItems = favorites.Count
+                };
+
+                var response = new PaginatedResponse<FavoriteResponse> { Items = favorites, Pagination = paginationMetadata };
+
+                _logger.LogDebug("Successfully retrieved {Count} favorites for user {UserId}", favorites.Count, userId);
 
                 return response;
             }
