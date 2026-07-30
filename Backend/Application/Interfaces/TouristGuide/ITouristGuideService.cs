@@ -1,8 +1,9 @@
+using Application.DTOs.Pagination;
+using Application.DTOs.TouristGuide.Request;
+using Application.DTOs.TouristGuide.Response;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Application.DTOs.TouristGuide.Request;
-using Application.DTOs.TouristGuide.Response;
 
 namespace Application.Interfaces.TouristGuide
 {
@@ -23,11 +24,6 @@ namespace Application.Interfaces.TouristGuide
 
         /// <summary>Gets a single guide owned by the company of <paramref name="ownerUserId"/>.</summary>
         Task<TouristGuideResponse> GetAsync(int id, int ownerUserId, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Lists all guides belonging to the company of <paramref name="ownerUserId"/>
-        /// (مرشدو الشركة) — the list shown in the program "اختر مرشدك" picker.
-        /// </summary>
-        Task<IReadOnlyList<TouristGuideResponse>> GetMineAsync(int ownerUserId, CancellationToken cancellationToken = default);
+        Task<PaginatedResponse<TouristGuideResponseSummary>> GetMineAsync(int page,int pageSize,CancellationToken cancellationToken);
     }
 }

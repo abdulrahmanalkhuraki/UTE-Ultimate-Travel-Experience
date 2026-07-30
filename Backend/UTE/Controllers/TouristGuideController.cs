@@ -1,5 +1,6 @@
 using System.Net.Mime;
 using System.Security.Claims;
+using Application.DTOs.Pagination;
 using Application.DTOs.TouristGuide.Request;
 using Application.DTOs.TouristGuide.Response;
 using Application.Exceptions;
@@ -26,34 +27,12 @@ namespace UTE.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// Lists the signed-in company's own guides (مرشدو الشركة) — the list shown
-        /// in the program "اختر مرشدك" picker.
-        /// </summary>
         [HttpGet("mine")]
-        [ProducesResponseType(typeof(IReadOnlyList<TouristGuideResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaginatedResponse<TouristGuideResponseSummary>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<IReadOnlyList<TouristGuideResponse>>> GetMine(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<PaginatedResponse<TouristGuideResponseSummary>>> GetMine(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
         {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-                return Unauthorized(CreateProblemDetails("Unauthorized", "Invalid token.", StatusCodes.Status401Unauthorized));
-
-            try
-            {
-                return Ok(await _service.GetMineAsync(userId.Value, cancellationToken));
-            }
-            catch (ForbiddenException ex)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    CreateProblemDetails("Forbidden", ex.Message, StatusCodes.Status403Forbidden));
-            }
-            catch (ServiceException ex)
-            {
-                _logger.LogError(ex, "Error retrieving company's guides");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails("Internal Server Error", ex.Message));
-            }
+            return Ok(await _service.GetMineAsync(page, pageSize, cancellationToken));
         }
 
         /// <summary>Gets a single guide owned by the signed-in company.</summary>

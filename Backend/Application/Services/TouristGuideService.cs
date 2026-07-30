@@ -1,5 +1,6 @@
 using Application.Common.Constants;
 using Application.Common.Logging;
+using Application.DTOs.Pagination;
 using Application.DTOs.TouristGuide.Request;
 using Application.DTOs.TouristGuide.Response;
 using Application.Exceptions;
@@ -10,6 +11,7 @@ using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using ValidationException = Application.Exceptions.ValidationException;
 
@@ -21,8 +23,13 @@ namespace Application.Services
         private readonly IMapper _mapper;
         private readonly ILogger<TouristGuideService> _logger;
         private readonly IFileStorage _fileStorage;
+        private readonly ICurrentUserService _currentUser;
+        private readonly IMemoryCache _cache;
         private readonly TouristGuideCreateValidator _createValidator;
         private readonly TouristGuideUpdateValidator _updateValidator;
+
+        private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan SlidingCacheDuration = TimeSpan.FromMinutes(2);
 
         private const string GuideImageFolder = "guide-images";
         private const string ObjectName = "Tourist Guide";
@@ -32,6 +39,8 @@ namespace Application.Services
             IMapper mapper,
             ILogger<TouristGuideService> logger,
             IFileStorage fileStorage,
+            ICurrentUserService currentUser,
+            IMemoryCache cache,
             TouristGuideCreateValidator createValidator,
             TouristGuideUpdateValidator updateValidator)
         {
@@ -39,6 +48,8 @@ namespace Application.Services
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
+            _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
+            _cache = cache ?? throw new ArgumentException(nameof(cache));
             _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
             _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
         }
@@ -91,9 +102,9 @@ namespace Application.Services
 
                 return await BuildResponseAsync(entity.Id, cancellationToken);
             }
-            catch (Exception ex) when (ex is not ValidationException 
-            and not NotFoundException 
-            and not ForbiddenException 
+            catch (Exception ex) when (ex is not ValidationException
+            and not NotFoundException
+            and not ForbiddenException
             and not ConflictException)
             {
                 _logger.ServerError("Create", ObjectName, ex);
@@ -156,9 +167,9 @@ namespace Application.Services
 
                 return await BuildResponseAsync(id, cancellationToken);
             }
-            catch (Exception ex) when (ex is not ValidationException 
-            and not NotFoundException 
-            and not ForbiddenException 
+            catch (Exception ex) when (ex is not ValidationException
+            and not NotFoundException
+            and not ForbiddenException
             and not ConflictException)
             {
                 _logger.ServerError("Update", ObjectName, ex);
@@ -225,15 +236,55 @@ namespace Application.Services
             return await BuildResponseAsync(id, cancellationToken);
         }
 
-        public async Task<IReadOnlyList<TouristGuideResponse>> GetMineAsync(int ownerUserId, CancellationToken cancellationToken = default)
+        public async Task<PaginatedResponse<TouristGuideResponseSummary>> GetMineAsync(int page, int pageSize, CancellationToken cancellationToken)
         {
-            var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+            {
+                throw new ValidationException(ExceptionMessages.InvalidPagination());
+            }
 
-            var entities = await QueryWithGraph()
-                .Where(g => g.CompanyGuides.Any(cg => cg.CompanyId == companyId))
-                .ToListAsync(cancellationToken);
+            var userId = _currentUser.UserId ?? throw new AuthException(ExceptionMessages.Auth());
 
-            return _mapper.Map<IReadOnlyList<TouristGuideResponse>>(entities);
+            var cacheKey = $"mine_page{page}_size{pageSize}";
+
+            if (_cache.TryGetValue(cacheKey, out PaginatedResponse<TouristGuideResponseSummary>? cached) && cached is not null)
+            {
+                _logger.LogInformation("Cache hit for Tourist Guide Page {page} | page size {pageSize}", page, pageSize);
+                return cached;
+            }
+
+            try
+            {
+                var companyId = await ResolveCompanyIdAsync(userId, cancellationToken);
+
+                var entities = await QueryWithGraph()
+                    .Where(g => g.CompanyGuides.Any(cg => cg.CompanyId == companyId))
+                    .ToListAsync(cancellationToken);
+
+                var items = _mapper.Map<IReadOnlyList<TouristGuideResponseSummary>>(entities);
+
+                var paginationMetadata = new PaginationMetadata
+                {
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalItems = items.Count
+                };
+
+                var response = new PaginatedResponse<TouristGuideResponseSummary> { Items = items, Pagination = paginationMetadata };
+
+                _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = CacheDuration,
+                    Priority = CacheItemPriority.Low
+                });
+
+                return response;
+            }
+            catch (Exception ex) when (ex is not ForbiddenException)
+            {
+                _logger.ServerError("retrieve", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
+            }
         }
 
         #region Helpers

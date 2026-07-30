@@ -27,7 +27,7 @@ public class CompanionProfile : Profile
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
         CreateMap<Companion, CompanionResponseSummary>()
-            .ForMember(dest => dest.Fullname, opt => opt.MapFrom(src => src.Person != null ? src.Person.Fullname : null))
+            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.Person != null ? src.Person.Fullname : null))
             .ForMember(dest => dest.Age, opt => opt.MapFrom(src => src.Person != null ? src.Person.Age : 0))
             .ForMember(dest => dest.ProfileImage, opt => opt.MapFrom(s => s.Person.ProfileImage))
             .ForMember(dest => dest.Relationship, opt => opt.MapFrom(src => src.Relationship.ToString()))

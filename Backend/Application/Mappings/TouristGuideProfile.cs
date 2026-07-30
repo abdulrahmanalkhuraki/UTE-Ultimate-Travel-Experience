@@ -33,6 +33,14 @@ namespace Application.Mappings
                 .ForMember(dest => dest.NumberOfPackagesGuided,
                     opt => opt.MapFrom(src => src.TourPackageGuides.Count));
 
+            CreateMap<TouristGuide,TouristGuideResponseSummary>()
+            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.Person != null ? src.Person.Fullname : null))
+            .ForMember(dest => dest.Age, opt => opt.MapFrom(src => src.Person != null ? src.Person.Age : 0))
+            .ForMember(dest => dest.ProfileImage, opt => opt.MapFrom(s => s.Person.ProfileImage))
+            .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => src.Person != null ? DateOnly.FromDateTime(src.Person.CreatedAtUtc) : DateOnly.MinValue))
+            .ForMember(dest => dest.NumberOfPackagesGuided, opt => opt.MapFrom(src => src.TourPackageGuides.Count()));
+
+
             CreateMap<TouristGuideUpdateRequest, TouristGuide>()
                 .ForMember(dest => dest.Email, opt =>
                 {
