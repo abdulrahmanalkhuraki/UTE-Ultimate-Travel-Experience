@@ -26,6 +26,14 @@ public class CompanionProfile : Profile
             .ForMember(dest => dest.CompanionBookings, opt => opt.Ignore())
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
+        CreateMap<Companion, CompanionResponseSummary>()
+            .ForMember(dest => dest.Fullname, opt => opt.MapFrom(src => src.Person != null ? src.Person.Fullname : null))
+            .ForMember(dest => dest.Age, opt => opt.MapFrom(src => src.Person != null ? src.Person.Age : 0))
+            .ForMember(dest => dest.ProfileImage, opt => opt.MapFrom(s => s.Person.ProfileImage))
+            .ForMember(dest => dest.Relationship, opt => opt.MapFrom(src => src.Relationship.ToString()))
+            .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => src.Person != null ? DateOnly.FromDateTime(src.Person.CreatedAtUtc) : DateOnly.MinValue))
+            .ForMember(dest => dest.JoinedPackagesCount, opt => opt.MapFrom(src => src.CompanionBookings.Count()));
+
         CreateMap<Companion, CompanionResponse>()
             .ForMember(dest => dest.Firstname, opt => opt.MapFrom(src => src.Person != null ? src.Person.FirstName : null))
             .ForMember(dest => dest.Lastname, opt => opt.MapFrom(src => src.Person != null ? src.Person.LastName : null))

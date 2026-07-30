@@ -38,5 +38,9 @@
         {
             return $"Authentication failed: {detail}";
         }
+        public static string InvalidPagination()
+        {
+            return "Page must be >= 1, PageSize must be between 1 and 100.";
+        }
     }
 }

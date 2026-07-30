@@ -31,13 +31,15 @@ namespace Application.Interfaces.TourPackage
 
         Task<bool> DeleteAsync(int id, CancellationToken cancellationToken);
 
-        Task<IReadOnlyList<TourPackageResponse>> FilterAsync(int? countryId = null, 
+        Task<PaginatedResponse<TourPackageResponse>> FilterAsync(int? countryId = null, 
             int? cityId = null, 
             decimal? minPrice = null, 
             decimal? maxPrice = null, 
             int page = 1,
             int pageSize = 20,
             CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyList<TourPackageResponse>> GetMostWantedPackagesAsync(CancellationToken cancellationToken);
 
         /// <summary>Retrieves paginated completed tour packages for the authenticated company.</summary>
         Task<PaginatedResponse<CompletedTourPackageResponse>> GetMineCompletedAsync(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);

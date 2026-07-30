@@ -14,6 +14,7 @@ using Domain.Entities;
 using Domain.Enums;
 using Domain.Interfaces;
 using Domain.Validators;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -827,7 +828,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<IReadOnlyList<TourPackageResponse>> FilterAsync(
+        public async Task<PaginatedResponse<TourPackageResponse>> FilterAsync(
             int? countryId = null,
             int? cityId = null,
             decimal? minPrice = null,
@@ -836,9 +837,14 @@ namespace Application.Services
             int pageSize = 20,
             CancellationToken cancellationToken = default)
         {
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+            {
+                throw new ValidationException(ExceptionMessages.InvalidPagination());
+            }
+
             var cacheKey = $"tourpackages_country{countryId}_city{cityId}_minPrice{minPrice}_maxPrice{maxPrice}_page{page}_size{pageSize}";
 
-            if(_cache.TryGetValue(cacheKey, out IReadOnlyList<TourPackageResponse>? cached) && cached is not null)
+            if (_cache.TryGetValue(cacheKey, out PaginatedResponse<TourPackageResponse>? cached) && cached is not null)
             {
                 _logger.LogInformation($"cache hit for tourpackages " +
                     $"country {countryId} | city {cityId}" +
@@ -846,6 +852,16 @@ namespace Application.Services
                     $"page {page}| page size {pageSize}");
                 return cached;
             }
+
+            if (countryId.HasValue)
+            {
+                await EnsureCountryExistsAsync(countryId.Value, cancellationToken);
+            }
+            if (cityId.HasValue)
+            {
+                await EnsureCityExistsAsync(cityId.Value, cancellationToken);
+            }
+
 
             var query = WherePubliclyVisible(QueryWithGraph());
 
@@ -866,7 +882,16 @@ namespace Application.Services
                 .Take(pageSize)
                 .ToListAsync(cancellationToken);
 
-                var response = _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
+                var items = _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
+
+                var paginationMetadata = new PaginationMetadata
+                {
+                    PageSize = pageSize,
+                    Page = page,
+                    TotalItems = items.Count
+                };
+
+                var response = new PaginatedResponse<TourPackageResponse> { Items = items, Pagination = paginationMetadata };
 
                 _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
                 {
@@ -880,6 +905,56 @@ namespace Application.Services
             {
                 _logger.ServerError("filtering", ObjectName, ex);
                 throw new ServiceException(ExceptionMessages.ServiceException("filtering", ObjectName, ex.Message), ex);
+            }
+
+        }
+
+
+
+        public async Task<IReadOnlyList<TourPackageResponse>> GetMostWantedPackagesAsync(CancellationToken cancellationToken)
+        {
+            var cacheKey = "mostWantedTourPackages";
+
+            _logger.LogInformation("Attemping to retrieve most wanted tour packages");
+            try
+            {
+                if(_cache.TryGetValue(cacheKey, out IReadOnlyList<TourPackageResponse>? cached) && cached is not null)
+                {
+                    _logger.LogInformation("Cache hit for most wanted packages");
+                    return cached;
+                }
+
+                var mostWanted = await _unitOfWork.TourPackages
+                    .Query()
+                    .Where(tp => !tp.IsDeleted && tp.Status == TourPackageStatus.Active)
+                    .Select(p => new
+                    {
+                        Package = p,
+                        TotalBookings = p.Bookings.Count(b => b.Status != BookingStatus.Cancelled),
+                        TotalWishlists = p.Wishlists.Count(),
+                        TotalDemandScore = (p.Bookings.Count(b => b.Status != BookingStatus.Cancelled) * 2) + p.Wishlists.Count(),
+
+                    })
+                    .Where(p => p.TotalDemandScore > 0)
+                    .OrderByDescending(x => x.TotalDemandScore)
+                    .Take(5)
+                    .Select(p => p.Package)
+                    .ToListAsync(cancellationToken);
+
+                var response = _mapper.Map<IReadOnlyList<TourPackageResponse>>(mostWanted);
+
+                _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = CacheDuration,
+                    Priority = CacheItemPriority.Low
+                });
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.ServerError("retrieving", "most wanted tour packages", ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", "most wanted tour packages", ex.Message), ex);
             }
 
         }
@@ -1366,7 +1441,14 @@ namespace Application.Services
                 throw new NotFoundException($"Country with ID {countryId} not found");
         }
 
-
+        private async Task EnsureCityExistsAsync(int cityId, CancellationToken cancellationToken)
+        {
+            var cityExists = await _unitOfWork.Cities
+                .Query().AsNoTracking()
+                .AnyAsync(c => c.Id == cityId, cancellationToken);
+            if (!cityExists)
+                throw new NotFoundException($"city with ID {cityId} not found");
+        }
 
         /// <summary>
         /// Ensures every selected guide is linked to the owning company. Guarantees a
@@ -1389,10 +1471,6 @@ namespace Application.Services
                 throw new ForbiddenException("One or more selected guides do not belong to your company.");
             }
         }
-
-
-
-
 
         private async Task NotifyFavoritingUsersAsync(int companyId, TourPackage package, CancellationToken cancellationToken)
         {
@@ -1479,9 +1557,6 @@ namespace Application.Services
                 _logger.LogError(ex, "Error notifying wishlist users about price drop on package {PackageId}", package.Id);
             }
         }
-
-
-
         #endregion
     }
 }

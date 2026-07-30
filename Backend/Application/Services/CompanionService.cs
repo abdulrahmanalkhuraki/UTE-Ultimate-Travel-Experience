@@ -2,6 +2,7 @@ using Application.Common.Constants;
 using Application.Common.Logging;
 using Application.DTOs.Companion.Request;
 using Application.DTOs.Companion.Response;
+using Application.DTOs.Pagination;
 using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
 using Application.Interfaces.Companion;
@@ -140,8 +141,13 @@ namespace Application.Services
             return response;
         }
 
-        public async Task<IReadOnlyList<CompanionResponse>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken)
+        public async Task<PaginatedResponse<CompanionResponseSummary>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken)
         {
+            if(page < 1 || pageSize < 1 || pageSize > 100)
+            {
+                throw new ValidationException(ExceptionMessages.InvalidPagination());
+            }
+
             var userId = _currentUser.UserId ??
                 throw new AuthException(ExceptionMessages.Auth());
 
@@ -149,7 +155,7 @@ namespace Application.Services
 
             var cacheKey = $"companions_page{page}_size{pageSize}";
 
-            if (_cache.TryGetValue(cacheKey, out IReadOnlyList<CompanionResponse>? cached) && cached is not null)
+            if (_cache.TryGetValue(cacheKey, out PaginatedResponse<CompanionResponseSummary>? cached) && cached is not null)
             {
                 _logger.LogInformation($"cache hit for companions page {page}| page size {pageSize}");
                 return cached;
@@ -161,20 +167,26 @@ namespace Application.Services
                 .Skip((page - 1) * pageSize)
                 .ToListAsync(cancellationToken);
 
-            var responses = new List<CompanionResponse>(entities.Count);
-            foreach (var entity in entities)
-            {
-                responses.Add(await BuildResponseFromEntity(entity, cancellationToken));
-            }
 
-            _cache.Set(cacheKey, responses, new MemoryCacheEntryOptions
+            var items = _mapper.Map<IReadOnlyList<CompanionResponseSummary>>(entities);
+
+            var paginationMetadata = new PaginationMetadata
+            {
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = items.Count
+            };
+
+            var response = new PaginatedResponse<CompanionResponseSummary> { Items = items,Pagination = paginationMetadata};
+
+            _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = CacheDuration,
                 Priority = CacheItemPriority.Low
             });
 
-            _logger.LogInformation($"{entities.Count} companion(s) successfully retrived");
-            return responses.AsReadOnly();
+            _logger.LogInformation($"{items.Count} companion(s) successfully retrived");
+            return response;
         }
 
         public async Task<CompanionResponse> UpdateAsync(int id, CompanionUpdateRequest request, CancellationToken cancellationToken)

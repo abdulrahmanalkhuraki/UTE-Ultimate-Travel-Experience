@@ -87,8 +87,9 @@ namespace UTE.Controllers
         }
 
         [HttpGet("filter")]
-        [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
-        public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> Filter(
+        [ProducesResponseType(typeof(PaginatedResponse<TourPackageResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<PaginatedResponse<TourPackageResponse>>> Filter(
             [FromQuery] int? countryId = null,
             [FromQuery] int? cityId = null,
             [FromQuery] decimal? minPrice = null,
@@ -100,14 +101,16 @@ namespace UTE.Controllers
             if (minPrice.HasValue && maxPrice.HasValue && minPrice > maxPrice)
                 return BadRequest(CreateProblemDetails("Invalid search parameters", "minPrice cannot be greater than maxPrice", StatusCodes.Status400BadRequest));
 
-            if (page < 1 || pageSize < 1 || pageSize > 100)
-                return BadRequest(CreateProblemDetails(
-                    "Invalid Pagination",
-                    "Page must be >= 1, PageSize must be between 1 and 100.",
-                    StatusCodes.Status400BadRequest));
-
             return Ok(await _service.FilterAsync(countryId, cityId, minPrice, maxPrice, page, pageSize, cancellationToken));
 
+        }
+
+        [HttpGet("mostWanted")]
+        [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetMostWanted(CancellationToken cancellationToken = default)
+        {
+              return Ok(await _service.GetMostWantedPackagesAsync(cancellationToken));
         }
 
         [HttpPost]
@@ -123,6 +126,8 @@ namespace UTE.Controllers
             var created = await _service.CreateAsync(request, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
+
+
 
         [HttpPut("{id:int:min(1)}")]
         [Authorize]

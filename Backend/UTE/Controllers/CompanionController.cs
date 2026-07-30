@@ -1,6 +1,7 @@
 using System.Net.Mime;
 using Application.DTOs.Companion.Request;
 using Application.DTOs.Companion.Response;
+using Application.DTOs.Pagination;
 using Application.Exceptions;
 using Application.Interfaces.Companion;
 using Application.Interfaces.User;
@@ -30,10 +31,10 @@ namespace UTE.Controllers
         /// <response code="401">If the user is not authenticated.</response>
         /// <response code="403">If the user is not a tourist.</response>
         [HttpGet]
-        [ProducesResponseType(typeof(IReadOnlyList<CompanionResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaginatedResponse<CompanionResponseSummary>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<IReadOnlyList<CompanionResponse>>> GetAll(int page = 1,int pageSize = 20,CancellationToken cancellationToken = default)
+        public async Task<ActionResult<PaginatedResponse<CompanionResponseSummary>>> GetAll(int page = 1,int pageSize = 20,CancellationToken cancellationToken = default)
         {
             return Ok(await _companionService.GetAllAsync(page,pageSize,cancellationToken));
         }

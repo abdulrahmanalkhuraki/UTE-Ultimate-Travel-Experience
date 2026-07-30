@@ -1,5 +1,6 @@
 using Application.Common.Constants;
 using Application.Common.Logging;
+using Application.DTOs.Pagination;
 using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
 using Application.Interfaces.TourPackage;
@@ -124,17 +125,40 @@ namespace Application.Services
             }
         }
 
-        public async Task<IReadOnlyList<TourPackageResponse>> GetWishlistAsync(CancellationToken cancellationToken = default)
+        public async Task<PaginatedResponse<TourPackageResponse>> GetWishlistAsync(int page, int pageSize, CancellationToken cancellationToken)
         {
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+            {
+                throw new ValidationException(ExceptionMessages.InvalidPagination());
+            }
+
             var userId = _currentUser.UserId ?? throw new AuthException(ExceptionMessages.Auth());
 
-            var entities = await _unitOfWork.Wishlists.Query()
+            try
+            {
+                var entities = await _unitOfWork.Wishlists.Query()
                 .Where(w => w.UserId == userId)
                 .Include(w => w.TourPackage)
                 .Select(w => w.TourPackage)
                 .ToListAsync(cancellationToken);
 
-            return _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
+                var items = _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
+
+                var paginationMetadata = new PaginationMetadata
+                {
+                    PageSize = pageSize,
+                    Page = page,
+                    TotalItems = items.Count
+                };
+
+                return new PaginatedResponse<TourPackageResponse>() { Items = items,Pagination =  paginationMetadata};
+            }
+            catch(Exception ex)
+            {
+                _logger.ServerError("retrieve", "Wishlist", ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", "Wishlist", ex.Message), ex);
+            }
+
         }
     }
 }
