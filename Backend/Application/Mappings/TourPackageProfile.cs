@@ -32,7 +32,10 @@ namespace Application.Mappings
                 .ForMember(dest => dest.CompanyName,
                     opt => opt.MapFrom(src => src.Company != null ? src.Company.Name : null))
                 .ForMember(dest => dest.Cities,
-                    opt => opt.MapFrom(src => src.PackageAttractions))
+                opt => opt.MapFrom(src =>
+                    src.PackageAttractions
+                        .Select(pa => pa.Attraction.City)
+                        .DistinctBy(c => c.Id)))
                 .ForMember(dest => dest.Guides,
                     opt => opt.MapFrom(src => src.TourPackageGuides.Select(g => g.TouristGuide)))
                 .ForMember(dest => dest.AvailableCabinClasses,
@@ -44,9 +47,9 @@ namespace Application.Mappings
                     opt => opt.MapFrom(src => src.Media
                         .OrderBy(m => m.DisplayOrder)));
 
-            CreateMap<TourPackage_Attraction, PackageCityResponse>()
-                .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.Attraction.City.Id))
-                .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.Attraction.City.EnCityName));
+            CreateMap<City, PackageCityResponse>()
+                .ForMember(d => d.CityId, o => o.MapFrom(s => s.Id))
+                .ForMember(d => d.CityName, o => o.MapFrom(s => s.EnCityName));
 
         }
     }
