@@ -8,7 +8,7 @@
         }
         public static string Auth()
         {
-            return "You Must Be Logged in To Continue this Action.";
+            return "You Must Be Logged In To Perform This Action.";
         }
         public static string InvalidId(string OperationObject)
         {

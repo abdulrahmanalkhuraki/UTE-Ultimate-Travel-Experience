@@ -1,12 +1,14 @@
-﻿using Application.DTOs.Booking.Request;
+﻿using Application.Common.Constants;
+using Application.Common.Logging;
+using Application.DTOs.Booking.Request;
 using Application.DTOs.Booking.Response;
+using Application.DTOs.Pagination;
 using Application.Exceptions;
 using Application.Interfaces.Booking;
 using Application.Interfaces.Notifications;
 using Application.Interfaces.User;
 using Application.Validators.Booking;
 using AutoMapper;
-using Application.Common.Logging;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Interfaces;
@@ -14,7 +16,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using ValidationException = Application.Exceptions.ValidationException;
-using Application.Common.Constants;
 
 namespace Application.Services
 {
@@ -191,7 +192,7 @@ namespace Application.Services
                 if (transactionStarted)
                     await _unitOfWork.RollbackTransactionAsync(cancellationToken);
                 _logger.ServerError("Create", ObjectName, ex);
-                throw new ServiceException(ExceptionMessages.ServiceException("Creating",ObjectName,ex.Message), ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("Creating", ObjectName, ex.Message), ex);
             }
         }
 
@@ -352,14 +353,17 @@ namespace Application.Services
             }
         }
 
-        public async Task<IReadOnlyList<BookingResponse>> GetUnApprovedAsync(int? packageId, CancellationToken cancellationToken)
+        public async Task<PaginatedResponse<BookingResponse>> GetUnApprovedAsync(int page, int pageSize, 
+            int? packageId, CancellationToken cancellationToken)
         {
             if (packageId.HasValue && packageId <= 0)
-                throw new ArgumentException("Invalid package ID", nameof(packageId));
+                throw new ArgumentException(ExceptionMessages.InvalidId("Tour Package"), nameof(packageId));
 
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                throw new ValidationException(ExceptionMessages.InvalidPagination());
 
             var userId = _currentUser.UserId
-                ?? throw new AuthException("You must be logged in to perform this action.");
+                ?? throw new AuthException(ExceptionMessages.Auth());
 
             if (packageId.HasValue)
                 _logger.LogDebug("Retrieving Pending Bookings For Package {PackageId}", packageId);
@@ -378,10 +382,10 @@ namespace Application.Services
                 }
 
                 var unapprovedCacheKey = packageId.HasValue
-                    ? $"{UnapprovedCacheKeyPrefix}{company.Id}_{packageId.Value}"
-                    : $"{UnapprovedCacheKeyPrefix}{company.Id}_all";
+                    ? $"{UnapprovedCacheKeyPrefix}{company.Id}_{packageId.Value}_page{page}_size{pageSize}"
+                    : $"{UnapprovedCacheKeyPrefix}{company.Id}_all_page{page}_size{pageSize}";
 
-                if (_cache.TryGetValue(unapprovedCacheKey, out IReadOnlyList<BookingResponse>? cached) && cached is not null)
+                if (_cache.TryGetValue(unapprovedCacheKey, out PaginatedResponse<BookingResponse>? cached) && cached is not null)
                 {
                     _logger.LogDebug("Cache hit for unapproved bookings of company {CompanyId}", company.Id);
                     return cached;
@@ -417,10 +421,21 @@ namespace Application.Services
                                 .ThenInclude(cb => cb.Companion)
                                     .ThenInclude(c => c.Person)
                             .OrderByDescending(b => b.BookingDate)
+                            .Skip((page - 1)  * pageSize)
+                            .Take(pageSize)
                             .ToListAsync(cancellationToken);
 
 
-                var response = _mapper.Map<IReadOnlyList<BookingResponse>>(entities);
+                var items = _mapper.Map<IReadOnlyList<BookingResponse>>(entities);
+
+                var paginationMetadata = new PaginationMetadata
+                {
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalItems = items.Count
+                };
+
+                var response = new PaginatedResponse<BookingResponse> { Items = items, Pagination = paginationMetadata };
 
                 _cache.Set(unapprovedCacheKey, response, new MemoryCacheEntryOptions
                 {
@@ -428,7 +443,7 @@ namespace Application.Services
                     Priority = CacheItemPriority.Normal
                 });
 
-                _logger.LogDebug("Successfully retrieved {Count} bookings", response.Count);
+                _logger.SuccessfulOperation("retrieved", $"UnApproved {ObjectName}s");
                 return response;
             }
             catch (NotFoundException)

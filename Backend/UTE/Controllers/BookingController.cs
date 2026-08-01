@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.Booking.Request;
 using Application.DTOs.Booking.Response;
+using Application.DTOs.Pagination;
 using Application.Interfaces.Booking;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -85,7 +86,7 @@ namespace UTE.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IReadOnlyList<BookingResponse>>> GetAll(int touristId,CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IReadOnlyList<BookingResponse>>> GetAll(int touristId, CancellationToken cancellationToken = default)
         {
             var bookings = await _bookingService.GetAllAsync(touristId, cancellationToken);
             return Ok(bookings);
@@ -203,17 +204,19 @@ namespace UTE.Controllers
         [HttpGet("UnApprovedBookings")]
         [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "TourCompany")]
-        [ProducesResponseType(typeof(IReadOnlyList<BookingResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaginatedResponse<BookingResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IReadOnlyList<BookingResponse>>> GetUnapprovedBookings(
+        public async Task<ActionResult<PaginatedResponse<BookingResponse>>> GetUnapprovedBookings(
+            int page = 1,
+            int pageSize = 20,
             [FromQuery] int? packageId = null,
             CancellationToken cancellationToken = default)
         {
-            var pendingBookings = await _bookingService.GetUnApprovedAsync(packageId, cancellationToken);
+            var pendingBookings = await _bookingService.GetUnApprovedAsync(page, pageSize, packageId, cancellationToken);
             return Ok(pendingBookings);
         }
 
