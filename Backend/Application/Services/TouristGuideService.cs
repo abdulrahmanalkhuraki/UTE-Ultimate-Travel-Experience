@@ -13,6 +13,7 @@ using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using ValidationException = Application.Exceptions.ValidationException;
 
 namespace Application.Services
@@ -29,7 +30,6 @@ namespace Application.Services
         private readonly TouristGuideUpdateValidator _updateValidator;
 
         private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
-        private static readonly TimeSpan SlidingCacheDuration = TimeSpan.FromMinutes(2);
 
         private const string GuideImageFolder = "guide-images";
         private const string ObjectName = "Tourist Guide";
@@ -54,25 +54,28 @@ namespace Application.Services
             _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
         }
 
-        public async Task<TouristGuideResponse> CreateAsync(int ownerUserId, TouristGuideCreateRequest request, CancellationToken cancellationToken = default)
+        public async Task<TouristGuideResponse> CreateAsync(TouristGuideCreateRequest request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
-            _logger.StartOperation("Create", ObjectName, 0);
+            var userId = _currentUser.UserId ?? throw new AuthException(ExceptionMessages.Auth());
+
+            _logger.StartOperation("Create", ObjectName, userId);
 
             var validationResult = await _createValidator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
-                throw new ValidationException(validationResult.Errors);
-
-            var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
-            await EnsureCountryExistsAsync(request.NationalityCountryId, cancellationToken);
-            await EnsureCityExistsAsync(request.ResidentialCityId, cancellationToken);
+            {
+                _logger.ValidationFailed("Create",ObjectName,string.Join(", ", validationResult.Errors));
+                throw new ValidationException(string.Join(", ", validationResult.Errors));
+            }
 
             try
             {
+                var companyId = await ResolveCompanyIdAsync(userId, cancellationToken);
+                await EnsureCountryExistsAsync(request.NationalityCountryId, cancellationToken);
+                await EnsureCityExistsAsync(request.ResidentialCityId, cancellationToken);
+
                 var person = _mapper.Map<Person>(request);
-                person.CreatedAtUtc = DateTime.UtcNow;
-                person.UpdatedAtUtc = DateTime.UtcNow;
 
                 if (request.ProfileImage is not null)
                     person.ProfileImage = await _fileStorage.SaveAsync(request.ProfileImage, GuideImageFolder, cancellationToken);
@@ -98,9 +101,9 @@ namespace Application.Services
                 await _unitOfWork.TouristGuides.AddAsync(entity, cancellationToken);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                _logger.SuccessfulOperation("Create", ObjectName);
+                _logger.SuccessfulOperation(userId,"Create",ObjectName,entity.Id);
 
-                return await BuildResponseAsync(entity.Id, cancellationToken);
+                return _mapper.Map<TouristGuideResponse>(entity);
             }
             catch (Exception ex) when (ex is not ValidationException
             and not NotFoundException
@@ -112,27 +115,34 @@ namespace Application.Services
             }
         }
 
-        public async Task<TouristGuideResponse> UpdateAsync(int id, int ownerUserId, TouristGuideUpdateRequest request, CancellationToken cancellationToken = default)
+        public async Task<TouristGuideResponse> UpdateAsync(int id, TouristGuideUpdateRequest request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
+
             if (id <= 0)
                 throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(id));
+
+            var userId = _currentUser.UserId ?? throw new AuthException(ExceptionMessages.Auth());
 
             _logger.StartOperation("Update", ObjectName, id, 0);
 
             var validationResult = await _updateValidator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
-                throw new ValidationException(validationResult.Errors);
+            {
+                _logger.ValidationFailed("Update", ObjectName, string.Join(", ", validationResult.Errors));
+                throw new ValidationException(string.Join(", ", validationResult.Errors));
+            }
 
-            var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
-
-            if (request.NationalityCountryId.HasValue)
-                await EnsureCountryExistsAsync(request.NationalityCountryId.Value, cancellationToken);
-            if (request.ResidentialCityId.HasValue)
-                await EnsureCityExistsAsync(request.ResidentialCityId.Value, cancellationToken);
 
             try
             {
+                var companyId = await ResolveCompanyIdAsync(userId, cancellationToken);
+
+                if (request.NationalityCountryId.HasValue)
+                    await EnsureCountryExistsAsync(request.NationalityCountryId.Value, cancellationToken);
+                if (request.ResidentialCityId.HasValue)
+                    await EnsureCityExistsAsync(request.ResidentialCityId.Value, cancellationToken);
+
                 var entity = await _unitOfWork.TouristGuides
                     .Query()
                     .Include(g => g.Person)
@@ -177,15 +187,17 @@ namespace Application.Services
             }
         }
 
-        public async Task<bool> DeleteAsync(int id, int ownerUserId, CancellationToken cancellationToken = default)
+        public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
         {
             if (id <= 0)
-                throw new ArgumentException("Invalid guide ID", nameof(id));
+                throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(id));
 
-            var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
+            var userId = _currentUser.UserId ?? throw new AuthException(ExceptionMessages.Auth());
 
             try
             {
+                var companyId = await ResolveCompanyIdAsync(userId, cancellationToken);
+
                 var entity = await _unitOfWork.TouristGuides
                     .Query()
                     .Include(g => g.CompanyGuides)
@@ -223,17 +235,26 @@ namespace Application.Services
             }
         }
 
-        public async Task<TouristGuideResponse> GetAsync(int id, int ownerUserId, CancellationToken cancellationToken = default)
+        public async Task<TouristGuideResponse> GetAsync(int id, CancellationToken cancellationToken)
         {
             if (id <= 0)
                 throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(id));
 
-            _logger.StartOperation("Retrieve", ObjectName, id, 0);
+            var userId = _currentUser.UserId ?? throw new AuthException(ExceptionMessages.Auth());
 
-            var companyId = await ResolveCompanyIdAsync(ownerUserId, cancellationToken);
-            await EnsureGuideBelongsToCompanyAsync(id, companyId, cancellationToken);
+            _logger.StartOperation("Retrieve", ObjectName, id, userId);
 
-            return await BuildResponseAsync(id, cancellationToken);
+            try
+            {
+                var companyId = await ResolveCompanyIdAsync(userId, cancellationToken);
+                await EnsureGuideBelongsToCompanyAsync(id, companyId, cancellationToken);
+                return await BuildResponseAsync(id, cancellationToken);
+            }
+            catch (Exception ex) when (ex is not NotFoundException and not ForbiddenException and not BusinessRuleException and not ArgumentException)
+            {
+                _logger.ServerError("Delete", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("delete", ObjectName, ex.Message), ex);
+            }
         }
 
         public async Task<PaginatedResponse<TouristGuideResponseSummary>> GetMineAsync(int page, int pageSize, CancellationToken cancellationToken)
