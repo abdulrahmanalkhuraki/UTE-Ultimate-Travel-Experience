@@ -1,5 +1,3 @@
-﻿using Domain.Entities;
-
 namespace Application.DTOs.City.Response
 {
     public class CityResponse
@@ -10,6 +8,6 @@ namespace Application.DTOs.City.Response
         public string? Image { get; set; }
         public int CountryId { get; set; }
         public string? CountryName { get; set; }
-        public virtual ICollection<Attraction> Attractions { get; set; } = new List<Attraction>();
+        public ICollection<AttractionResponse> Attractions { get; set; } = new List<AttractionResponse>();
     }
 }
