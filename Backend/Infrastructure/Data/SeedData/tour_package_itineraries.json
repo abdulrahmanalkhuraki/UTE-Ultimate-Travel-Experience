@@ -1,60 +1,524 @@
 [
-  {"Id":1,"DayNumber":1,"DayTitle":"اليوم الأول: الوصول إلى دمشق","DayDescription":"استقبالكم في مطار دمشق الدولي والتوجه إلى الفندق. جولة مسائية في شوارع دمشق القديمة.","PackageId":1},
-  {"Id":2,"DayNumber":2,"DayTitle":"اليوم الثاني: دمشق القديمة والجامع الأموي","DayDescription":"زيارة الجامع الأموي وقلعة دمشق وقصر العظم.","PackageId":1},
-  {"Id":3,"DayNumber":3,"DayTitle":"اليوم الثالث: الأسواق والمتاحف","DayDescription":"جولة في سوق الحميدية والمتحف الوطني وحديقة تشرين.","PackageId":1},
-  {"Id":4,"DayNumber":4,"DayTitle":"اليوم الرابع: رحلة إلى معلولا","DayDescription":"رحلة إلى قرية معلولا التاريخية وزيارة دير مار تقلا.","PackageId":1},
-  {"Id":5,"DayNumber":5,"DayTitle":"اليوم الخامس: جولة حرة ومغادرة","DayDescription":"يوم حر للتسوق والاستمتاع بدمشق ثم المغادرة.","PackageId":1},
-  {"Id":6,"DayNumber":1,"DayTitle":"اليوم الأول: الوصول إلى حلب","DayDescription":"الوصول إلى حلب والتوجه إلى الفندق. جولة مسائية في ساحة سعد الله الجابري.","PackageId":2},
-  {"Id":7,"DayNumber":2,"DayTitle":"اليوم الثاني: قلعة حلب والأسواق القديمة","DayDescription":"زيارة قلعة حلب وسوق المدينة القديم والجامع الكبير.","PackageId":2},
-  {"Id":8,"DayNumber":3,"DayTitle":"اليوم الثالث: المدن الميتة","DayDescription":"رحلة إلى المدن الميتة في سيرجيلة وإيبلا الأثرية.","PackageId":2},
-  {"Id":9,"DayNumber":4,"DayTitle":"اليوم الرابع: المتحف الوطني والعودة","DayDescription":"زيارة متحف حلب الوطني وجولة حرة ثم العودة.","PackageId":2},
-  {"Id":10,"DayNumber":1,"DayTitle":"اليوم الأول: السفر إلى تدمر","DayDescription":"الانطلاق من دمشق إلى تدمر. جولة تمهيدية في المدينة الأثرية.","PackageId":3},
-  {"Id":11,"DayNumber":2,"DayTitle":"اليوم الثاني: معبد بل ومتحف تدمر","DayDescription":"زيارة معبد بل الشهير ومتحف تدمر والتعرف على تاريخ المدينة.","PackageId":3},
-  {"Id":12,"DayNumber":3,"DayTitle":"اليوم الثالث: وادي القبور والعودة","DayDescription":"زيارة وادي القبور البرجية ثم العودة إلى دمشق.","PackageId":3},
-  {"Id":13,"DayNumber":1,"DayTitle":"اليوم الأول: الوصول إلى طرطوس","DayDescription":"الوصول إلى مدينة طرطوس الساحلية. جولة في كورنيش البحر.","PackageId":4},
-  {"Id":14,"DayNumber":2,"DayTitle":"اليوم الثاني: طرطوس وجزيرة أرواد","DayDescription":"زيارة قلعة طرطوس ورحلة بحرية إلى جزيرة أرواد.","PackageId":4},
-  {"Id":15,"DayNumber":3,"DayTitle":"اليوم الثالث: قلعة المرقب","DayDescription":"رحلة إلى قلعة المرقب المطلة على البحر المتوسط.","PackageId":4},
-  {"Id":16,"DayNumber":4,"DayTitle":"اليوم الرابع: اللاذقية وقلعة صلاح الدين","DayDescription":"التوجه إلى اللاذقية وزيارة قلعة صلاح الدين وكورنيش اللاذقية.","PackageId":4},
-  {"Id":17,"DayNumber":5,"DayTitle":"اليوم الخامس: شاطئ رأس البسيط والعودة","DayDescription":"استجمام على شاطئ رأس البسيط ثم العودة إلى دمشق.","PackageId":4},
-  {"Id":18,"DayNumber":1,"DayTitle":"اليوم الأول: مقام السيدة زينب","DayDescription":"زيارة مقام السيدة زينب في ضواحي دمشق.","PackageId":5},
-  {"Id":19,"DayNumber":2,"DayTitle":"اليوم الثاني: معلولا ودير مار تقلا","DayDescription":"رحلة إلى معلولا لزيارة دير مار تقلا والكنيسة الأثرية.","PackageId":5},
-  {"Id":20,"DayNumber":3,"DayTitle":"اليوم الثالث: دير مار موسى الحبشي","DayDescription":"زيارة دير مار موسى الحبشي المنحوت في الجبل.","PackageId":5},
-  {"Id":21,"DayNumber":4,"DayTitle":"اليوم الرابع: سيدة صيدنايا والعودة","DayDescription":"زيارة دير سيدة صيدنايا العريق ثم العودة إلى دمشق.","PackageId":5},
-  {"Id":22,"DayNumber":1,"DayTitle":"اليوم الأول: قلعة الحصن","DayDescription":"الانطلاق إلى قلعة الحصن (كراك دي شوفالييه) أجمل القلاع الصليبية.","PackageId":6},
-  {"Id":23,"DayNumber":2,"DayTitle":"اليوم الثاني: مدينة حمص","DayDescription":"جولة في مدينة حمص وزيارة جامع النوري وكنيسة الحزام وبحيرة قطينة.","PackageId":6},
-  {"Id":24,"DayNumber":3,"DayTitle":"اليوم الثالث: قلعة مصياف والعودة","DayDescription":"زيارة قلعة مصياف التاريخية ثم العودة.","PackageId":6},
-  {"Id":25,"DayNumber":1,"DayTitle":"اليوم الأول: جولة في حماة","DayDescription":"جولة في مدينة حماة ومشاهدة النواعير الشهيرة على نهر العاصي.","PackageId":7},
-  {"Id":26,"DayNumber":2,"DayTitle":"اليوم الثاني: قصر العظم والمتحف","DayDescription":"زيارة قصر العظم ومتحف حماة ثم جولة حرة.","PackageId":7},
-  {"Id":27,"DayNumber":1,"DayTitle":"اليوم الأول: المدرج الروماني في بصرى","DayDescription":"الوصول إلى بصرى وزيارة المدرج الروماني الرائع.","PackageId":8},
-  {"Id":28,"DayNumber":2,"DayTitle":"اليوم الثاني: قلعة بصرى والمتحف","DayDescription":"زيارة قلعة بصرى ومتحف المدرج ثم العودة.","PackageId":8},
-  {"Id":29,"DayNumber":1,"DayTitle":"اليوم الأول: منتجع بلودان","DayDescription":"التوجه إلى بلودان والاستمتاع بأجواء الجبل الباردة.","PackageId":9},
-  {"Id":30,"DayNumber":2,"DayTitle":"اليوم الثاني: منتجع الزبداني","DayDescription":"زيارة مدينة الزبداني والاستمتاع بينابيعها الطبيعية.","PackageId":9},
-  {"Id":31,"DayNumber":3,"DayTitle":"اليوم الثالث: عين الفيجة","DayDescription":"رحلة إلى عين الفيجة نبع ماء بردى وسط الطبيعة الخلابة.","PackageId":9},
-  {"Id":32,"DayNumber":4,"DayTitle":"اليوم الرابع: جبل قاسيون والعودة","DayDescription":"صعود جبل قاسيون لإطلالة بانورامية على دمشق ثم العودة.","PackageId":9},
-  {"Id":33,"DayNumber":1,"DayTitle":"اليوم الأول: وادي النضارة","DayDescription":"رحلة إلى وادي النضارة (وادي النصارى) لزيارة القرى المسيحية القديمة.","PackageId":10},
-  {"Id":34,"DayNumber":2,"DayTitle":"اليوم الثاني: شلالات الدريكيش","DayDescription":"زيارة شلالات الدريكيش الخلابة وسط الغابات الكثيفة.","PackageId":10},
-  {"Id":35,"DayNumber":3,"DayTitle":"اليوم الثالث: محمية رأس العين","DayDescription":"رحلة إلى محمية رأس العين الطبيعية لمشاهدة الطيور المهاجرة.","PackageId":10},
-  {"Id":36,"DayNumber":4,"DayTitle":"اليوم الرابع: جولة حرة وعودة","DayDescription":"استجمام في منتجعات طرطوس ثم العودة.","PackageId":10},
-  {"Id":37,"DayNumber":1,"DayTitle":"اليوم الأول: الوصول والجامع الأموي","DayDescription":"الوصول إلى دمشق وزيارة الجامع الأموي الكبير.","PackageId":11},
-  {"Id":38,"DayNumber":2,"DayTitle":"اليوم الثاني: دمشق القديمة","DayDescription":"جولة شاملة في دمشق القديمة: قلعة دمشق، قصر العظم، سوق الحميدية.","PackageId":11},
-  {"Id":39,"DayNumber":3,"DayTitle":"اليوم الثالث: المتاحف والمعالم","DayDescription":"زيارة المتحف الوطني ودار الأوبرا وجبل قاسيون.","PackageId":11},
-  {"Id":40,"DayNumber":4,"DayTitle":"اليوم الرابع: رحلة إلى معلولا وصيدنايا","DayDescription":"رحلة إلى معلولا ودير مار تقلا وسيدة صيدنايا.","PackageId":11},
-  {"Id":41,"DayNumber":5,"DayTitle":"اليوم الخامس: عين الفيجة وحديقة تشرين","DayDescription":"نزهة إلى عين الفيجة وحديقة تشرين العامة.","PackageId":11},
-  {"Id":42,"DayNumber":6,"DayTitle":"اليوم السادس: جولة حرة ومغادرة","DayDescription":"يوم حر للتسوق في باب شرقي ثم المغادرة.","PackageId":11},
-  {"Id":43,"DayNumber":1,"DayTitle":"اليوم الأول: الوصول إلى حلب","DayDescription":"الوصول إلى حلب وجولة في المدينة القديمة.","PackageId":12},
-  {"Id":44,"DayNumber":2,"DayTitle":"اليوم الثاني: قلعة حلب والجامع الكبير","DayDescription":"زيارة قلعة حلب والجامع الكبير وسوق المدينة.","PackageId":12},
-  {"Id":45,"DayNumber":3,"DayTitle":"اليوم الثالث: كنيسة القديس سمعان","DayDescription":"رحلة إلى كنيسة القديس سمعان العمودي الأثرية.","PackageId":12},
-  {"Id":46,"DayNumber":4,"DayTitle":"اليوم الرابع: المدن الميتة","DayDescription":"زيارة سيرجيلة وإيبلا والمواقع الأثرية في ريف حلب.","PackageId":12},
-  {"Id":47,"DayNumber":5,"DayTitle":"اليوم الخامس: متحف حلب والعودة","DayDescription":"زيارة متحف حلب الوطني وجولة حرة ثم العودة.","PackageId":12},
-  {"Id":48,"DayNumber":1,"DayTitle":"اليوم الأول: السفر إلى تدمر","DayDescription":"الانطلاق من دمشق عبر بادية الشام إلى تدمر.","PackageId":13},
-  {"Id":49,"DayNumber":2,"DayTitle":"اليوم الثاني: آثار تدمر","DayDescription":"زيارة معبد بل وقوس النصر ومتحف تدمر.","PackageId":13},
-  {"Id":50,"DayNumber":3,"DayTitle":"اليوم الثالث: وادي القبور","DayDescription":"استكشاف وادي القبور البرجية في تدمر.","PackageId":13},
-  {"Id":51,"DayNumber":4,"DayTitle":"اليوم الرابع: العودة عبر قلعة الحصن","DayDescription":"العودة إلى دمشق مع زيارة قلعة الحصن في الطريق.","PackageId":13},
-  {"Id":52,"DayNumber":1,"DayTitle":"اليوم الأول: الوصول إلى اللاذقية","DayDescription":"الوصول إلى اللاذقية والمشي على الكورنيش البحري.","PackageId":14},
-  {"Id":53,"DayNumber":2,"DayTitle":"اليوم الثاني: شاطئ الفنار","DayDescription":"استجمام على شاطئ الفنار وزيارة قلعة صلاح الدين.","PackageId":14},
-  {"Id":54,"DayNumber":3,"DayTitle":"اليوم الثالث: رأس البسيط","DayDescription":"رحلة إلى شاطئ رأس البسيط البكر.","PackageId":14},
-  {"Id":55,"DayNumber":4,"DayTitle":"اليوم الرابع: جولة حرة ومغادرة","DayDescription":"تسوق في أسواق اللاذقية ثم العودة.","PackageId":14},
-  {"Id":56,"DayNumber":1,"DayTitle":"اليوم الأول: معلولا","DayDescription":"زيارة قرية معلولا والتحدث بالآرامية مع الأهالي.","PackageId":15},
-  {"Id":57,"DayNumber":2,"DayTitle":"اليوم الثاني: دير مار موسى","DayDescription":"رحلة إلى دير مار موسى الحبشي ومقام النبي هابيل.","PackageId":15},
-  {"Id":58,"DayNumber":3,"DayTitle":"اليوم الثالث: صيدنايا والعودة","DayDescription":"زيارة دير سيدة صيدنايا ثم العودة إلى دمشق.","PackageId":15}
+  {
+    "Id": 1,
+    "DayNumber": 1,
+    "DayTitle": "اليوم الأول: الوصول إلى دمشق",
+    "DayTitleEn": "Day 1: Arrival in Damascus",
+    "DayDescription": "استقبالكم في مطار دمشق الدولي والتوجه إلى الفندق. جولة مسائية في شوارع دمشق القديمة.",
+    "DayDescriptionEn": "Reception at Damascus International Airport and transfer to the hotel. Evening tour in the streets of Old Damascus.",
+    "PackageId": 1
+  },
+  {
+    "Id": 2,
+    "DayNumber": 2,
+    "DayTitle": "اليوم الثاني: دمشق القديمة والجامع الأموي",
+    "DayTitleEn": "Day 2: Old Damascus and the Umayyad Mosque",
+    "DayDescription": "زيارة الجامع الأموي وقلعة دمشق وقصر العظم.",
+    "DayDescriptionEn": "Visit the Umayyad Mosque, Damascus Citadel, and Azm Palace.",
+    "PackageId": 1
+  },
+  {
+    "Id": 3,
+    "DayNumber": 3,
+    "DayTitle": "اليوم الثالث: الأسواق والمتاحف",
+    "DayTitleEn": "Day 3: Souqs and Museums",
+    "DayDescription": "جولة في سوق الحميدية والمتحف الوطني وحديقة تشرين.",
+    "DayDescriptionEn": "Tour in Al-Hamidiyah Souq, the National Museum, and Tishreen Park.",
+    "PackageId": 1
+  },
+  {
+    "Id": 4,
+    "DayNumber": 4,
+    "DayTitle": "اليوم الرابع: رحلة إلى معلولا",
+    "DayTitleEn": "Day 4: Trip to Maaloula",
+    "DayDescription": "رحلة إلى قرية معلولا التاريخية وزيارة دير مار تقلا.",
+    "DayDescriptionEn": "Trip to the historical village of Maaloula and visit the Monastery of Saint Thecla (Mar Takla).",
+    "PackageId": 1
+  },
+  {
+    "Id": 5,
+    "DayNumber": 5,
+    "DayTitle": "اليوم الخامس: جولة حرة ومغادرة",
+    "DayTitleEn": "Day 5: Free Tour and Departure",
+    "DayDescription": "يوم حر للتسوق والاستمتاع بدمشق ثم المغادرة.",
+    "DayDescriptionEn": "Free day for shopping and enjoying Damascus, followed by departure.",
+    "PackageId": 1
+  },
+  {
+    "Id": 6,
+    "DayNumber": 1,
+    "DayTitle": "اليوم الأول: الوصول إلى حلب",
+    "DayTitleEn": "Day 1: Arrival in Aleppo",
+    "DayDescription": "الوصول إلى حلب والتوجه إلى الفندق. جولة مسائية في ساحة سعد الله الجابري.",
+    "DayDescriptionEn": "Arrival in Aleppo and transfer to the hotel. Evening tour in Saadallah Al-Jabiri Square.",
+    "PackageId": 2
+  },
+  {
+    "Id": 7,
+    "DayNumber": 2,
+    "DayTitle": "اليوم الثاني: قلعة حلب والأسواق القديمة",
+    "DayTitleEn": "Day 2: Aleppo Citadel and Old Souqs",
+    "DayDescription": "زيارة قلعة حلب وسوق المدينة القديم والجامع الكبير.",
+    "DayDescriptionEn": "Visit the Citadel of Aleppo, the old city souq, and the Great Mosque.",
+    "PackageId": 2
+  },
+  {
+    "Id": 8,
+    "DayNumber": 3,
+    "DayTitle": "اليوم الثالث: المدن الميتة",
+    "DayTitleEn": "Day 3: The Dead Cities",
+    "DayDescription": "رحلة إلى المدن الميتة في سيرجيلة وإيبلا الأثرية.",
+    "DayDescriptionEn": "Trip to the Dead Cities in Serjilla and the archaeological site of Ebla.",
+    "PackageId": 2
+  },
+  {
+    "Id": 9,
+    "DayNumber": 4,
+    "DayTitle": "اليوم الرابع: المتحف الوطني والعودة",
+    "DayTitleEn": "Day 4: The National Museum and Return",
+    "DayDescription": "زيارة متحف حلب الوطني وجولة حرة ثم العودة.",
+    "DayDescriptionEn": "Visit the National Museum of Aleppo and a free tour, followed by return.",
+    "PackageId": 2
+  },
+  {
+    "Id": 10,
+    "DayNumber": 1,
+    "DayTitle": "اليوم الأول: السفر إلى تدمر",
+    "DayTitleEn": "Day 1: Travel to Palmyra",
+    "DayDescription": "الانطلاق من دمشق إلى تدمر. جولة تمهيدية في المدينة الأثرية.",
+    "DayDescriptionEn": "Departure from Damascus to Palmyra. Introductory tour in the ancient city.",
+    "PackageId": 3
+  },
+  {
+    "Id": 11,
+    "DayNumber": 2,
+    "DayTitle": "اليوم الثاني: معبد بل ومتحف تدمر",
+    "DayTitleEn": "Day 2: Temple of Bel and Palmyra Museum",
+    "DayDescription": "زيارة معبد بل الشهير ومتحف تدمر والتعرف على تاريخ المدينة.",
+    "DayDescriptionEn": "Visit the famous Temple of Bel, Palmyra Museum, and learn about the city's history.",
+    "PackageId": 3
+  },
+  {
+    "Id": 12,
+    "DayNumber": 3,
+    "DayTitle": "اليوم الثالث: وادي القبور والعودة",
+    "DayTitleEn": "Day 3: Valley of the Tombs and Return",
+    "DayDescription": "زيارة وادي القبور البرجية ثم العودة إلى دمشق.",
+    "DayDescriptionEn": "Visit the Valley of the Tower Tombs, followed by return to Damascus.",
+    "PackageId": 3
+  },
+  {
+    "Id": 13,
+    "DayNumber": 1,
+    "DayTitle": "اليوم الأول: الوصول إلى طرطوس",
+    "DayTitleEn": "Day 1: Arrival in Tartous",
+    "DayDescription": "الوصول إلى مدينة طرطوس الساحلية. جولة في كورنيش البحر.",
+    "DayDescriptionEn": "Arrival at the coastal city of Tartous. Tour along the sea corniche.",
+    "PackageId": 4
+  },
+  {
+    "Id": 14,
+    "DayNumber": 2,
+    "DayTitle": "اليوم الثاني: طرطوس وجزيرة أرواد",
+    "DayTitleEn": "Day 2: Tartous and Arwad Island",
+    "DayDescription": "زيارة قلعة طرطوس ورحلة بحرية إلى جزيرة أرواد.",
+    "DayDescriptionEn": "Visit Tartous Citadel and a boat trip to Arwad Island.",
+    "PackageId": 4
+  },
+  {
+    "Id": 15,
+    "DayNumber": 3,
+    "DayTitle": "اليوم الثالث: قلعة المرقب",
+    "DayTitleEn": "Day 3: Margat (Al-Marqab) Citadel",
+    "DayDescription": "رحلة إلى قلعة المرقب المطلة على البحر المتوسط.",
+    "DayDescriptionEn": "Trip to Margat Citadel overlooking the Mediterranean Sea.",
+    "PackageId": 4
+  },
+  {
+    "Id": 16,
+    "DayNumber": 4,
+    "DayTitle": "اليوم الرابع: اللاذقية وقلعة صلاح الدين",
+    "DayTitleEn": "Day 4: Latakia and Saladin Citadel",
+    "DayDescription": "التوجه إلى اللاذقية وزيارة قلعة صلاح الدين وكورنيش اللاذقية.",
+    "DayDescriptionEn": "Head to Latakia and visit Saladin Citadel and the Latakia Corniche.",
+    "PackageId": 4
+  },
+  {
+    "Id": 17,
+    "DayNumber": 5,
+    "DayTitle": "اليوم الخامس: شاطئ رأس البسيط والعودة",
+    "DayTitleEn": "Day 5: Ras al-Bassit Beach and Return",
+    "DayDescription": "استجمام على شاطئ رأس البسيط ثم العودة إلى دمشق.",
+    "DayDescriptionEn": "Relaxation on Ras al-Bassit beach, followed by return to Damascus.",
+    "PackageId": 4
+  },
+  {
+    "Id": 18,
+    "DayNumber": 1,
+    "DayTitle": "اليوم الأول: مقام السيدة زينب",
+    "DayTitleEn": "Day 1: Sayyida Zaynab Shrine",
+    "DayDescription": "زيارة مقام السيدة زينب في ضواحي دمشق.",
+    "DayDescriptionEn": "Visit the Shrine of Sayyida Zaynab in the suburbs of Damascus.",
+    "PackageId": 5
+  },
+  {
+    "Id": 19,
+    "DayNumber": 2,
+    "DayTitle": "اليوم الثاني: معلولا ودير مار تقلا",
+    "DayTitleEn": "Day 2: Maaloula and Mar Takla Monastery",
+    "DayDescription": "رحلة إلى معلولا لزيارة دير مار تقلا والكنيسة الأثرية.",
+    "DayDescriptionEn": "Trip to Maaloula to visit the Mar Takla Monastery and the ancient church.",
+    "PackageId": 5
+  },
+  {
+    "Id": 20,
+    "DayNumber": 3,
+    "DayTitle": "اليوم الثالث: دير مار موسى الحبشي",
+    "DayTitleEn": "Day 3: Monastery of Saint Moses the Abyssinian",
+    "DayDescription": "زيارة دير مار موسى الحبشي المنحوت في الجبل.",
+    "DayDescriptionEn": "Visit the Monastery of Saint Moses the Abyssinian (Deir Mar Musa) carved into the mountain.",
+    "PackageId": 5
+  },
+  {
+    "Id": 21,
+    "DayNumber": 4,
+    "DayTitle": "اليوم الرابع: سيدة صيدنايا والعودة",
+    "DayTitleEn": "Day 4: Our Lady of Saidnaya and Return",
+    "DayDescription": "زيارة دير سيدة صيدنايا العريق ثم العودة إلى دمشق.",
+    "DayDescriptionEn": "Visit the ancient Convent of Our Lady of Saidnaya, followed by return to Damascus.",
+    "PackageId": 5
+  },
+  {
+    "Id": 22,
+    "DayNumber": 1,
+    "DayTitle": "اليوم الأول: قلعة الحصن",
+    "DayTitleEn": "Day 1: Krak des Chevaliers",
+    "DayDescription": "الانطلاق إلى قلعة الحصن (كراك دي شوفالييه) أجمل القلاع الصليبية.",
+    "DayDescriptionEn": "Departure to Krak des Chevaliers, the most beautiful Crusader castle.",
+    "PackageId": 6
+  },
+  {
+    "Id": 23,
+    "DayNumber": 2,
+    "DayTitle": "اليوم الثاني: مدينة حمص",
+    "DayTitleEn": "Day 2: Homs City",
+    "DayDescription": "جولة في مدينة حمص وزيارة جامع النوري وكنيسة الحزام وبحيرة قطينة.",
+    "DayDescriptionEn": "Tour in Homs city, visiting the Al-Nouri Mosque, Church of the Holy Belt (Um al-Zennar), and Lake Qattinah.",
+    "PackageId": 6
+  },
+  {
+    "Id": 24,
+    "DayNumber": 3,
+    "DayTitle": "اليوم الثالث: قلعة مصياف والعودة",
+    "DayTitleEn": "Day 3: Masyaf Citadel and Return",
+    "DayDescription": "زيارة قلعة مصياف التاريخية ثم العودة.",
+    "DayDescriptionEn": "Visit the historical Masyaf Citadel, followed by return.",
+    "PackageId": 6
+  },
+  {
+    "Id": 25,
+    "DayNumber": 1,
+    "DayTitle": "اليوم الأول: جولة في حماة",
+    "DayTitleEn": "Day 1: Tour in Hama",
+    "DayDescription": "جولة في مدينة حماة ومشاهدة النواعير الشهيرة على نهر العاصي.",
+    "DayDescriptionEn": "Tour in the city of Hama and watch the famous Norias (waterwheels) on the Orontes River.",
+    "PackageId": 7
+  },
+  {
+    "Id": 26,
+    "DayNumber": 2,
+    "DayTitle": "اليوم الثاني: قصر العظم والمتحف",
+    "DayTitleEn": "Day 2: Azm Palace and the Museum",
+    "DayDescription": "زيارة قصر العظم ومتحف حماة ثم جولة حرة.",
+    "DayDescriptionEn": "Visit the Azm Palace and Hama Museum, followed by a free tour.",
+    "PackageId": 7
+  },
+  {
+    "Id": 27,
+    "DayNumber": 1,
+    "DayTitle": "اليوم الأول: المدرج الروماني في بصرى",
+    "DayTitleEn": "Day 1: The Roman Amphitheatre in Bosra",
+    "DayDescription": "الوصول إلى بصرى وزيارة المدرج الروماني الرائع.",
+    "DayDescriptionEn": "Arrival in Bosra and visit the magnificent Roman Amphitheatre.",
+    "PackageId": 8
+  },
+  {
+    "Id": 28,
+    "DayNumber": 2,
+    "DayTitle": "اليوم الثاني: قلعة بصرى والمتحف",
+    "DayTitleEn": "Day 2: Bosra Citadel and the Museum",
+    "DayDescription": "زيارة قلعة بصرى ومتحف المدرج ثم العودة.",
+    "DayDescriptionEn": "Visit Bosra Citadel and the Amphitheatre Museum, followed by return.",
+    "PackageId": 8
+  },
+  {
+    "Id": 29,
+    "DayNumber": 1,
+    "DayTitle": "اليوم الأول: منتجع بلودان",
+    "DayTitleEn": "Day 1: Bloudan Resort",
+    "DayDescription": "التوجه إلى بلودان والاستمتاع بأجواء الجبل الباردة.",
+    "DayDescriptionEn": "Head to Bloudan and enjoy the cool mountain atmosphere.",
+    "PackageId": 9
+  },
+  {
+    "Id": 30,
+    "DayNumber": 2,
+    "DayTitle": "اليوم الثاني: منتجع الزبداني",
+    "DayTitleEn": "Day 2: Al-Zabadani Resort",
+    "DayDescription": "زيارة مدينة الزبداني والاستمتاع بينابيعها الطبيعية.",
+    "DayDescriptionEn": "Visit the city of Al-Zabadani and enjoy its natural springs.",
+    "PackageId": 9
+  },
+  {
+    "Id": 31,
+    "DayNumber": 3,
+    "DayTitle": "اليوم الثالث: عين الفيجة",
+    "DayTitleEn": "Day 3: Ain Al-Fijah",
+    "DayDescription": "رحلة إلى عين الفيجة نبع ماء بردى وسط الطبيعة الخلابة.",
+    "DayDescriptionEn": "Trip to Ain Al-Fijah, the spring of the Barada River, amid breathtaking nature.",
+    "PackageId": 9
+  },
+  {
+    "Id": 32,
+    "DayNumber": 4,
+    "DayTitle": "اليوم الرابع: جبل قاسيون والعودة",
+    "DayTitleEn": "Day 4: Mount Qasioun and Return",
+    "DayDescription": "صعود جبل قاسيون لإطلالة بانورامية على دمشق ثم العودة.",
+    "DayDescriptionEn": "Ascend Mount Qasioun for a panoramic view of Damascus, followed by return.",
+    "PackageId": 9
+  },
+  {
+    "Id": 33,
+    "DayNumber": 1,
+    "DayTitle": "اليوم الأول: وادي النضارة",
+    "DayTitleEn": "Day 1: Wadi Al-Nasara (Valley of Christians)",
+    "DayDescription": "رحلة إلى وادي النضارة (وادي النصارى) لزيارة القرى المسيحية القديمة.",
+    "DayDescriptionEn": "Trip to Wadi Al-Nasara to visit the ancient Christian villages.",
+    "PackageId": 10
+  },
+  {
+    "Id": 34,
+    "DayNumber": 2,
+    "DayTitle": "اليوم الثاني: شلالات الدريكيش",
+    "DayTitleEn": "Day 2: Dreikiche Waterfalls",
+    "DayDescription": "زيارة شلالات الدريكيش الخلابة وسط الغابات الكثيفة.",
+    "DayDescriptionEn": "Visit the stunning Dreikiche waterfalls amidst dense forests.",
+    "PackageId": 10
+  },
+  {
+    "Id": 35,
+    "DayNumber": 3,
+    "DayTitle": "اليوم الثالث: محمية رأس العين",
+    "DayTitleEn": "Day 3: Ras al-Ain Reserve",
+    "DayDescription": "رحلة إلى محمية رأس العين الطبيعية لمشاهدة الطيور المهاجرة.",
+    "DayDescriptionEn": "Trip to Ras al-Ain Nature Reserve to watch migratory birds.",
+    "PackageId": 10
+  },
+  {
+    "Id": 36,
+    "DayNumber": 4,
+    "DayTitle": "اليوم الرابع: جولة حرة وعودة",
+    "DayTitleEn": "Day 4: Free Tour and Return",
+    "DayDescription": "استجمام في منتجعات طرطوس ثم العودة.",
+    "DayDescriptionEn": "Relaxation in Tartous resorts, followed by return.",
+    "PackageId": 10
+  },
+  {
+    "Id": 37,
+    "DayNumber": 1,
+    "DayTitle": "اليوم الأول: الوصول والجامع الأموي",
+    "DayTitleEn": "Day 1: Arrival and the Umayyad Mosque",
+    "DayDescription": "الوصول إلى دمشق وزيارة الجامع الأموي الكبير.",
+    "DayDescriptionEn": "Arrival in Damascus and visit the Great Umayyad Mosque.",
+    "PackageId": 11
+  },
+  {
+    "Id": 38,
+    "DayNumber": 2,
+    "DayTitle": "اليوم الثاني: دمشق القديمة",
+    "DayTitleEn": "Day 2: Old Damascus",
+    "DayDescription": "جولة شاملة في دمشق القديمة: قلعة دمشق، قصر العظم، سوق الحميدية.",
+    "DayDescriptionEn": "Comprehensive tour of Old Damascus: Damascus Citadel, Azm Palace, and Al-Hamidiyah Souq.",
+    "PackageId": 11
+  },
+  {
+    "Id": 39,
+    "DayNumber": 3,
+    "DayTitle": "اليوم الثالث: المتاحف والمعالم",
+    "DayTitleEn": "Day 3: Museums and Landmarks",
+    "DayDescription": "زيارة المتحف الوطني ودار الأوبرا وجبل قاسيون.",
+    "DayDescriptionEn": "Visit the National Museum, the Opera House, and Mount Qasioun.",
+    "PackageId": 11
+  },
+  {
+    "Id": 40,
+    "DayNumber": 4,
+    "DayTitle": "اليوم الرابع: رحلة إلى معلولا وصيدنايا",
+    "DayTitleEn": "Day 4: Trip to Maaloula and Saidnaya",
+    "DayDescription": "رحلة إلى معلولا ودير مار تقلا وسيدة صيدنايا.",
+    "DayDescriptionEn": "Trip to Maaloula, Mar Takla Monastery, and Our Lady of Saidnaya.",
+    "PackageId": 11
+  },
+  {
+    "Id": 41,
+    "DayNumber": 5,
+    "DayTitle": "اليوم الخامس: عين الفيجة وحديقة تشرين",
+    "DayTitleEn": "Day 5: Ain Al-Fijah and Tishreen Park",
+    "DayDescription": "نزهة إلى عين الفيجة وحديقة تشرين العامة.",
+    "DayDescriptionEn": "Picnic to Ain Al-Fijah and Tishreen Public Park.",
+    "PackageId": 11
+  },
+  {
+    "Id": 42,
+    "DayNumber": 6,
+    "DayTitle": "اليوم السادس: جولة حرة ومغادرة",
+    "DayTitleEn": "Day 6: Free Tour and Departure",
+    "DayDescription": "يوم حر للتسوق في باب شرقي ثم المغادرة.",
+    "DayDescriptionEn": "Free day for shopping in Bab Sharqi, followed by departure.",
+    "PackageId": 11
+  },
+  {
+    "Id": 43,
+    "DayNumber": 1,
+    "DayTitle": "اليوم الأول: الوصول إلى حلب",
+    "DayTitleEn": "Day 1: Arrival in Aleppo",
+    "DayDescription": "الوصول إلى حلب وجولة في المدينة القديمة.",
+    "DayDescriptionEn": "Arrival in Aleppo and tour of the old city.",
+    "PackageId": 12
+  },
+  {
+    "Id": 44,
+    "DayNumber": 2,
+    "DayTitle": "اليوم الثاني: قلعة حلب والجامع الكبير",
+    "DayTitleEn": "Day 2: Aleppo Citadel and the Great Mosque",
+    "DayDescription": "زيارة قلعة حلب والجامع الكبير وسوق المدينة.",
+    "DayDescriptionEn": "Visit the Citadel of Aleppo, the Great Mosque, and the city souq.",
+    "PackageId": 12
+  },
+  {
+    "Id": 45,
+    "DayNumber": 3,
+    "DayTitle": "اليوم الثالث: كنيسة القديس سمعان",
+    "DayTitleEn": "Day 3: Church of Saint Simeon",
+    "DayDescription": "رحلة إلى كنيسة القديس سمعان العمودي الأثرية.",
+    "DayDescriptionEn": "Trip to the ancient Church of Saint Simeon Stylites.",
+    "PackageId": 12
+  },
+  {
+    "Id": 46,
+    "DayNumber": 4,
+    "DayTitle": "اليوم الرابع: المدن الميتة",
+    "DayTitleEn": "Day 4: The Dead Cities",
+    "DayDescription": "زيارة سيرجيلة وإيبلا والمواقع الأثرية في ريف حلب.",
+    "DayDescriptionEn": "Visit Serjilla, Ebla, and the archaeological sites in the Aleppo countryside.",
+    "PackageId": 12
+  },
+  {
+    "Id": 47,
+    "DayNumber": 5,
+    "DayTitle": "اليوم الخامس: متحف حلب والعودة",
+    "DayTitleEn": "Day 5: Aleppo Museum and Return",
+    "DayDescription": "زيارة متحف حلب الوطني وجولة حرة ثم العودة.",
+    "DayDescriptionEn": "Visit the National Museum of Aleppo and a free tour, followed by return.",
+    "PackageId": 12
+  },
+  {
+    "Id": 48,
+    "DayNumber": 1,
+    "DayTitle": "اليوم الأول: السفر إلى تدمر",
+    "DayTitleEn": "Day 1: Travel to Palmyra",
+    "DayDescription": "الانطلاق من دمشق عبر بادية الشام إلى تدمر.",
+    "DayDescriptionEn": "Departure from Damascus across the Syrian Desert to Palmyra.",
+    "PackageId": 13
+  },
+  {
+    "Id": 49,
+    "DayNumber": 2,
+    "DayTitle": "اليوم الثاني: آثار تدمر",
+    "DayTitleEn": "Day 2: Ruins of Palmyra",
+    "DayDescription": "زيارة معبد بل وقوس النصر ومتحف تدمر.",
+    "DayDescriptionEn": "Visit the Temple of Bel, the Monumental Arch (Arch of Triumph), and Palmyra Museum.",
+    "PackageId": 13
+  },
+  {
+    "Id": 50,
+    "DayNumber": 3,
+    "DayTitle": "اليوم الثالث: وادي القبور",
+    "DayTitleEn": "Day 3: Valley of the Tombs",
+    "DayDescription": "استكشاف وادي القبور البرجية في تدمر.",
+    "DayDescriptionEn": "Explore the Valley of the Tower Tombs in Palmyra.",
+    "PackageId": 13
+  },
+  {
+    "Id": 51,
+    "DayNumber": 4,
+    "DayTitle": "اليوم الرابع: العودة عبر قلعة الحصن",
+    "DayTitleEn": "Day 4: Return via Krak des Chevaliers",
+    "DayDescription": "العودة إلى دمشق مع زيارة قلعة الحصن في الطريق.",
+    "DayDescriptionEn": "Return to Damascus with a visit to Krak des Chevaliers along the way.",
+    "PackageId": 13
+  },
+  {
+    "Id": 52,
+    "DayNumber": 1,
+    "DayTitle": "اليوم الأول: الوصول إلى اللاذقية",
+    "DayTitleEn": "Day 1: Arrival in Latakia",
+    "DayDescription": "الوصول إلى اللاذقية والمشي على الكورنيش البحري.",
+    "DayDescriptionEn": "Arrival in Latakia and walking along the sea corniche.",
+    "PackageId": 14
+  },
+  {
+    "Id": 53,
+    "DayNumber": 2,
+    "DayTitle": "اليوم الثاني: شاطئ الفنار",
+    "DayTitleEn": "Day 2: Al-Fanar Beach",
+    "DayDescription": "استجمام على شاطئ الفنار وزيارة قلعة صلاح الدين.",
+    "DayDescriptionEn": "Relaxation on Al-Fanar Beach and visit to Saladin Citadel.",
+    "PackageId": 14
+  },
+  {
+    "Id": 54,
+    "DayNumber": 3,
+    "DayTitle": "اليوم الثالث: رأس البسيط",
+    "DayTitleEn": "Day 3: Ras al-Bassit",
+    "DayDescription": "رحلة إلى شاطئ رأس البسيط البكر.",
+    "DayDescriptionEn": "Trip to the pristine Ras al-Bassit beach.",
+    "PackageId": 14
+  },
+  {
+    "Id": 55,
+    "DayNumber": 4,
+    "DayTitle": "اليوم الرابع: جولة حرة ومغادرة",
+    "DayTitleEn": "Day 4: Free Tour and Departure",
+    "DayDescription": "تسوق في أسواق اللاذقية ثم العودة.",
+    "DayDescriptionEn": "Shopping in Latakia markets, followed by return.",
+    "PackageId": 14
+  },
+  {
+    "Id": 56,
+    "DayNumber": 1,
+    "DayTitle": "اليوم الأول: معلولا",
+    "DayTitleEn": "Day 1: Maaloula",
+    "DayDescription": "زيارة قرية معلولا والتحدث بالآرامية مع الأهالي.",
+    "DayDescriptionEn": "Visit the village of Maaloula and speak Aramaic with the locals.",
+    "PackageId": 15
+  },
+  {
+    "Id": 57,
+    "DayNumber": 2,
+    "DayTitle": "اليوم الثاني: دير مار موسى",
+    "DayTitleEn": "Day 2: Mar Musa Monastery",
+    "DayDescription": "رحلة إلى دير مار موسى الحبشي ومقام النبي هابيل.",
+    "DayDescriptionEn": "Trip to the Monastery of Saint Moses the Abyssinian and the Shrine of Prophet Abel.",
+    "PackageId": 15
+  },
+  {
+    "Id": 58,
+    "DayNumber": 3,
+    "DayTitle": "اليوم الثالث: صيدنايا والعودة",
+    "DayTitleEn": "Day 3: Saidnaya and Return",
+    "DayDescription": "زيارة دير سيدة صيدنايا ثم العودة إلى دمشق.",
+    "DayDescriptionEn": "Visit the Convent of Our Lady of Saidnaya, followed by return to Damascus.",
+    "PackageId": 15
+  }
 ]

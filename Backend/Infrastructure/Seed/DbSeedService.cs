@@ -1,6 +1,8 @@
 using System.Reflection;
 using System.Text.Json;
+using Domain.Common;
 using Domain.Entities;
+using Domain.Entities.Translations;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,12 +46,14 @@ public class DbSeedService : IDbSeedService
 
         var items = await LoadJsonAsync<AttractionCategoryJson>("attraction_categories.json", ct);
 
-        _context.AttractionCategories.AddRange(items.Select(x => new AttractionCategory
+        foreach (var x in items)
         {
-            CategoryId = x.CategoryId,
-            EnCategoryName = x.EnCategoryName,
-            ArCategoryName = x.ArCategoryName
-        }));
+            var category = new AttractionCategory { CategoryId = x.CategoryId };
+            category.Translations.Add(new AttractionCategoryTranslation { LanguageCode = LanguageCodes.English, Name = x.EnCategoryName });
+            if (!string.IsNullOrWhiteSpace(x.ArCategoryName))
+                category.Translations.Add(new AttractionCategoryTranslation { LanguageCode = LanguageCodes.Arabic, Name = x.ArCategoryName });
+            _context.AttractionCategories.Add(category);
+        }
 
         await WithIdentityInsert("AttractionCategories", ct);
     }
@@ -61,13 +65,14 @@ public class DbSeedService : IDbSeedService
 
         var items = await LoadJsonAsync<CountryJson>("countries.json", ct);
 
-        _context.Countries.AddRange(items.Select(x => new Country
+        foreach (var x in items)
         {
-            Id = x.Id,
-            EnCountryName = x.EnCountryName,
-            ArCountryName = x.ArCountryName,
-            CountryCode = x.CountryCode
-        }));
+            var country = new Country { Id = x.Id, CountryCode = x.CountryCode };
+            country.Translations.Add(new CountryTranslation { LanguageCode = LanguageCodes.English, Name = x.EnCountryName });
+            if (!string.IsNullOrWhiteSpace(x.ArCountryName))
+                country.Translations.Add(new CountryTranslation { LanguageCode = LanguageCodes.Arabic, Name = x.ArCountryName });
+            _context.Countries.Add(country);
+        }
 
         await WithIdentityInsert("Countries", ct);
     }
@@ -79,14 +84,14 @@ public class DbSeedService : IDbSeedService
 
         var items = await LoadJsonAsync<CityJson>("cities.json", ct);
 
-        _context.Cities.AddRange(items.Select(x => new City
+        foreach (var x in items)
         {
-            Id = x.Id,
-            EnCityName = x.EnCityName,
-            ArCityName = x.ArCityName,
-            Image = x.Image,
-            CountryId = x.CountryId
-        }));
+            var city = new City { Id = x.Id, Image = x.Image, CountryId = x.CountryId };
+            city.Translations.Add(new CityTranslation { LanguageCode = LanguageCodes.English, Name = x.EnCityName });
+            if (!string.IsNullOrWhiteSpace(x.ArCityName))
+                city.Translations.Add(new CityTranslation { LanguageCode = LanguageCodes.Arabic, Name = x.ArCityName });
+            _context.Cities.Add(city);
+        }
 
         await WithIdentityInsert("Cities", ct);
     }
@@ -115,17 +120,31 @@ public class DbSeedService : IDbSeedService
 
         var items = await LoadJsonAsync<AttractionJson>("attractions.json", ct);
 
-        _context.Attractions.AddRange(items.Select(x => new Attraction
+        foreach (var x in items)
         {
-            Id = x.Id,
-            EnAttractionName = x.EnAttractionName,
-            ArAttractionName = x.ArAttractionName,
-            AttractionCategoryId = x.AttractionCategoryId,
-            Description = x.Description,
-            Longitude = x.Longitude,
-            Latitude = x.Latitude,
-            CityId = x.CityId
-        }));
+            var attraction = new Attraction
+            {
+                Id = x.Id,
+                AttractionCategoryId = x.AttractionCategoryId,
+                Longitude = x.Longitude,
+                Latitude = x.Latitude,
+                CityId = x.CityId
+            };
+            attraction.Translations.Add(new AttractionTranslation
+            {
+                LanguageCode = LanguageCodes.English,
+                Name = x.EnAttractionName,
+                Description = x.Description
+            });
+            if (!string.IsNullOrWhiteSpace(x.ArAttractionName))
+                attraction.Translations.Add(new AttractionTranslation
+                {
+                    LanguageCode = LanguageCodes.Arabic,
+                    Name = x.ArAttractionName,
+                    Description = null
+                });
+            _context.Attractions.Add(attraction);
+        }
 
         await WithIdentityInsert("Attractions", ct);
     }
@@ -198,24 +217,38 @@ public class DbSeedService : IDbSeedService
 
         var items = await LoadJsonAsync<TourCompanyJson>("tour_companies.json", ct);
 
-        _context.TourCompanies.AddRange(items.Select(x => new TourCompany
+        foreach (var x in items)
         {
-            Id = x.Id,
-            Name = x.Name,
-            Status = (Domain.Enums.TourCompanyStatus)x.Status,
-            RejectionReason = x.RejectionReason,
-            Description = x.Description,
-            Logo = x.Logo,
-            Location = x.Location,
-            PhoneNumber = x.PhoneNumber,
-            Email = x.Email,
-            FoundingDate = x.FoundingDate != null ? DateOnly.Parse(x.FoundingDate) : null,
-            TourismLicenseNumber = x.TourismLicenseNumber,
-            TourismLicenseImage = x.TourismLicenseImage,
-            BankAccount = x.BankAccount,
-            About = x.About,
-            UserId = x.UserId
-        }));
+            var company = new TourCompany
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Status = (Domain.Enums.TourCompanyStatus)x.Status,
+                RejectionReason = x.RejectionReason,
+                Logo = x.Logo,
+                Location = x.Location,
+                PhoneNumber = x.PhoneNumber,
+                Email = x.Email,
+                FoundingDate = x.FoundingDate != null ? DateOnly.Parse(x.FoundingDate) : null,
+                TourismLicenseNumber = x.TourismLicenseNumber,
+                TourismLicenseImage = x.TourismLicenseImage,
+                BankAccount = x.BankAccount,
+                UserId = x.UserId
+            };
+            company.Translations.Add(new TourCompanyTranslation
+            {
+                LanguageCode = LanguageCodes.Arabic,
+                Description = x.Description,
+                About = x.About
+            });
+            company.Translations.Add(new TourCompanyTranslation
+            {
+                LanguageCode = LanguageCodes.English,
+                Description = x.DescriptionEn,
+                About = x.AboutEn
+            });
+            _context.TourCompanies.Add(company);
+        }
 
         await WithIdentityInsert("TourCompanies", ct);
     }
@@ -234,12 +267,21 @@ public class DbSeedService : IDbSeedService
                 Id = x.Id,
                 Email = x.Email,
                 YearsOfExperiance = x.YearsOfExperiance,
-                Bio = x.Bio,
                 Languages = x.Languages,
                 LicenseScan = x.LicenseScan,
                 IsAvailable = x.IsAvailable,
                 PersonId = x.PersonId
             };
+            guide.Translations.Add(new TouristGuideTranslation
+            {
+                LanguageCode = LanguageCodes.Arabic,
+                Bio = x.Bio
+            });
+            guide.Translations.Add(new TouristGuideTranslation
+            {
+                LanguageCode = LanguageCodes.English,
+                Bio = x.BioEn
+            });
             _context.Entry(guide).Property("NatinalityCountryId").CurrentValue = x.NatinalityCountryId;
             _context.TouristGuides.Add(guide);
         }
@@ -271,28 +313,43 @@ public class DbSeedService : IDbSeedService
 
         var items = await LoadJsonAsync<TourPackageJson>("tour_packages.json", ct);
 
-        _context.TourPackages.AddRange(items.Select(x => new TourPackage
+        foreach (var x in items)
         {
-            Id = x.Id,
-            PackageName = x.PackageName,
-            Description = x.Description,
-            MeetingPoint = x.MeetingPoint,
-            PricePerPerson = x.PricePerPerson,
-            Currency = x.Currency,
-            DurationInDays = x.DurationInDays,
-            AvailableSeats = x.AvailableSeats,
-            CountryId = x.CountryId,
-            StartDate = DateOnly.Parse(x.StartDate),
-            EndDate = DateOnly.Parse(x.EndDate),
-            RegistrationDeadline = DateOnly.Parse(x.RegistrationDeadline),
-            ServiceLevel = (Domain.Enums.ServiceLevel)x.ServiceLevel,
-            Status = (Domain.Enums.TourPackageStatus)x.Status,
-            RejectionReason = x.RejectionReason,
-            PublishCount = x.PublishCount,
-            PublishedAtUtc = x.PublishedAtUtc != null ? DateTime.Parse(x.PublishedAtUtc) : null,
-            IsDeleted = x.IsDeleted,
-            CompanyId = x.CompanyId
-        }));
+            var package = new TourPackage
+            {
+                Id = x.Id,
+                PricePerPerson = x.PricePerPerson,
+                Currency = x.Currency,
+                DurationInDays = x.DurationInDays,
+                AvailableSeats = x.AvailableSeats,
+                CountryId = x.CountryId,
+                StartDate = DateOnly.Parse(x.StartDate),
+                EndDate = DateOnly.Parse(x.EndDate),
+                RegistrationDeadline = DateOnly.Parse(x.RegistrationDeadline),
+                ServiceLevel = (Domain.Enums.ServiceLevel)x.ServiceLevel,
+                Status = (Domain.Enums.TourPackageStatus)x.Status,
+                RejectionReason = x.RejectionReason,
+                PublishCount = x.PublishCount,
+                PublishedAtUtc = x.PublishedAtUtc != null ? DateTime.Parse(x.PublishedAtUtc) : null,
+                IsDeleted = x.IsDeleted,
+                CompanyId = x.CompanyId
+            };
+            package.Translations.Add(new TourPackageTranslation
+            {
+                LanguageCode = LanguageCodes.Arabic,
+                PackageName = x.PackageName,
+                Description = x.Description ?? string.Empty,
+                MeetingPoint = x.MeetingPoint
+            });
+            package.Translations.Add(new TourPackageTranslation
+            {
+                LanguageCode = LanguageCodes.English,
+                PackageName = x.EnPackageName,
+                Description = x.EnDescription ?? string.Empty,
+                MeetingPoint = x.EnMeetingPoint
+            });
+            _context.TourPackages.Add(package);
+        }
 
         await WithIdentityInsert("TourPackages", ct);
     }
@@ -304,14 +361,28 @@ public class DbSeedService : IDbSeedService
 
         var items = await LoadJsonAsync<ItineraryJson>("tour_package_itineraries.json", ct);
 
-        _context.Set<Itinerary>().AddRange(items.Select(x => new Itinerary
+        foreach (var x in items)
         {
-            Id = x.Id,
-            DayNumber = x.DayNumber,
-            DayTitle = x.DayTitle,
-            DayDescription = x.DayDescription,
-            PackageId = x.PackageId
-        }));
+            var itinerary = new Itinerary
+            {
+                Id = x.Id,
+                DayNumber = x.DayNumber,
+                PackageId = x.PackageId
+            };
+            itinerary.Translations.Add(new ItineraryTranslation
+            {
+                LanguageCode = LanguageCodes.Arabic,
+                DayTitle = x.DayTitle,
+                DayDescription = x.DayDescription
+            });
+            itinerary.Translations.Add(new ItineraryTranslation
+            {
+                LanguageCode = LanguageCodes.English,
+                DayTitle = x.DayTitleEn,
+                DayDescription = x.DayTitleEn
+            });
+            _context.Set<Itinerary>().Add(itinerary);
+        }
 
         await WithIdentityInsert("Itineraries", ct);
     }
@@ -323,17 +394,31 @@ public class DbSeedService : IDbSeedService
 
         var items = await LoadJsonAsync<ActivityJson>("tour_package_activities.json", ct);
 
-        _context.Set<Activity>().AddRange(items.Select(x => new Activity
+        foreach (var x in items)
         {
-            Id = x.Id,
-            OrderNumber = x.OrderNumber,
-            Title = x.Title,
-            Description = x.Description,
-            ImageUrl = x.ImageUrl,
-            StartTime = TimeOnly.Parse(x.StartTime),
-            EndTime = TimeOnly.Parse(x.EndTime),
-            ItineraryId = x.ItineraryId
-        }));
+            var activity = new Activity
+            {
+                Id = x.Id,
+                OrderNumber = x.OrderNumber,
+                ImageUrl = x.ImageUrl,
+                StartTime = TimeOnly.Parse(x.StartTime),
+                EndTime = TimeOnly.Parse(x.EndTime),
+                ItineraryId = x.ItineraryId
+            };
+            activity.Translations.Add(new ActivityTranslation
+            {
+                LanguageCode = LanguageCodes.Arabic,
+                Title = x.Title,
+                Description = x.Description
+            });
+            activity.Translations.Add(new ActivityTranslation
+            {
+                LanguageCode = LanguageCodes.English,
+                Title = x.TitleEn,
+                Description = x.DescriptionEn
+            });
+            _context.Set<Activity>().Add(activity);
+        }
 
         await WithIdentityInsert("Activities", ct);
     }
@@ -471,6 +556,7 @@ public class DbSeedService : IDbSeedService
         public int Status { get; init; }
         public string? RejectionReason { get; init; }
         public string? Description { get; init; }
+        public string? DescriptionEn { get; init; }
         public string? Logo { get; init; }
         public string? Location { get; init; }
         public string? PhoneNumber { get; init; }
@@ -480,6 +566,7 @@ public class DbSeedService : IDbSeedService
         public string? TourismLicenseImage { get; init; }
         public string? BankAccount { get; init; }
         public string? About { get; init; }
+        public string? AboutEn { get; init; }
         public int UserId { get; init; }
     }
 
@@ -489,6 +576,7 @@ public class DbSeedService : IDbSeedService
         public string Email { get; init; } = null!;
         public int YearsOfExperiance { get; init; }
         public string Bio { get; init; } = null!;
+        public string BioEn { get; init; } = null!;
         public string? Languages { get; init; }
         public string? LicenseScan { get; init; }
         public bool IsAvailable { get; init; }
@@ -507,8 +595,11 @@ public class DbSeedService : IDbSeedService
     {
         public int Id { get; init; }
         public string PackageName { get; init; } = null!;
+        public string EnPackageName { get; init; } = null!;
         public string? Description { get; init; }
+        public string? EnDescription { get; init; }
         public string MeetingPoint { get; init; } = null!;
+        public string EnMeetingPoint { get; init; } = null!;
         public decimal PricePerPerson { get; init; }
         public string Currency { get; init; } = null!;
         public int DurationInDays { get; init; }
@@ -531,7 +622,9 @@ public class DbSeedService : IDbSeedService
         public int Id { get; init; }
         public int DayNumber { get; init; }
         public string DayTitle { get; init; } = null!;
+        public string DayTitleEn { get; init; } = null!;
         public string? DayDescription { get; init; }
+        public string? DayDescriptionEn { get; init; }
         public int PackageId { get; init; }
     }
 
@@ -540,7 +633,9 @@ public class DbSeedService : IDbSeedService
         public int Id { get; init; }
         public int OrderNumber { get; init; }
         public string Title { get; init; } = null!;
+        public string TitleEn { get; init; } = null!;
         public string? Description { get; init; }
+        public string? DescriptionEn { get; init; }
         public string? ImageUrl { get; init; }
         public string StartTime { get; init; } = null!;
         public string EndTime { get; init; } = null!;
