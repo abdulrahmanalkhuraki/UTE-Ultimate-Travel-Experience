@@ -39,9 +39,11 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Hangfire;
+using Microsoft.AspNetCore.Localization;
 using UTE.Middleware;
 using UTE.Security;
 
@@ -108,6 +110,8 @@ builder.Services.Configure<FormOptions>(options =>
     options.MultipartBodyLengthLimit = 10_000_000; // 10 MB
     options.ValueLengthLimit = 10_000_000;
     options.MemoryBufferThreshold = 10_000_000;
+    options.MultipartHeadersLengthLimit = 32_768; // Allow larger headers in multipart sections
+    options.MultipartHeadersCountLimit = 32;
 
     Console.WriteLine("FormOptions configured: MultipartBodyLengthLimit = " + options.MultipartBodyLengthLimit);
 });
@@ -353,6 +357,12 @@ builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 
 builder.Services.AddMemoryCache();
 
+// Localization
+builder.Services.AddScoped<Application.Interfaces.Localization.ILanguageContext, LanguageContext>();
+builder.Services.AddScoped<Application.Interfaces.Localization.ILocalizedMapper, LocalizedMapper>();
+
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
 // ==========================================
 // 7.1. ADD HANGFIRE (BACKGROUND JOBS)
 // ==========================================
@@ -392,6 +402,9 @@ builder.Services.AddAutoMapper(cfg =>
 // ==========================================
 var app = builder.Build();
 
+// Initialize the static localizer backing ExceptionMessages before any request
+Application.Common.Constants.ExceptionMessages.Initialize(
+    app.Services.GetRequiredService<Microsoft.Extensions.Localization.IStringLocalizer<Application.SharedResource>>());
 
 // ==========================================
 // 10. SEED DATABASE
@@ -418,6 +431,19 @@ if (app.Environment.IsDevelopment())
 // ==========================================
 app.UseHttpsRedirection();
 app.UseStaticFiles();     // Serves files from wwwroot (e.g. /uploads/profiles/xxx.jpg)
+
+var supportedCultures = Domain.Common.LanguageCodes.SupportedTags
+    .Select(tag => new CultureInfo(tag))
+    .ToArray();
+
+app.UseRequestLocalization(options =>
+{
+    options.DefaultRequestCulture = new RequestCulture(Domain.Common.LanguageCodes.Default);
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    options.RequestCultureProviders.Insert(0, new UTE.Localization.LanguageRequestCultureProvider());
+});
+
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseCors();
 app.UseAuthentication();  // Must be before Authorization
