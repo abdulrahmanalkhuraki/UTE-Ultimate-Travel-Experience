@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Entities.Translations;
 using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,24 @@ namespace Infrastructure.Data;
     public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
     public virtual DbSet<Activity> Activities { get; set; }
+
+    public virtual DbSet<ActivityTranslation> ActivityTranslations { get; set; }
+
+    public virtual DbSet<AttractionCategoryTranslation> AttractionCategoryTranslations { get; set; }
+
+    public virtual DbSet<AttractionTranslation> AttractionTranslations { get; set; }
+
+    public virtual DbSet<CityTranslation> CityTranslations { get; set; }
+
+    public virtual DbSet<CountryTranslation> CountryTranslations { get; set; }
+
+    public virtual DbSet<ItineraryTranslation> ItineraryTranslations { get; set; }
+
+    public virtual DbSet<TourCompanyTranslation> TourCompanyTranslations { get; set; }
+
+    public virtual DbSet<TouristGuideTranslation> TouristGuideTranslations { get; set; }
+
+    public virtual DbSet<TourPackageTranslation> TourPackageTranslations { get; set; }
 
     public virtual DbSet<Attraction> Attractions { get; set; }
 
@@ -71,10 +90,6 @@ namespace Infrastructure.Data;
         modelBuilder.Entity<Attraction>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.EnAttractionName).HasMaxLength(100);
-            entity.Property(e => e.ArAttractionName).HasMaxLength(100);
-            entity.Property(e => e.Description).HasMaxLength(1000);
-
             entity.Property(e => e.Latitude).HasColumnType("decimal(18, 8)");
             entity.Property(e => e.Longitude).HasColumnType("decimal(18, 8)");
 
@@ -98,8 +113,6 @@ namespace Infrastructure.Data;
         modelBuilder.Entity<AttractionCategory>(entity =>
         {
             entity.HasKey(e => e.CategoryId);
-            entity.Property(e => e.EnCategoryName).HasMaxLength(100);
-            entity.Property(e => e.ArCategoryName).HasMaxLength(100);          
         });
 
         modelBuilder.Entity<Booking>(static entity =>
@@ -262,8 +275,6 @@ namespace Infrastructure.Data;
         modelBuilder.Entity<City>(entity =>
         {
             entity.HasKey(c => c.Id);
-            entity.Property(e => e.EnCityName).HasMaxLength(100);
-            entity.Property(e => e.ArCityName).HasMaxLength(100);
             entity.Property(e => e.Image).HasMaxLength(500);
             entity.HasOne(d => d.Country).WithMany(p => p.Cities)
                 .HasForeignKey(d => d.CountryId)
@@ -276,8 +287,6 @@ namespace Infrastructure.Data;
         {
             entity.HasKey(c => c.Id);
             entity.Property(e => e.CountryCode).HasMaxLength(10);
-            entity.Property(e => e.EnCountryName).HasMaxLength(50);
-            entity.Property(e => e.ArCountryName).HasMaxLength(50);
         });
 
         modelBuilder.Entity<EmailVerification>(entity =>
@@ -394,8 +403,6 @@ namespace Infrastructure.Data;
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.DayTitle).HasMaxLength(100);
-            entity.Property(e => e.DayDescription).HasMaxLength(500);
             entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -414,8 +421,6 @@ namespace Infrastructure.Data;
             entity.Property(e => e.UpdatedAtUtc)
                 .HasDefaultValueSql("(getutcdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.Title).HasMaxLength(100);
-            entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.ImageUrl).HasMaxLength(500);
             entity.Property(e => e.StartTime).HasColumnType("time(0)");
             entity.Property(e => e.EndTime).HasColumnType("time(0)");
@@ -505,7 +510,6 @@ namespace Infrastructure.Data;
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.Logo).HasMaxLength(500);
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Location).HasMaxLength(200);
@@ -515,7 +519,6 @@ namespace Infrastructure.Data;
             entity.Property(e => e.TourismLicenseNumber).HasMaxLength(50);
             entity.Property(e => e.TourismLicenseImage).HasMaxLength(500);
             entity.Property(e => e.BankAccount).HasMaxLength(100);
-            entity.Property(e => e.About).HasMaxLength(2000);
             entity.Property(e => e.Status)
                 .HasConversion<int>()
                 .HasDefaultValue(Domain.Enums.TourCompanyStatus.Pending);
@@ -536,9 +539,6 @@ namespace Infrastructure.Data;
             entity.Property(e => e.CreatedAtUtc)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.Description).HasMaxLength(1000);
-            entity.Property(e => e.PackageName).HasMaxLength(100);
-            entity.Property(e => e.MeetingPoint).HasMaxLength(200);
             entity.Property(e => e.PricePerPerson).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Currency).HasMaxLength(10);
             entity.Property(e => e.StartDate).HasColumnType("date");
@@ -637,6 +637,7 @@ namespace Infrastructure.Data;
             entity.Property(e => e.Email).HasMaxLength(75);
             entity.Property(e => e.Password).HasMaxLength(255);
             entity.Property(e => e.BankAccount).HasMaxLength(100);
+            entity.Property(e => e.Language).HasMaxLength(10);
             entity.Property(e => e.RoleId).HasDefaultValue(1);
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
@@ -671,7 +672,6 @@ namespace Infrastructure.Data;
             entity.HasKey(e => e.Id);
 
             entity.Property(e => e.Email).HasMaxLength(50);
-            entity.Property(e => e.Bio).HasMaxLength(1000);
             entity.Property(e => e.LicenseScan).HasMaxLength(500);
             entity.Property(e => e.Languages).HasMaxLength(250);
             entity.Property(e => e.IsAvailable).HasDefaultValue(true);
@@ -771,6 +771,120 @@ namespace Infrastructure.Data;
                 .HasForeignKey(d => d.AdminId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK_SupportReplies_Admins");
+        });
+
+        modelBuilder.Entity<CountryTranslation>(entity =>
+        {
+            entity.HasKey(e => new { e.CountryId, e.LanguageCode });
+            entity.Property(e => e.LanguageCode).HasMaxLength(10);
+            entity.Property(e => e.Name).HasMaxLength(50);
+            entity.HasIndex(e => e.LanguageCode);
+            entity.HasOne(d => d.Country).WithMany(p => p.Translations)
+                .HasForeignKey(d => d.CountryId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_CountryTranslations_Countries");
+        });
+
+        modelBuilder.Entity<CityTranslation>(entity =>
+        {
+            entity.HasKey(e => new { e.CityId, e.LanguageCode });
+            entity.Property(e => e.LanguageCode).HasMaxLength(10);
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.HasIndex(e => e.LanguageCode);
+            entity.HasOne(d => d.City).WithMany(p => p.Translations)
+                .HasForeignKey(d => d.CityId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_CityTranslations_Cities");
+        });
+
+        modelBuilder.Entity<AttractionTranslation>(entity =>
+        {
+            entity.HasKey(e => new { e.AttractionId, e.LanguageCode });
+            entity.Property(e => e.LanguageCode).HasMaxLength(10);
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.HasIndex(e => e.LanguageCode);
+            entity.HasOne(d => d.Attraction).WithMany(p => p.Translations)
+                .HasForeignKey(d => d.AttractionId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_AttractionTranslations_Attractions");
+        });
+
+        modelBuilder.Entity<AttractionCategoryTranslation>(entity =>
+        {
+            entity.HasKey(e => new { e.CategoryId, e.LanguageCode });
+            entity.Property(e => e.LanguageCode).HasMaxLength(10);
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.HasIndex(e => e.LanguageCode);
+            entity.HasOne(d => d.Category).WithMany(p => p.Translations)
+                .HasForeignKey(d => d.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_AttractionCategoryTranslations_AttractionCategories");
+        });
+
+        modelBuilder.Entity<TourPackageTranslation>(entity =>
+        {
+            entity.HasKey(e => new { e.PackageId, e.LanguageCode });
+            entity.Property(e => e.LanguageCode).HasMaxLength(10);
+            entity.Property(e => e.PackageName).HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.MeetingPoint).HasMaxLength(200);
+            entity.HasIndex(e => e.LanguageCode);
+            entity.HasOne(d => d.Package).WithMany(p => p.Translations)
+                .HasForeignKey(d => d.PackageId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_TourPackageTranslations_TourPackages");
+        });
+
+        modelBuilder.Entity<ItineraryTranslation>(entity =>
+        {
+            entity.HasKey(e => new { e.ItineraryId, e.LanguageCode });
+            entity.Property(e => e.LanguageCode).HasMaxLength(10);
+            entity.Property(e => e.DayTitle).HasMaxLength(100);
+            entity.Property(e => e.DayDescription).HasMaxLength(500);
+            entity.HasIndex(e => e.LanguageCode);
+            entity.HasOne(d => d.Itinerary).WithMany(p => p.Translations)
+                .HasForeignKey(d => d.ItineraryId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_ItineraryTranslations_Itineraries");
+        });
+
+        modelBuilder.Entity<ActivityTranslation>(entity =>
+        {
+            entity.HasKey(e => new { e.ActivityId, e.LanguageCode });
+            entity.Property(e => e.LanguageCode).HasMaxLength(10);
+            entity.Property(e => e.Title).HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.HasIndex(e => e.LanguageCode);
+            entity.HasOne(d => d.Activity).WithMany(p => p.Translations)
+                .HasForeignKey(d => d.ActivityId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_ActivityTranslations_Activities");
+        });
+
+        modelBuilder.Entity<TourCompanyTranslation>(entity =>
+        {
+            entity.HasKey(e => new { e.CompanyId, e.LanguageCode });
+            entity.Property(e => e.LanguageCode).HasMaxLength(10);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.About).HasMaxLength(2000);
+            entity.HasIndex(e => e.LanguageCode);
+            entity.HasOne(d => d.Company).WithMany(p => p.Translations)
+                .HasForeignKey(d => d.CompanyId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_TourCompanyTranslations_TourCompanies");
+        });
+
+        modelBuilder.Entity<TouristGuideTranslation>(entity =>
+        {
+            entity.HasKey(e => new { e.TouristGuideId, e.LanguageCode });
+            entity.Property(e => e.LanguageCode).HasMaxLength(10);
+            entity.Property(e => e.Bio).HasMaxLength(1000);
+            entity.HasIndex(e => e.LanguageCode);
+            entity.HasOne(d => d.TouristGuide).WithMany(p => p.Translations)
+                .HasForeignKey(d => d.TouristGuideId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_TouristGuideTranslations_TouristGuides");
         });
 
         OnModelCreatingPartial(modelBuilder);
