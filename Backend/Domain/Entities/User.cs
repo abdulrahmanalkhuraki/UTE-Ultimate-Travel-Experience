@@ -21,6 +21,10 @@ public partial class User : BaseEntity
 
     public bool IsDeleted { get; set; }
 
+    /// <summary>Preferred language code (e.g. "en", "ar"). Null falls back to the default culture.
+    /// Used for server-initiated messages (emails, push notifications) sent from background jobs.</summary>
+    public string? Language { get; set; }
+
     public int? PersonId { get; set; }
 
     public virtual Person? Person { get; set; }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Domain.Entities.Translations;
 
 namespace Domain.Entities;
 
@@ -7,7 +6,7 @@ public partial class AttractionCategory
 {
     public int CategoryId { get; set; }
 
-    public string EnCategoryName { get; set; } = null!;
-    public string ArCategoryName { get; set; } = null!;
+    public virtual ICollection<AttractionCategoryTranslation> Translations { get; set; } = new List<AttractionCategoryTranslation>();
+
     public virtual ICollection<Attraction> Attractions { get; set; } = new List<Attraction>();
 }

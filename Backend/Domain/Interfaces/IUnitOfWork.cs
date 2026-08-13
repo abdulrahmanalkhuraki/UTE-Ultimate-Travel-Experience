@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Domain.Entities;
+using Domain.Entities.Translations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +37,15 @@ namespace Domain.Interfaces
         IGenericRepository<SupportReply> SupportReplies { get; }
         IGenericRepository<Favorite> Favorites { get; }
         IGenericRepository<TourPackageMedia> Media { get; }
+        IGenericRepository<CountryTranslation> CountryTranslations { get; }
+        IGenericRepository<CityTranslation> CityTranslations { get; }
+        IGenericRepository<AttractionTranslation> AttractionTranslations { get; }
+        IGenericRepository<AttractionCategoryTranslation> AttractionCategoryTranslations { get; }
+        IGenericRepository<TourPackageTranslation> TourPackageTranslations { get; }
+        IGenericRepository<ItineraryTranslation> ItineraryTranslations { get; }
+        IGenericRepository<ActivityTranslation> ActivityTranslations { get; }
+        IGenericRepository<TourCompanyTranslation> TourCompanyTranslations { get; }
+        IGenericRepository<TouristGuideTranslation> TouristGuideTranslations { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         Task BeginTransactionAsync(CancellationToken cancellationToken = default);
