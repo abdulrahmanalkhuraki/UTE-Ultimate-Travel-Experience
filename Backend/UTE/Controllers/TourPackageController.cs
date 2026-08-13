@@ -114,6 +114,7 @@ namespace UTE.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "TourCompany")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(TourPackageResponse), StatusCodes.Status201Created)]
