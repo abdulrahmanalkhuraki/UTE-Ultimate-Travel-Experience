@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Domain.Entities;
+using Domain.Entities.Translations;
 using Domain.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -40,6 +41,15 @@ namespace Infrastructure.Repositories
             SupportReplies = new GenericRepository<SupportReply>(_context);
             Favorites = new GenericRepository<Favorite>(_context);
             Media = new GenericRepository<TourPackageMedia>(_context);
+            CountryTranslations = new GenericRepository<CountryTranslation>(_context);
+            CityTranslations = new GenericRepository<CityTranslation>(_context);
+            AttractionTranslations = new GenericRepository<AttractionTranslation>(_context);
+            AttractionCategoryTranslations = new GenericRepository<AttractionCategoryTranslation>(_context);
+            TourPackageTranslations = new GenericRepository<TourPackageTranslation>(_context);
+            ItineraryTranslations = new GenericRepository<ItineraryTranslation>(_context);
+            ActivityTranslations = new GenericRepository<ActivityTranslation>(_context);
+            TourCompanyTranslations = new GenericRepository<TourCompanyTranslation>(_context);
+            TouristGuideTranslations = new GenericRepository<TouristGuideTranslation>(_context);
         }
 
         public IGenericRepository<Booking> Bookings { get; }
@@ -93,6 +103,24 @@ namespace Infrastructure.Repositories
         public IGenericRepository<Favorite> Favorites { get; }
 
         public IGenericRepository<TourPackageMedia> Media { get; }
+
+        public IGenericRepository<CountryTranslation> CountryTranslations { get; }
+
+        public IGenericRepository<CityTranslation> CityTranslations { get; }
+
+        public IGenericRepository<AttractionTranslation> AttractionTranslations { get; }
+
+        public IGenericRepository<AttractionCategoryTranslation> AttractionCategoryTranslations { get; }
+
+        public IGenericRepository<TourPackageTranslation> TourPackageTranslations { get; }
+
+        public IGenericRepository<ItineraryTranslation> ItineraryTranslations { get; }
+
+        public IGenericRepository<ActivityTranslation> ActivityTranslations { get; }
+
+        public IGenericRepository<TourCompanyTranslation> TourCompanyTranslations { get; }
+
+        public IGenericRepository<TouristGuideTranslation> TouristGuideTranslations { get; }
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
