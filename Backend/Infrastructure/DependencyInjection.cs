@@ -2,6 +2,7 @@ using Application.Interfaces;
 using Application.Interfaces.Notifications;
 using Application.Interfaces.User;
 using Application.Interfaces.Auth;
+using Application.Interfaces.Localization;
 using Application.Services;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
@@ -12,6 +13,7 @@ using Infrastructure.Repositories;
 using Infrastructure.Seed;
 using Infrastructure.Security;
 using Infrastructure.Storage;
+using Infrastructure.Translation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +31,11 @@ public static class DependencyInjection
 
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
         services.Configure<SmtpSettings>(configuration.GetSection(SmtpSettings.SectionName));
+        services.Configure<TranslationSettings>(configuration.GetSection(TranslationSettings.SectionName));
+
+        // LibreTranslate self-hosted translation service.
+        services.AddHttpClient<LibreTranslateTranslationService>();
+        services.AddScoped<ITranslationService, LibreTranslateTranslationService>();
 
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUserRepository, UserRepository>();
