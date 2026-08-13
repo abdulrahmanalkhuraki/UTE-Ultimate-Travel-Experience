@@ -1,7 +1,9 @@
+using Application;
 using Application.DTOs.TourPackage.Request;
 using Domain.Enums;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Localization;
 
 namespace Domain.Validators
 {
@@ -13,17 +15,21 @@ namespace Domain.Validators
         private const long MaxImageSize = 5 * 1024 * 1024;
         private const long MaxVideoSize = 50 * 1024 * 1024;
 
-        public TourPackageMediaUpdateValidator()
+        private readonly IStringLocalizer<SharedResource> _localizer;
+
+        public TourPackageMediaUpdateValidator(IStringLocalizer<SharedResource> localizer)
         {
+            _localizer = localizer;
+
             RuleFor(x => x.Id)
-                .NotNull().WithMessage("Media Id is required for updates");
+                .NotNull().WithMessage(_localizer["Media Id is required for updates"]);
 
             RuleFor(x => x.DisplayOrder)
-                .GreaterThanOrEqualTo(0).WithMessage("Display order must not be negative")
+                .GreaterThanOrEqualTo(0).WithMessage(_localizer["Display order must not be negative"])
                 .When(x => x.DisplayOrder.HasValue);
 
             RuleFor(x => x.Type)
-                .IsInEnum().WithMessage("Invalid media type")
+                .IsInEnum().WithMessage(_localizer["Invalid media type"])
                 .When(x => x.Type.HasValue);
 
             RuleFor(x => x.Media)
@@ -31,16 +37,16 @@ namespace Domain.Validators
                 .When(x => x.Media != null && x.Type.HasValue)
                 .WithMessage((request, _) =>
                     request.Type == MediaType.Image
-                        ? "Image must have a valid extension (jpg, jpeg, png, gif, webp)"
-                        : "Video must have a valid extension (mp4, mov, avi, wmv, flv, mkv)");
+                        ? _localizer["Image must have a valid extension (jpg, jpeg, png, gif, webp)"]
+                        : _localizer["Video must have a valid extension (mp4, mov, avi, wmv, flv, mkv)"]);
 
             RuleFor(x => x.Media)
                 .Must((request, file) => BeValidSize(file, request.Type!.Value))
                 .When(x => x.Media != null && x.Type.HasValue)
                 .WithMessage((request, _) =>
                     request.Type == MediaType.Image
-                        ? "Image must be less than 5MB"
-                        : "Video must be less than 50MB");
+                        ? _localizer["Image must be less than 5MB"]
+                        : _localizer["Video must be less than 50MB"]);
         }
 
         private static bool BeValidExtension(IFormFile? file, MediaType type)
