@@ -4,11 +4,11 @@ using Application.DTOs.Rate.Request;
 using Application.DTOs.Rate.Response;
 using Application.DTOs.Review.Response;
 using Application.Exceptions;
+using Application.Interfaces.Localization;
 using Application.Interfaces.Rate;
 using Application.Interfaces.User;
 using Application.Validators.Rate;
 using Application.Validators.Review;
-using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +19,7 @@ namespace Application.Services
     public class RateService : IRateService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly ILocalizedMapper _mapper;
         private readonly ILogger<RateService> _logger;
         private readonly RateCreateValidator _createValidator;
         private readonly ICurrentUserService _currentUser;
@@ -27,7 +27,7 @@ namespace Application.Services
 
         public RateService(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
+            ILocalizedMapper mapper,
             ILogger<RateService> logger,
             RateCreateValidator createValidator,
             ICurrentUserService currentUser)

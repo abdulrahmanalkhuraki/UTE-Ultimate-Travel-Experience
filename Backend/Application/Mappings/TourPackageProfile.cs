@@ -1,5 +1,6 @@
 using System.Linq;
 using Application.DTOs.TourPackage.Response;
+using Application.Mappings.Localization;
 using AutoMapper;
 using Domain.Entities;
 
@@ -9,9 +10,17 @@ namespace Application.Mappings
     {
         public TourPackageProfile()
         {
-            CreateMap<Activity, TourPackageActivityResponse>();
+            CreateMap<Activity, TourPackageActivityResponse>()
+                .ForMember(dest => dest.Title,
+                    opt => opt.MapFrom((src, _, _, ctx) => Localize.Pick(src.Translations, ctx, t => t.Title)))
+                .ForMember(dest => dest.Description,
+                    opt => opt.MapFrom((src, _, _, ctx) => Localize.Pick(src.Translations, ctx, t => t.Description)));
 
             CreateMap<Itinerary, TourPackageDayResponse>()
+                .ForMember(dest => dest.DayTitle,
+                    opt => opt.MapFrom((src, _, _, ctx) => Localize.Pick(src.Translations, ctx, t => t.DayTitle)))
+                .ForMember(dest => dest.DayDescription,
+                    opt => opt.MapFrom((src, _, _, ctx) => Localize.Pick(src.Translations, ctx, t => t.DayDescription)))
                 .ForMember(dest => dest.Activities,
                     opt => opt.MapFrom(src => src.Activities
                         .OrderBy(a => a.OrderNumber)));
@@ -27,8 +36,16 @@ namespace Application.Mappings
                     opt => opt.MapFrom(src => src.MediaType));
 
             CreateMap<TourPackage, TourPackageResponse>()
+                .ForMember(dest => dest.PackageName,
+                    opt => opt.MapFrom((src, _, _, ctx) => Localize.Pick(src.Translations, ctx, t => t.PackageName)))
+                .ForMember(dest => dest.Description,
+                    opt => opt.MapFrom((src, _, _, ctx) => Localize.Pick(src.Translations, ctx, t => t.Description)))
+                .ForMember(dest => dest.MeetingPoint,
+                    opt => opt.MapFrom((src, _, _, ctx) => Localize.Pick(src.Translations, ctx, t => t.MeetingPoint)))
                 .ForMember(dest => dest.CountryName,
-                    opt => opt.MapFrom(src => src.Country != null ? src.Country.EnCountryName : null))
+                    opt => opt.MapFrom((src, _, _, ctx) => src.Country != null
+                        ? Localize.Pick(src.Country.Translations, ctx, t => t.Name)
+                        : null))
                 .ForMember(dest => dest.CompanyName,
                     opt => opt.MapFrom(src => src.Company != null ? src.Company.Name : null))
                 .ForMember(dest => dest.Cities,
@@ -49,8 +66,8 @@ namespace Application.Mappings
 
             CreateMap<City, PackageCityResponse>()
                 .ForMember(d => d.CityId, o => o.MapFrom(s => s.Id))
-                .ForMember(d => d.CityName, o => o.MapFrom(s => s.EnCityName));
-
+                .ForMember(d => d.CityName,
+                    o => o.MapFrom((src, _, _, ctx) => Localize.Pick(src.Translations, ctx, t => t.Name)));
         }
     }
 }

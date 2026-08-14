@@ -1,6 +1,7 @@
 using Application.DTOs.Booking.Response;
 using Application.DTOs.TourPackage.Response;
 using Application.Interfaces.TourPackage;
+using Application.Mappings.Localization;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Enums;
@@ -17,6 +18,8 @@ namespace Application.Mappings
                     s.User == null || s.User.Person == null ? string.Empty : s.User.Person.Fullname));
 
             CreateMap<TourPackage, ActiveTourPackageResponse>()
+                .ForMember(d => d.PackageName,
+                    o => o.MapFrom((src, _, _, ctx) => Localize.Pick(src.Translations, ctx, t => t.PackageName)))
                 .ForMember(d => d.ImageUrl, o => o.MapFrom(s =>
                     GetFirstImageUrl(s.Media)))
                 .ForMember(d => d.RemainingDaysUntilStart, o => o.MapFrom(s =>

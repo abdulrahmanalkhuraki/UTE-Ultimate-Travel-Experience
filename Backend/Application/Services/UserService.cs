@@ -4,9 +4,10 @@ using Application.DTOs.User.Request;
 using Application.DTOs.User.Response;
 using Application.Exceptions;
 using Application.Interfaces.Auth;
+using Application.Interfaces.Localization;
 using Application.Interfaces.User;
 using Application.Validators.User;
-using AutoMapper;
+using Domain.Common;
 using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,8 @@ namespace Application.Services
     public class UserService : IUserService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly ILocalizedMapper _mapper;
+        private readonly ILanguageContext _language;
         private readonly ILogger<UserService> _logger;
         private readonly IMemoryCache _cache;
         private readonly IPasswordHasher _passwordHasher;
@@ -32,14 +34,16 @@ namespace Application.Services
 
         // Cache constants
         private const string UserCacheKeyPrefix = "user_";
-        private const string UsersListCacheKey = "all_users";
         private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan SlidingCacheDuration = TimeSpan.FromMinutes(2);
         private const string ObjectName = "User";
 
+        private string UsersListCacheKey => $"all_users_{_language.LanguageCode}";
+
         public UserService(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
+            ILocalizedMapper mapper,
+            ILanguageContext language,
             ILogger<UserService> logger,
             IMemoryCache cache,
             IPasswordHasher passwordHasher,
@@ -52,6 +56,7 @@ namespace Application.Services
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _language = language ?? throw new ArgumentNullException(nameof(language));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
@@ -485,7 +490,7 @@ namespace Application.Services
             _logger.LogDebug("Retrieving user with ID {UserId}", id);
 
             // Try cache first
-            var cacheKey = $"{UserCacheKeyPrefix}{id}";
+            var cacheKey = $"{UserCacheKeyPrefix}{id}_{_language.LanguageCode}";
             if (_cache.TryGetValue(cacheKey, out UserResponse? cachedUser) && cachedUser != null)
             {
                 _logger.LogDebug("Cache hit for user {UserId}", id);
@@ -545,7 +550,6 @@ namespace Application.Services
                 _logger.LogDebug("Cache hit for all users");
                 return cachedUsers;
             }
-
             try
             {
                 var entities = await _unitOfWork.Users
@@ -842,13 +846,17 @@ namespace Application.Services
         {
             if (specificUserId.HasValue)
             {
-                var cacheKey = $"{UserCacheKeyPrefix}{specificUserId.Value}";
-                _cache.Remove(cacheKey);
-                _logger.LogDebug("Invalidated cache for user {UserId}", specificUserId.Value);
+                foreach (var lang in LanguageCodes.Supported)
+                {
+                    var cacheKey = $"{UserCacheKeyPrefix}{specificUserId.Value}_{lang}";
+                    _cache.Remove(cacheKey);
+                    _logger.LogDebug("Invalidated cache for user {UserId}", specificUserId.Value);
+                }
             }
 
             // Always invalidate the list cache when any user changes
-            _cache.Remove(UsersListCacheKey);
+            foreach (var lang in LanguageCodes.Supported)
+                _cache.Remove($"all_users_{lang}");
             _logger.LogDebug("Invalidated all users list cache");
         }
 

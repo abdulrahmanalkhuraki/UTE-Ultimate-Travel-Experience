@@ -35,7 +35,7 @@ namespace Application.Services
 
             try
             {
-                var cacheKey = $"{CompletedCacheKeyPrefix}{companyId}_page{page}_pageSize{pageSize}";
+                var cacheKey = $"{CompletedCacheKeyPrefix}{companyId}_page{page}_pageSize{pageSize}_{_language.LanguageCode}";
 
                 if (_cache.TryGetValue(cacheKey, out PaginatedResponse<CompletedTourPackageResponse>? cached) && cached is not null)
                     return cached;
@@ -48,6 +48,7 @@ namespace Application.Services
                 var totalItems = await query.CountAsync(cancellationToken);
 
                 var entities = await query
+                    .Include(p => p.Translations)
                     .Include(p => p.Media)
                     .Include(p => p.Bookings)
                     .Include(p => p.Rates)
@@ -103,7 +104,7 @@ namespace Application.Services
 
             try
             {
-                var cacheKey = $"{ActiveCacheKeyPrefix}{companyId}_page{page}_pageSize{pageSize}";
+                var cacheKey = $"{ActiveCacheKeyPrefix}{companyId}_page{page}_pageSize{pageSize}_{_language.LanguageCode}";
 
                 if (_cache.TryGetValue(cacheKey, out PaginatedResponse<ActiveTourPackageResponse>? cached) && cached is not null)
                     return cached;
@@ -116,6 +117,7 @@ namespace Application.Services
                 var totalItems = await query.CountAsync(cancellationToken);
 
                 var entities = await query
+                    .Include(p => p.Translations)
                     .Include(p => p.Media)
                     .Include(p => p.Rates)
                     .Include(p => p.Bookings)
@@ -172,7 +174,7 @@ namespace Application.Services
 
             try
             {
-                var cacheKey = $"{CancelledCacheKeyPrefix}{companyId}_page{page}_pageSize{pageSize}";
+                var cacheKey = $"{CancelledCacheKeyPrefix}{companyId}_page{page}_pageSize{pageSize}_{_language.LanguageCode}";
 
                 if (_cache.TryGetValue(cacheKey, out PaginatedResponse<CancelledTourPackageResponse>? cached) && cached is not null)
                     return cached;
@@ -185,6 +187,7 @@ namespace Application.Services
                 var totalItems = await query.CountAsync(cancellationToken);
 
                 var entities = await query
+                    .Include(p => p.Translations)
                     .Include(p => p.Media)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
@@ -237,7 +240,7 @@ namespace Application.Services
 
             try
             {
-                var cacheKey = $"{RejectedCacheKeyPrefix}{companyId}_page{page}_pageSize{pageSize}";
+                var cacheKey = $"{RejectedCacheKeyPrefix}{companyId}_page{page}_pageSize{pageSize}_{_language.LanguageCode}";
 
                 if (_cache.TryGetValue(cacheKey, out PaginatedResponse<RejectedTourPackageResponse>? cached) && cached is not null)
                     return cached;
@@ -250,6 +253,7 @@ namespace Application.Services
                 var totalItems = await query.CountAsync(cancellationToken);
 
                 var entities = await query
+                    .Include(p => p.Translations)
                     .Include(p => p.Media)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)

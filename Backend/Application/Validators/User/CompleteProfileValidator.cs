@@ -1,6 +1,8 @@
+using Application;
 using Application.DTOs.User.Request;
 using Microsoft.AspNetCore.Http;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace Application.Validators.User
 {
@@ -9,60 +11,64 @@ namespace Application.Validators.User
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
         private const long MaxImageBytes = 5 * 1024 * 1024; // 5 MB
 
-        public CompleteProfileValidator()
+        private readonly IStringLocalizer<SharedResource> _localizer;
+
+        public CompleteProfileValidator(IStringLocalizer<SharedResource> localizer)
         {
+            _localizer = localizer;
+
             RuleFor(x => x.FirstName)
-                .NotEmpty().WithMessage("First name is required")
-                .Length(2, 50).WithMessage("First name must be between 2 and 50 characters");
+                .NotEmpty().WithMessage(_localizer["First name is required"])
+                .Length(2, 50).WithMessage(_localizer["First name must be between 2 and 50 characters"]);
 
             RuleFor(x => x.LastName)
-                .NotEmpty().WithMessage("Last name is required")
-                .Length(2, 50).WithMessage("Last name must be between 2 and 50 characters");
+                .NotEmpty().WithMessage(_localizer["Last name is required"])
+                .Length(2, 50).WithMessage(_localizer["Last name must be between 2 and 50 characters"]);
 
             RuleFor(x => x.ResidentialCityId)
-                .GreaterThan(0).WithMessage("Residential city is required");
+                .GreaterThan(0).WithMessage(_localizer["Residential city is required"]);
 
             RuleFor(x => x.Gender)
-                .NotEmpty().WithMessage("Gender is required")
+                .NotEmpty().WithMessage(_localizer["Gender is required"])
                 .Must(g => g == "Male" || g == "Female")
-                .WithMessage("Gender must be either 'Male' or 'Female'");
+                .WithMessage(_localizer["Gender must be either 'Male' or 'Female'"]);
 
             RuleFor(x => x.DateOfBirth)
-                .NotNull().WithMessage("Date of birth is required")
-                .Must(d => BeAtLeast18YearsOld(d)).WithMessage("User must be at least 18 years old")
-                .Must(d => BeReasonableAge(d)).WithMessage("Date of birth is not reasonable (max age 120)");
+                .NotNull().WithMessage(_localizer["Date of birth is required"])
+                .Must(d => BeAtLeast18YearsOld(d)).WithMessage(_localizer["User must be at least 18 years old"])
+                .Must(d => BeReasonableAge(d)).WithMessage(_localizer["Date of birth is not reasonable (max age 120)"]);
 
             RuleFor(x => x.NationalNumber)
-                .NotEmpty().WithMessage("National number is required")
-                .Length(4, 50).WithMessage("National number must be between 4 and 50 characters");
+                .NotEmpty().WithMessage(_localizer["National number is required"])
+                .Length(4, 50).WithMessage(_localizer["National number must be between 4 and 50 characters"]);
 
             RuleFor(x => x.PassportNumber)
-                .NotEmpty().WithMessage("Passport number is required")
-                .Length(4, 50).WithMessage("Passport number must be between 4 and 50 characters");
+                .NotEmpty().WithMessage(_localizer["Passport number is required"])
+                .Length(4, 50).WithMessage(_localizer["Passport number must be between 4 and 50 characters"]);
 
             RuleFor(x => x.BankAccount)
-                .NotEmpty().WithMessage("Bank account is required")
-                .Length(4, 100).WithMessage("Bank account must be between 4 and 100 characters");
+                .NotEmpty().WithMessage(_localizer["Bank account is required"])
+                .Length(4, 100).WithMessage(_localizer["Bank account must be between 4 and 100 characters"]);
 
             RuleFor(x => x.Phone)
-                .Matches(@"^[\+]?[\d\s\-\(\)]{6,20}$").WithMessage("Phone number format is invalid")
+                .Matches(@"^[\+]?[\d\s\-\(\)]{6,20}$").WithMessage(_localizer["Phone number format is invalid"])
                 .When(x => !string.IsNullOrWhiteSpace(x.Phone));
 
             RuleFor(x => x.Image)
-                .Must(IsValidImage).WithMessage("Profile image must be JPG/PNG/WEBP and at most 5 MB")
+                .Must(IsValidImage).WithMessage(_localizer["Profile image must be JPG/PNG/WEBP and at most 5 MB"])
                 .When(x => x.Image != null && x.Image.Length > 0);
 
             RuleFor(x => x.NationalIdImage)
-                .NotNull().WithMessage("National ID image is required")
-                .Must(f => f != null && f.Length > 0).WithMessage("National ID image is required")
-                .Must(IsValidImage).WithMessage("National ID image must be JPG/PNG/WEBP and at most 5 MB");
+                .NotNull().WithMessage(_localizer["National ID image is required"])
+                .Must(f => f != null && f.Length > 0).WithMessage(_localizer["National ID image is required"])
+                .Must(IsValidImage).WithMessage(_localizer["National ID image must be JPG/PNG/WEBP and at most 5 MB"]);
 
             RuleFor(x => x.PassportImage)
-                .Must(IsValidImage).WithMessage("Passport image must be JPG/PNG/WEBP and at most 5 MB")
+                .Must(IsValidImage).WithMessage(_localizer["Passport image must be JPG/PNG/WEBP and at most 5 MB"])
                 .When(x => x.PassportImage != null && x.PassportImage.Length > 0);
 
             RuleFor(x => x.ResidencyCard)
-                .Must(IsValidImage).WithMessage("Passport image must be JPG/PNG/WEBP and at most 5 MB")
+                .Must(IsValidImage).WithMessage(_localizer["Passport image must be JPG/PNG/WEBP and at most 5 MB"])
                 .When(x => x.ResidencyCard != null && x.ResidencyCard.Length > 0);
         }
 

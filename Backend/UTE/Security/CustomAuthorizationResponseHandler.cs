@@ -1,11 +1,19 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Application;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
+using Microsoft.Extensions.Localization;
 
 namespace UTE.Security
 {
     public class CustomAuthorizationResponseHandler : IAuthorizationMiddlewareResultHandler
     {
         private readonly AuthorizationMiddlewareResultHandler _defaultHandler = new();
+        private readonly IStringLocalizer<SharedResource> _localizer;
+
+        public CustomAuthorizationResponseHandler(IStringLocalizer<SharedResource> localizer)
+        {
+            _localizer = localizer;
+        }
 
         public async Task HandleAsync(RequestDelegate next, HttpContext context, AuthorizationPolicy policy, PolicyAuthorizationResult authorizeResult)
         {
@@ -14,7 +22,7 @@ namespace UTE.Security
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 context.Response.ContentType = "application/json";
 
-                var unauthenticatedMessage = new { message = "You are not authenticated. Please log in to continue." };
+                var unauthenticatedMessage = new { message = _localizer["Auth_NotAuthenticated"].ToString() };
                 await context.Response.WriteAsJsonAsync(unauthenticatedMessage);
 
                 return; // Stop processing
@@ -29,13 +37,13 @@ namespace UTE.Security
                 // You can check specifically for the profile completion claim
                 if (!context.User.HasClaim(c => c.Type == "IsProfileCompleted" && c.Value == "true"))
                 {
-                    var profileMessage = new { message = "Your profile is not completed. Please complete it to perform this action." };
+                    var profileMessage = new { message = _localizer["Auth_ProfileIncomplete"].ToString() };
                     await context.Response.WriteAsJsonAsync(profileMessage);
                 }
                 else
                 {
                     // A generic fallback message for any other policy failures (e.g., missing Admin role)
-                    var genericForbiddenMessage = new { message = "You do not have the required permissions to perform this action." };
+                    var genericForbiddenMessage = new { message = _localizer["Auth_Forbidden"].ToString() };
                     await context.Response.WriteAsJsonAsync(genericForbiddenMessage);
                 }
 

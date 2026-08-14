@@ -3,10 +3,10 @@ using Application.Common.Logging;
 using Application.DTOs.Ticket.Request;
 using Application.DTOs.Ticket.Response;
 using Application.Exceptions;
+using Application.Interfaces.Localization;
 using Application.Interfaces.Ticket;
 using Application.Interfaces.User;
 using Application.Validators.Ticket;
-using AutoMapper;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Interfaces;
@@ -18,7 +18,7 @@ namespace Application.Services
     public class TicketService : ITicketService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly ILocalizedMapper _mapper;
         private readonly ILogger<TicketService> _logger;
         private readonly TicketCreateValidator _createValidator;
         private readonly ICurrentUserService _currentUser;
@@ -27,7 +27,7 @@ namespace Application.Services
 
         public TicketService(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
+            ILocalizedMapper mapper,
             ILogger<TicketService> logger,
             TicketCreateValidator createValidator,
             ICurrentUserService currentUser,

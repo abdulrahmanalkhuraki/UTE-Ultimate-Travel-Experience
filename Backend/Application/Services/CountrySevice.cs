@@ -1,23 +1,19 @@
 ﻿using Application.DTOs.Country.Response;
 using Application.Exceptions;
 using Application.Interfaces.Country;
-using AutoMapper;
+using Application.Interfaces.Localization;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Application.Services
 {
     public class CountryService : ICountryService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly ILocalizedMapper _mapper;
+        private readonly ILanguageContext _language;
         private readonly ILogger<CountryService> _logger;
         private readonly IMemoryCache _cache;
 
@@ -28,12 +24,14 @@ namespace Application.Services
         private static readonly TimeSpan SlidingCacheDuration = TimeSpan.FromMinutes(2);
 
         public CountryService(IUnitOfWork unitOfWork,
-            IMapper mapper,
+            ILocalizedMapper mapper,
+            ILanguageContext language,
             ILogger<CountryService> logger,
             IMemoryCache cache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _language = language;
             _logger = logger;
             _cache = cache;
         }
@@ -46,7 +44,7 @@ namespace Application.Services
             _logger.LogDebug("Retrieving Country with ID {CountryId}", id);
 
             // Try cache first
-            var cacheKey = $"{CountryCacheKeyPrefix}{id}";
+            var cacheKey = $"{CountryCacheKeyPrefix}{id}_{_language.LanguageCode}";
             if (_cache.TryGetValue(cacheKey, out CountryResponse? cachedCountry) && cachedCountry != null)
             {
                 _logger.LogDebug("Cache hit for Country {CountryId}", id);
@@ -59,7 +57,9 @@ namespace Application.Services
                     .Query()
                     .IgnoreQueryFilters()
                     .Where(c => c.Id == id)
+                    .Include(c => c.Translations)
                     .Include(c => c.Cities)
+                        .ThenInclude(c => c.Translations)
                     .FirstOrDefaultAsync(cancellationToken);
 
                 if (entity == null)
@@ -96,7 +96,8 @@ namespace Application.Services
             _logger.LogDebug("Retrieving all countries");
 
             // Try cache
-            if (_cache.TryGetValue(CountriesListCacheKey, out IReadOnlyList<CountryResponse>? cachedCountries) && cachedCountries != null)
+            var cacheKey = $"{CountriesListCacheKey}_{_language.LanguageCode}";
+            if (_cache.TryGetValue(cacheKey, out IReadOnlyList<CountryResponse>? cachedCountries) && cachedCountries != null)
             {
                 _logger.LogDebug("Cache hit for all countries");
                 return cachedCountries;
@@ -106,13 +107,15 @@ namespace Application.Services
             {
                 var entities = await _unitOfWork.Countries
                     .Query()
+                    .Include(c => c.Translations)
                     .Include(c => c.Cities)
+                        .ThenInclude(c => c.Translations)
                     .ToListAsync(cancellationToken);
 
                 var response = _mapper.Map<IReadOnlyList<CountryResponse>>(entities);
 
                 // Cache the result with lower priority
-                _cache.Set(CountriesListCacheKey, response, new MemoryCacheEntryOptions
+                _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = CacheDuration,
                     Priority = CacheItemPriority.Low

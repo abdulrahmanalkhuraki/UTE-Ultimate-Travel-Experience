@@ -1,7 +1,9 @@
-﻿using Application.Exceptions;
+﻿using Application;
+using Application.Exceptions;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -17,11 +19,13 @@ namespace UTE.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalExceptionMiddleware> _logger;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
+        public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger, IStringLocalizer<SharedResource> localizer)
         {
             _next = next;
             _logger = logger;
+            _localizer = localizer;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -40,7 +44,7 @@ namespace UTE.Middleware
         {
             // Default values
             int statusCode = StatusCodes.Status500InternalServerError;
-            string title = "An unexpected error occurred";
+            string title = _localizer["Error_Unexpected"];
             object? response = null;
 
             switch (ex)
@@ -48,7 +52,7 @@ namespace UTE.Middleware
                 // 400 - Validation Exception (FluentValidation)
                 case ValidationException validationEx:
                     statusCode = StatusCodes.Status400BadRequest;
-                    title = "Validation Error";
+                    title = _localizer["Error_ValidationTitle"];
 
                     // Create detailed validation error response
                     response = new
@@ -56,7 +60,7 @@ namespace UTE.Middleware
                         type = "https://httpstatuses.com/400",
                         title = title,
                         status = statusCode,
-                        detail = "One or more validation errors occurred",
+                        detail = _localizer["Error_ValidationDetail"],
                         instance = context.Request.Path,
                         traceId = Activity.Current?.Id ?? context.TraceIdentifier,
                         errors = validationEx.Errors ?? new Dictionary<string, string[]>()
@@ -66,7 +70,7 @@ namespace UTE.Middleware
                 // 400 - Argument Exceptions
                 case ArgumentException argEx:
                     statusCode = StatusCodes.Status400BadRequest;
-                    title = "Invalid Request";
+                    title = _localizer["Error_InvalidRequest"];
                     response = new ProblemDetails
                     {
                         Type = "https://httpstatuses.com/400",
@@ -80,7 +84,7 @@ namespace UTE.Middleware
                 // 401 - Unauthorized
                 case AuthException:
                     statusCode = StatusCodes.Status401Unauthorized;
-                    title = "Authentication Required";
+                    title = _localizer["Error_AuthRequired"];
                     response = new ProblemDetails
                     {
                         Type = "https://httpstatuses.com/401",
@@ -94,7 +98,7 @@ namespace UTE.Middleware
                 // 403 - Forbidden
                 case ForbiddenException:
                     statusCode = StatusCodes.Status403Forbidden;
-                    title = "Access Denied";
+                    title = _localizer["Error_AccessDenied"];
                     response = new ProblemDetails
                     {
                         Type = "https://httpstatuses.com/403",
@@ -109,7 +113,7 @@ namespace UTE.Middleware
                 case NotFoundException:
                 case KeyNotFoundException:
                     statusCode = StatusCodes.Status404NotFound;
-                    title = "Resource Not Found";
+                    title = _localizer["Error_NotFound"];
                     response = new ProblemDetails
                     {
                         Type = "https://httpstatuses.com/404",
@@ -123,7 +127,7 @@ namespace UTE.Middleware
                 // 409 - Conflict
                 case ConflictException:
                     statusCode = StatusCodes.Status409Conflict;
-                    title = "Resource Conflict";
+                    title = _localizer["Error_Conflict"];
                     response = new ProblemDetails
                     {
                         Type = "https://httpstatuses.com/409",
@@ -137,7 +141,7 @@ namespace UTE.Middleware
                 // 409 - Concurrency
                 case ConcurrencyException:
                     statusCode = StatusCodes.Status409Conflict;
-                    title = "Concurrency Conflict";
+                    title = _localizer["Error_Concurrency"];
                     response = new
                     {
                         type = "https://httpstatuses.com/409",
@@ -153,7 +157,7 @@ namespace UTE.Middleware
                 // 422 - Business Rule Violation
                 case BusinessRuleException:
                     statusCode = StatusCodes.Status422UnprocessableEntity;
-                    title = "Business Rule Violation";
+                    title = _localizer["Error_BusinessRule"];
                     response = new ProblemDetails
                     {
                         Type = "https://httpstatuses.com/422",
@@ -168,13 +172,13 @@ namespace UTE.Middleware
                 case ServiceException:
                 case ApplicationException:
                     statusCode = StatusCodes.Status500InternalServerError;
-                    title = "Service Error";
+                    title = _localizer["Error_Service"];
                     response = new ProblemDetails
                     {
                         Type = "https://httpstatuses.com/500",
                         Title = title,
                         Status = statusCode,
-                        Detail = "An error occurred while processing your request",
+                        Detail = _localizer["Error_Processing"],
                         Instance = context.Request.Path
                     };
                     break;
@@ -182,13 +186,13 @@ namespace UTE.Middleware
                 // Default - Unknown error
                 default:
                     statusCode = StatusCodes.Status500InternalServerError;
-                    title = "An unexpected error occurred";
+                    title = _localizer["Error_Unexpected"];
                     response = new ProblemDetails
                     {
                         Type = "https://httpstatuses.com/500",
                         Title = title,
                         Status = statusCode,
-                        Detail = "An unexpected error occurred. Please try again later.",
+                        Detail = _localizer["Error_UnexpectedDetail"],
                         Instance = context.Request.Path
                     };
                     break;

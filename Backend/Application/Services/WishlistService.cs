@@ -3,9 +3,9 @@ using Application.Common.Logging;
 using Application.DTOs.Pagination;
 using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
+using Application.Interfaces.Localization;
 using Application.Interfaces.TourPackage;
 using Application.Interfaces.User;
-using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -16,19 +16,22 @@ namespace Application.Services
     public class WishlistService : IWishlistService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly ILocalizedMapper _mapper;
+        private readonly ILanguageContext _language;
         private readonly ILogger<WishlistService> _logger;
         private readonly ICurrentUserService _currentUser;
         private const string ObjectName = "Tour Package";
 
         public WishlistService(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
+            ILocalizedMapper mapper,
+            ILanguageContext language,
             ILogger<WishlistService> logger,
             ICurrentUserService currentUser)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _language = language ?? throw new ArgumentNullException(nameof(language));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
         }
@@ -139,6 +142,7 @@ namespace Application.Services
                 var entities = await _unitOfWork.Wishlists.Query()
                 .Where(w => w.UserId == userId)
                 .Include(w => w.TourPackage)
+                    .ThenInclude(tp => tp.Translations)
                 .Select(w => w.TourPackage)
                 .ToListAsync(cancellationToken);
 

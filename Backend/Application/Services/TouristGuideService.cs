@@ -4,11 +4,13 @@ using Application.DTOs.Pagination;
 using Application.DTOs.TouristGuide.Request;
 using Application.DTOs.TouristGuide.Response;
 using Application.Exceptions;
+using Application.Interfaces.Localization;
 using Application.Interfaces.TouristGuide;
 using Application.Interfaces.User;
 using Application.Validators.TouristGuide;
-using AutoMapper;
+using Domain.Common;
 using Domain.Entities;
+using Domain.Entities.Translations;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -21,7 +23,9 @@ namespace Application.Services
     public class TouristGuideService : ITouristGuideService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly ILocalizedMapper _mapper;
+        private readonly ILanguageContext _language;
+        private readonly ITranslationService _translationService;
         private readonly ILogger<TouristGuideService> _logger;
         private readonly IFileStorage _fileStorage;
         private readonly ICurrentUserService _currentUser;
@@ -36,7 +40,9 @@ namespace Application.Services
 
         public TouristGuideService(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
+            ILocalizedMapper mapper,
+            ILanguageContext language,
+            ITranslationService translationService,
             ILogger<TouristGuideService> logger,
             IFileStorage fileStorage,
             ICurrentUserService currentUser,
@@ -46,6 +52,8 @@ namespace Application.Services
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _language = language ?? throw new ArgumentNullException(nameof(language));
+            _translationService = translationService ?? throw new ArgumentNullException(nameof(translationService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
             _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
@@ -90,11 +98,24 @@ namespace Application.Services
                 {
                     Email = request.Email.Trim(),
                     YearsOfExperiance = request.YearsOfExperiance,
-                    Bio = request.Bio.Trim(),
                     Languages = request.Languages?.Trim(),
                     IsAvailable = true,
                     Person = person,
                 };
+
+                var bioTranslations = await _translationService.TranslateToAllSupportedAsync(
+                    [request.Bio.Trim()],
+                    _language.LanguageCode,
+                    cancellationToken);
+
+                foreach (var (lang, values) in bioTranslations)
+                {
+                    entity.Translations.Add(new TouristGuideTranslation
+                    {
+                        LanguageCode = lang,
+                        Bio = values[0],
+                    });
+                }
 
                 entity.CompanyGuides.Add(new Company_TouristGuide { CompanyId = companyId });
 
@@ -146,6 +167,7 @@ namespace Application.Services
                 var entity = await _unitOfWork.TouristGuides
                     .Query()
                     .Include(g => g.Person)
+                    .Include(g => g.Translations)
                     .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
 
                 if (entity is null)
@@ -155,6 +177,27 @@ namespace Application.Services
 
                 _mapper.Map(request, entity);
                 _mapper.Map(request, entity.Person);
+
+                if (request.Bio is not null)
+                {
+                    var bioTranslations = await _translationService.TranslateToAllSupportedAsync(
+                        [request.Bio.Trim()],
+                        _language.LanguageCode,
+                        cancellationToken);
+
+                    foreach (var (lang, values) in bioTranslations)
+                    {
+                        var translation = entity.Translations.FirstOrDefault(t => t.LanguageCode == lang);
+                        if (translation is null)
+                        {
+                            translation = new TouristGuideTranslation { LanguageCode = lang };
+                            entity.Translations.Add(translation);
+                        }
+
+                        translation.Bio = values[0];
+                    }
+                }
+
                 entity.Person.UpdatedAtUtc = DateTime.UtcNow;
 
                 if (request.ProfileImage is not null)
@@ -266,7 +309,7 @@ namespace Application.Services
 
             var userId = _currentUser.UserId ?? throw new AuthException(ExceptionMessages.Auth());
 
-            var cacheKey = $"mine_page{page}_size{pageSize}";
+            var cacheKey = $"mine_page{page}_size{pageSize}_{_language.LanguageCode}";
 
             if (_cache.TryGetValue(cacheKey, out PaginatedResponse<TouristGuideResponseSummary>? cached) && cached is not null)
             {
@@ -314,9 +357,12 @@ namespace Application.Services
             _unitOfWork.TouristGuides
                 .Query()
                 .AsNoTracking()
+                .Include(g => g.Translations)
                 .Include(g => g.NatinalityCountry)
+                    .ThenInclude(c => c.Translations)
                 .Include(g => g.Person)
                     .ThenInclude(p => p.ResidentialCity)
+                        .ThenInclude(c => c.Translations)
                 .Include(g => g.TourPackageGuides);
 
         private async Task<TouristGuideResponse> BuildResponseAsync(int id, CancellationToken cancellationToken)

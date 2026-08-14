@@ -10,3 +10,5 @@
 # OS temporary files
 .DS_Store
 Thumbs.db
+/Backend/Application/Interfaces/Admin
+/Backend/UTE/Controllers/AdminController.cs

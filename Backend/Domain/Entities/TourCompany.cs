@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+using Domain.Entities.Translations;
 using Domain.Enums;
 
 namespace Domain.Entities;
@@ -13,8 +12,6 @@ public partial class TourCompany : BaseEntity
 
     /// <summary>Admin-written reason, set only when the company is rejected; otherwise null.</summary>
     public string? RejectionReason { get; set; }
-
-    public string? Description { get; set; }
 
     public string? Logo { get; set; }
 
@@ -32,11 +29,11 @@ public partial class TourCompany : BaseEntity
 
     public string? BankAccount { get; set; }
 
-    public string? About { get; set; }
-
     public int UserId { get; set; }
 
     public virtual User User { get; set; } = null!;
+
+    public virtual ICollection<TourCompanyTranslation> Translations { get; set; } = new List<TourCompanyTranslation>();
 
     public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 

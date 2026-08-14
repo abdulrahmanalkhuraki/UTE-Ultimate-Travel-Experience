@@ -5,10 +5,11 @@ using Application.DTOs.Booking.Response;
 using Application.DTOs.Pagination;
 using Application.Exceptions;
 using Application.Interfaces.Booking;
+using Application.Interfaces.Localization;
 using Application.Interfaces.Notifications;
 using Application.Interfaces.User;
 using Application.Validators.Booking;
-using AutoMapper;
+using Domain.Common;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Interfaces;
@@ -22,7 +23,8 @@ namespace Application.Services
     public class BookingService : IBookingService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly ILocalizedMapper _mapper;
+        private readonly ILanguageContext _language;
         private readonly ILogger<BookingService> _logger;
         private readonly IMemoryCache _cache;
         private readonly BookingCreateValidator _createValidator;
@@ -44,7 +46,8 @@ namespace Application.Services
 
         public BookingService(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
+            ILocalizedMapper mapper,
+            ILanguageContext language,
             ILogger<BookingService> logger,
             IMemoryCache cache,
             BookingCreateValidator createValidator,
@@ -54,6 +57,7 @@ namespace Application.Services
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _language = language ?? throw new ArgumentNullException(nameof(language));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
@@ -203,7 +207,7 @@ namespace Application.Services
 
             _logger.LogDebug("Retrieving booking with ID {BookingId}", id);
 
-            var cacheKey = $"{BookingCacheKeyPrefix}{id}";
+            var cacheKey = $"{BookingCacheKeyPrefix}{id}_{_language.LanguageCode}";
             if (_cache.TryGetValue(cacheKey, out BookingResponse? cached) && cached is not null)
             {
                 _logger.LogDebug("Cache hit for booking {BookingId}", id);
@@ -260,7 +264,7 @@ namespace Application.Services
         {
             _logger.LogDebug($"Retrieving all bookings for user with Id = {userId}");
 
-            var listCacheKey = $"{BookingsListCacheKeyPrefix}{userId}";
+            var listCacheKey = $"{BookingsListCacheKeyPrefix}{userId}_{_language.LanguageCode}";
 
             if (_cache.TryGetValue(listCacheKey, out IReadOnlyList<BookingResponse>? cached) && cached is not null)
             {
@@ -306,8 +310,8 @@ namespace Application.Services
             var userId = _currentUser.UserId ?? throw new AuthException("You must be loged in to preform this action.");
 
             var filterCacheKey = status.HasValue
-                ? $"{FilteredCacheKeyPrefix}{userId}_{status.Value}"
-                : $"{FilteredCacheKeyPrefix}{userId}_all";
+                ? $"{FilteredCacheKeyPrefix}{userId}_{status.Value}_{_language.LanguageCode}"
+                : $"{FilteredCacheKeyPrefix}{userId}_all_{_language.LanguageCode}";
 
             if (_cache.TryGetValue(filterCacheKey, out IReadOnlyList<BookingResponse>? cached) && cached is not null)
             {
@@ -382,8 +386,8 @@ namespace Application.Services
                 }
 
                 var unapprovedCacheKey = packageId.HasValue
-                    ? $"{UnapprovedCacheKeyPrefix}{company.Id}_{packageId.Value}_page{page}_size{pageSize}"
-                    : $"{UnapprovedCacheKeyPrefix}{company.Id}_all_page{page}_size{pageSize}";
+                    ? $"{UnapprovedCacheKeyPrefix}{company.Id}_{packageId.Value}_page{page}_size{pageSize}_{_language.LanguageCode}"
+                    : $"{UnapprovedCacheKeyPrefix}{company.Id}_all_page{page}_size{pageSize}_{_language.LanguageCode}";
 
                 if (_cache.TryGetValue(unapprovedCacheKey, out PaginatedResponse<BookingResponse>? cached) && cached is not null)
                 {
@@ -992,23 +996,36 @@ namespace Application.Services
 
         private void InvalidateBookingCache(int? bookingId = null, int? userId = null, int? companyId = null, int? packageId = null)
         {
-            if (bookingId.HasValue)
+            foreach (var lang in LanguageCodes.Supported)
             {
-                _cache.Remove($"{BookingCacheKeyPrefix}{bookingId.Value}");
-            }
+                if (bookingId.HasValue)
+                {
+                    _cache.Remove($"{BookingCacheKeyPrefix}{bookingId.Value}_{lang}");
+                }
 
-            if (userId.HasValue)
-            {
-                _cache.Remove($"{BookingsListCacheKeyPrefix}{userId.Value}");
-                _cache.Remove($"{FilteredCacheKeyPrefix}{userId.Value}_all");
+                if (userId.HasValue)
+                {
+                    _cache.Remove($"{BookingsListCacheKeyPrefix}{userId.Value}_{lang}");
+                    _cache.Remove($"{FilteredCacheKeyPrefix}{userId.Value}_all_{lang}");
+                }
             }
 
             if (companyId.HasValue)
             {
-                var unapprovedKey = packageId.HasValue
-                    ? $"{UnapprovedCacheKeyPrefix}{companyId.Value}_{packageId.Value}"
-                    : $"{UnapprovedCacheKeyPrefix}{companyId.Value}_all";
-                _cache.Remove(unapprovedKey);
+                // Unapproved cache keys are paginated; clear every combination.
+                foreach (var lang in LanguageCodes.Supported)
+                {
+                    for (var page = 1; page <= 100; page++)
+                    {
+                        for (var size = 1; size <= 100; size++)
+                        {
+                            var unapprovedKey = packageId.HasValue
+                                ? $"{UnapprovedCacheKeyPrefix}{companyId.Value}_{packageId.Value}_page{page}_size{size}_{lang}"
+                                : $"{UnapprovedCacheKeyPrefix}{companyId.Value}_all_page{page}_size{size}_{lang}";
+                            _cache.Remove(unapprovedKey);
+                        }
+                    }
+                }
             }
         }
 

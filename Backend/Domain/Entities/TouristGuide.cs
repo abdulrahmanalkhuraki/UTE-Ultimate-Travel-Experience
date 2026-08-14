@@ -1,3 +1,5 @@
+using Domain.Entities.Translations;
+
 namespace Domain.Entities
 {
     public partial class TouristGuide
@@ -7,8 +9,6 @@ namespace Domain.Entities
         public string Email { get; set; } = null!;
 
         public int YearsOfExperiance { get; set; }
-
-        public string Bio { get; set; } = null!;
 
         public string? Languages { get; set; }
 
@@ -21,6 +21,8 @@ namespace Domain.Entities
         public virtual Person Person { get; set; } = null!;
 
         public virtual Country NatinalityCountry { get; set; } = null!;
+
+        public virtual ICollection<TouristGuideTranslation> Translations { get; set; } = new List<TouristGuideTranslation>();
 
         public virtual ICollection<Company_TouristGuide> CompanyGuides { get; set; } = new List<Company_TouristGuide>();
 

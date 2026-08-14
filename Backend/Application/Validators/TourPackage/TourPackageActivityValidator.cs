@@ -1,5 +1,7 @@
+using Application;
 using Application.DTOs.TourPackage.Request;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace Domain.Validators
 {
@@ -10,26 +12,30 @@ namespace Domain.Validators
     /// </summary>
     public class TourPackageActivityValidator : AbstractValidator<TourPackageActivityRequest>
     {
-        public TourPackageActivityValidator()
+        private readonly IStringLocalizer<SharedResource> _localizer;
+
+        public TourPackageActivityValidator(IStringLocalizer<SharedResource> localizer)
         {
+            _localizer = localizer;
+
             RuleFor(x => x.OrderNumber)
-                .GreaterThan(0).WithMessage("Activity order number must be greater than 0");
+                .GreaterThan(0).WithMessage(_localizer["Activity order number must be greater than 0"]);
 
             RuleFor(x => x.Title)
-                .NotEmpty().WithMessage("Activity title is required")
-                .MaximumLength(100).WithMessage("Activity title must not exceed 100 characters");
+                .NotEmpty().WithMessage(_localizer["Activity title is required"])
+                .MaximumLength(100).WithMessage(_localizer["Activity title must not exceed 100 characters"]);
 
             RuleFor(x => x.Description)
-                .NotEmpty().WithMessage("Activity description is required")
-                .MaximumLength(500).WithMessage("Activity description must not exceed 500 characters");
+                .NotEmpty().WithMessage(_localizer["Activity description is required"])
+                .MaximumLength(500).WithMessage(_localizer["Activity description must not exceed 500 characters"]);
 
             RuleFor(x => x.EndTime)
                 .GreaterThan(x => x.StartTime)
-                .WithMessage("Activity end time must be after its start time");
+                .WithMessage(_localizer["Activity end time must be after its start time"]);
 
             RuleFor(x => x)
                 .Must(a => a.Image != null || !string.IsNullOrWhiteSpace(a.ImageUrl))
-                .WithMessage("Each activity must have an image");
+                .WithMessage(_localizer["Each activity must have an image"]);
         }
     }
 }

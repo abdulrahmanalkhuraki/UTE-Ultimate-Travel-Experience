@@ -1,4 +1,5 @@
 using Application.DTOs.User.Response;
+using Application.Mappings.Localization;
 using AutoMapper;
 using Domain.Entities;
 
@@ -18,8 +19,10 @@ namespace Application.Mappings
                 .ForMember(dest => dest.Image, opt => opt.MapFrom(src => src.Person != null ? src.Person.ProfileImage : null))
                 .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.Person != null ? src.Person.DateOfBirth : (DateOnly?)null))
                 .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Person != null ? src.Person.Gender : null))
-                .ForMember(dest => dest.PlaceOfResidence, opt => opt.MapFrom(src =>
-                    src.Person != null && src.Person.ResidentialCity != null ? src.Person.ResidentialCity.EnCityName : null))
+                .ForMember(dest => dest.PlaceOfResidence, opt => opt.MapFrom((src, _, _, ctx) =>
+                    src.Person != null && src.Person.ResidentialCity != null
+                        ? Localize.Pick(src.Person.ResidentialCity.Translations, ctx, t => t.Name)
+                        : null))
                 .ForMember(dest => dest.NationalNumber, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalNumber : null))
                 .ForMember(dest => dest.NationalIdImage, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalIdCard : null))
                 .ForMember(dest => dest.PassportNumber, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportNumber : null))

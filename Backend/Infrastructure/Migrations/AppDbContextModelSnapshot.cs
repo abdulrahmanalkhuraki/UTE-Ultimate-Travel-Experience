@@ -35,10 +35,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getutcdate())");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time(0)");
 
@@ -54,11 +50,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<TimeOnly>("StartTime")
                         .HasColumnType("time(0)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("UpdatedAtUtc")
                         .ValueGeneratedOnAdd()
@@ -80,11 +71,6 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ArAttractionName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<int>("AttractionCategoryId")
                         .HasColumnType("int");
 
@@ -95,15 +81,6 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("EnAttractionName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("Latitude")
                         .HasColumnType("decimal(18, 8)");
@@ -132,16 +109,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryId"));
-
-                    b.Property<string>("ArCategoryName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("EnCategoryName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("CategoryId");
 
@@ -247,17 +214,8 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ArCityName")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<int>("CountryId")
                         .HasColumnType("int");
-
-                    b.Property<string>("EnCityName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Image")
                         .HasMaxLength(500)
@@ -365,19 +323,10 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ArCountryName")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<string>("CountryCode")
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("EnCountryName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
@@ -525,17 +474,8 @@ namespace Infrastructure.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
-                    b.Property<string>("DayDescription")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<int>("DayNumber")
                         .HasColumnType("int");
-
-                    b.Property<string>("DayTitle")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("PackageId")
                         .HasColumnType("int");
@@ -908,10 +848,6 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("About")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
                     b.Property<string>("BankAccount")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -920,10 +856,6 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(75)
@@ -1012,11 +944,6 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
                     b.Property<int>("DurationInDays")
                         .HasColumnType("int");
 
@@ -1025,16 +952,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
-
-                    b.Property<string>("MeetingPoint")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("PackageName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("PricePerPerson")
                         .HasColumnType("decimal(10, 2)");
@@ -1242,11 +1159,6 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Bio")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -1287,6 +1199,220 @@ namespace Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Domain.Entities.Translations.ActivityTranslation", b =>
+                {
+                    b.Property<int>("ActivityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LanguageCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("ActivityId", "LanguageCode");
+
+                    b.HasIndex("LanguageCode");
+
+                    b.ToTable("ActivityTranslations");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.AttractionCategoryTranslation", b =>
+                {
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LanguageCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("CategoryId", "LanguageCode");
+
+                    b.HasIndex("LanguageCode");
+
+                    b.ToTable("AttractionCategoryTranslations");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.AttractionTranslation", b =>
+                {
+                    b.Property<int>("AttractionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LanguageCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("AttractionId", "LanguageCode");
+
+                    b.HasIndex("LanguageCode");
+
+                    b.ToTable("AttractionTranslations");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.CityTranslation", b =>
+                {
+                    b.Property<int>("CityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LanguageCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("CityId", "LanguageCode");
+
+                    b.HasIndex("LanguageCode");
+
+                    b.ToTable("CityTranslations");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.CountryTranslation", b =>
+                {
+                    b.Property<int>("CountryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LanguageCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("CountryId", "LanguageCode");
+
+                    b.HasIndex("LanguageCode");
+
+                    b.ToTable("CountryTranslations");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.ItineraryTranslation", b =>
+                {
+                    b.Property<int>("ItineraryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LanguageCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("DayDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("DayTitle")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("ItineraryId", "LanguageCode");
+
+                    b.HasIndex("LanguageCode");
+
+                    b.ToTable("ItineraryTranslations");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.TourCompanyTranslation", b =>
+                {
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LanguageCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("About")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("CompanyId", "LanguageCode");
+
+                    b.HasIndex("LanguageCode");
+
+                    b.ToTable("TourCompanyTranslations");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.TourPackageTranslation", b =>
+                {
+                    b.Property<int>("PackageId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LanguageCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("MeetingPoint")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("PackageName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("PackageId", "LanguageCode");
+
+                    b.HasIndex("LanguageCode");
+
+                    b.ToTable("TourPackageTranslations");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.TouristGuideTranslation", b =>
+                {
+                    b.Property<int>("TouristGuideId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LanguageCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Bio")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("TouristGuideId", "LanguageCode");
+
+                    b.HasIndex("LanguageCode");
+
+                    b.ToTable("TouristGuideTranslations");
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -1314,6 +1440,10 @@ namespace Infrastructure.Migrations
 
                     b.Property<bool>("IsEmailVerified")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<decimal?>("Latitude")
                         .HasColumnType("decimal(18, 8)");
@@ -1798,6 +1928,114 @@ namespace Infrastructure.Migrations
                     b.Navigation("Person");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Translations.ActivityTranslation", b =>
+                {
+                    b.HasOne("Domain.Entities.Activity", "Activity")
+                        .WithMany("Translations")
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ActivityTranslations_Activities");
+
+                    b.Navigation("Activity");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.AttractionCategoryTranslation", b =>
+                {
+                    b.HasOne("Domain.Entities.AttractionCategory", "Category")
+                        .WithMany("Translations")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_AttractionCategoryTranslations_AttractionCategories");
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.AttractionTranslation", b =>
+                {
+                    b.HasOne("Domain.Entities.Attraction", "Attraction")
+                        .WithMany("Translations")
+                        .HasForeignKey("AttractionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_AttractionTranslations_Attractions");
+
+                    b.Navigation("Attraction");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.CityTranslation", b =>
+                {
+                    b.HasOne("Domain.Entities.City", "City")
+                        .WithMany("Translations")
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_CityTranslations_Cities");
+
+                    b.Navigation("City");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.CountryTranslation", b =>
+                {
+                    b.HasOne("Domain.Entities.Country", "Country")
+                        .WithMany("Translations")
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_CountryTranslations_Countries");
+
+                    b.Navigation("Country");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.ItineraryTranslation", b =>
+                {
+                    b.HasOne("Domain.Entities.Itinerary", "Itinerary")
+                        .WithMany("Translations")
+                        .HasForeignKey("ItineraryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ItineraryTranslations_Itineraries");
+
+                    b.Navigation("Itinerary");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.TourCompanyTranslation", b =>
+                {
+                    b.HasOne("Domain.Entities.TourCompany", "Company")
+                        .WithMany("Translations")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_TourCompanyTranslations_TourCompanies");
+
+                    b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.TourPackageTranslation", b =>
+                {
+                    b.HasOne("Domain.Entities.TourPackage", "Package")
+                        .WithMany("Translations")
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_TourPackageTranslations_TourPackages");
+
+                    b.Navigation("Package");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Translations.TouristGuideTranslation", b =>
+                {
+                    b.HasOne("Domain.Entities.TouristGuide", "TouristGuide")
+                        .WithMany("Translations")
+                        .HasForeignKey("TouristGuideId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_TouristGuideTranslations_TouristGuides");
+
+                    b.Navigation("TouristGuide");
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.HasOne("Domain.Entities.Person", "Person")
@@ -1838,9 +2076,21 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Activity", b =>
+                {
+                    b.Navigation("Translations");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Attraction", b =>
+                {
+                    b.Navigation("Translations");
+                });
+
             modelBuilder.Entity("Domain.Entities.AttractionCategory", b =>
                 {
                     b.Navigation("Attractions");
+
+                    b.Navigation("Translations");
                 });
 
             modelBuilder.Entity("Domain.Entities.Booking", b =>
@@ -1855,6 +2105,8 @@ namespace Infrastructure.Migrations
                     b.Navigation("Attractions");
 
                     b.Navigation("Persons");
+
+                    b.Navigation("Translations");
                 });
 
             modelBuilder.Entity("Domain.Entities.Companion", b =>
@@ -1869,11 +2121,15 @@ namespace Infrastructure.Migrations
                     b.Navigation("Persons");
 
                     b.Navigation("TourPackages");
+
+                    b.Navigation("Translations");
                 });
 
             modelBuilder.Entity("Domain.Entities.Itinerary", b =>
                 {
                     b.Navigation("Activities");
+
+                    b.Navigation("Translations");
                 });
 
             modelBuilder.Entity("Domain.Entities.Payment", b =>
@@ -1911,6 +2167,8 @@ namespace Infrastructure.Migrations
                     b.Navigation("Favorites");
 
                     b.Navigation("TourPackages");
+
+                    b.Navigation("Translations");
                 });
 
             modelBuilder.Entity("Domain.Entities.TourPackage", b =>
@@ -1931,6 +2189,8 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("TourPackageGuides");
 
+                    b.Navigation("Translations");
+
                     b.Navigation("Wishlists");
                 });
 
@@ -1939,6 +2199,8 @@ namespace Infrastructure.Migrations
                     b.Navigation("CompanyGuides");
 
                     b.Navigation("TourPackageGuides");
+
+                    b.Navigation("Translations");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>

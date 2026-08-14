@@ -1,5 +1,7 @@
+using Application;
 using Application.DTOs.TourCompany.Request;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace Application.Validators.TourCompany
 {
@@ -12,61 +14,65 @@ namespace Application.Validators.TourCompany
         // 5 MB upload cap per image.
         private const long MaxImageBytes = 5 * 1024 * 1024;
 
-        public TourCompanyCreateValidator()
+        private readonly IStringLocalizer<SharedResource> _localizer;
+
+        public TourCompanyCreateValidator(IStringLocalizer<SharedResource> localizer)
         {
+            _localizer = localizer;
+
             RuleFor(x => x.Name)
-                .NotEmpty().WithMessage("Company name is required")
-                .MinimumLength(3).WithMessage("Company name must be at least 3 characters")
-                .MaximumLength(100).WithMessage("Company name cannot exceed 100 characters");
+                .NotEmpty().WithMessage(_localizer["Company name is required"])
+                .MinimumLength(3).WithMessage(_localizer["Company name must be at least 3 characters"])
+                .MaximumLength(100).WithMessage(_localizer["Company name cannot exceed 100 characters"]);
 
             RuleFor(x => x.Description)
-                .NotEmpty().WithMessage("Description is required")
-                .MaximumLength(500).WithMessage("Description cannot exceed 500 characters");
+                .NotEmpty().WithMessage(_localizer["Description is required"])
+                .MaximumLength(500).WithMessage(_localizer["Description cannot exceed 500 characters"]);
 
             RuleFor(x => x.Location)
-                .NotEmpty().WithMessage("Company location is required")
-                .MaximumLength(200).WithMessage("Location cannot exceed 200 characters");
+                .NotEmpty().WithMessage(_localizer["Company location is required"])
+                .MaximumLength(200).WithMessage(_localizer["Location cannot exceed 200 characters"]);
 
             RuleFor(x => x.PhoneNumber)
-                .NotEmpty().WithMessage("Phone number is required")
-                .Matches(@"^[\+]?[\d\s\-\(\)]{6,20}$").WithMessage("Phone number format is invalid")
-                .MaximumLength(20).WithMessage("Phone number cannot exceed 20 characters");
+                .NotEmpty().WithMessage(_localizer["Phone number is required"])
+                .Matches(@"^[\+]?[\d\s\-\(\)]{6,20}$").WithMessage(_localizer["Phone number format is invalid"])
+                .MaximumLength(20).WithMessage(_localizer["Phone number cannot exceed 20 characters"]);
 
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage("Email is required")
-                .EmailAddress().WithMessage("Email format is invalid")
-                .MaximumLength(75).WithMessage("Email cannot exceed 75 characters");
+                .NotEmpty().WithMessage(_localizer["Email is required"])
+                .EmailAddress().WithMessage(_localizer["Email format is invalid"])
+                .MaximumLength(75).WithMessage(_localizer["Email cannot exceed 75 characters"]);
 
             RuleFor(x => x.FoundingDate)
-                .NotNull().WithMessage("Founding date is required")
+                .NotNull().WithMessage(_localizer["Founding date is required"])
                 .Must(d => !d.HasValue || d.Value <= DateOnly.FromDateTime(DateTime.UtcNow))
-                .WithMessage("Founding date cannot be in the future");
+                .WithMessage(_localizer["Founding date cannot be in the future"]);
 
             RuleFor(x => x.TourismLicenseNumber)
-                .NotEmpty().WithMessage("Tourism license number is required")
-                .MaximumLength(50).WithMessage("Tourism license number cannot exceed 50 characters");
+                .NotEmpty().WithMessage(_localizer["Tourism license number is required"])
+                .MaximumLength(50).WithMessage(_localizer["Tourism license number cannot exceed 50 characters"]);
 
             RuleFor(x => x.BankAccount)
-                .NotEmpty().WithMessage("Bank account is required")
-                .MaximumLength(100).WithMessage("Bank account cannot exceed 100 characters");
+                .NotEmpty().WithMessage(_localizer["Bank account is required"])
+                .MaximumLength(100).WithMessage(_localizer["Bank account cannot exceed 100 characters"]);
 
             RuleFor(x => x.About)
-                .NotEmpty().WithMessage("About is required")
-                .MaximumLength(2000).WithMessage("About cannot exceed 2000 characters");
+                .NotEmpty().WithMessage(_localizer["About is required"])
+                .MaximumLength(2000).WithMessage(_localizer["About cannot exceed 2000 characters"]);
 
             RuleFor(x => x.Logo)
-                .NotNull().WithMessage("Logo is required");
+                .NotNull().WithMessage(_localizer["Logo is required"]);
 
             RuleFor(x => x.TourismLicenseImage)
-                .NotNull().WithMessage("Tourism license image is required");
+                .NotNull().WithMessage(_localizer["Tourism license image is required"]);
 
             // Validate the uploaded files when present.
             RuleFor(x => x.Logo)
-                .Must(BeAValidImage).WithMessage("Logo must be a JPEG, PNG, or WebP image under 5 MB")
+                .Must(BeAValidImage).WithMessage(_localizer["Logo must be a JPEG, PNG, or WebP image under 5 MB"])
                 .When(x => x.Logo is not null);
 
             RuleFor(x => x.TourismLicenseImage)
-                .Must(BeAValidImage).WithMessage("Tourism license image must be a JPEG, PNG, or WebP image under 5 MB")
+                .Must(BeAValidImage).WithMessage(_localizer["Tourism license image must be a JPEG, PNG, or WebP image under 5 MB"])
                 .When(x => x.TourismLicenseImage is not null);
         }
 

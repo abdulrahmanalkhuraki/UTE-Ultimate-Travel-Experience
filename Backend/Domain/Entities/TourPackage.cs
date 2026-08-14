@@ -1,15 +1,12 @@
+using System.ComponentModel.DataAnnotations.Schema;
+using Domain.Common;
+using Domain.Entities.Translations;
 using Domain.Enums;
 
 namespace Domain.Entities;
 
     public partial class TourPackage : BaseEntity
     {
-    public string PackageName { get; set; } = null!;
-
-    public string Description { get; set; } = null!;
-
-    public string MeetingPoint { get; set; } = null!;
-
     public decimal PricePerPerson { get; set; }
 
     public string Currency { get; set; } = "USD";
@@ -51,6 +48,8 @@ namespace Domain.Entities;
 
     public virtual Country Country { get; set; } = null!;
 
+    public virtual ICollection<TourPackageTranslation> Translations { get; set; } = new List<TourPackageTranslation>();
+
     public virtual ICollection<TourPackage_Attraction> PackageAttractions { get; set; } = new List<TourPackage_Attraction>();
 
     public virtual ICollection<TourPackage_TouristGuide> TourPackageGuides { get; set; } = new List<TourPackage_TouristGuide>();
@@ -68,4 +67,16 @@ namespace Domain.Entities;
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
     public virtual ICollection<TourPackageMedia> Media { get; set; } = new List<TourPackageMedia>();
+
+    /// <summary>Canonical (default-language) package name. Computed from translations.</summary>
+    [NotMapped]
+    public string PackageName => TranslationLookup.Default(Translations, t => t.PackageName, "Unknown package")!;
+
+    /// <summary>Canonical (default-language) description. Computed from translations.</summary>
+    [NotMapped]
+    public string Description => TranslationLookup.Default(Translations, t => t.Description) ?? string.Empty;
+
+    /// <summary>Canonical (default-language) meeting point. Computed from translations.</summary>
+    [NotMapped]
+    public string MeetingPoint => TranslationLookup.Default(Translations, t => t.MeetingPoint) ?? string.Empty;
 }
