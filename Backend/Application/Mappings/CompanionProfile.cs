@@ -1,5 +1,6 @@
 using Application.DTOs.Companion.Request;
 using Application.DTOs.Companion.Response;
+using Application.Mappings.Localization;
 using AutoMapper;
 using Domain.Entities;
 
@@ -47,13 +48,17 @@ public class CompanionProfile : Profile
             .ForMember(dest => dest.PassportNumber, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportNumber : null))
             .ForMember(dest => dest.PassportScan, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportScan : null))
             .ForMember(dest => dest.ResidentialCityId, opt => opt.MapFrom(src => src.Person != null ? src.Person.ResidentialCityId : 0))
-            .ForMember(dest => dest.ResidentialCityName, opt => opt.MapFrom(src =>
-                src.Person != null && src.Person.ResidentialCity != null ? src.Person.ResidentialCity.EnCityName : null))
+            .ForMember(dest => dest.ResidentialCityName, opt => opt.MapFrom((src, _, _, ctx) =>
+                src.Person != null && src.Person.ResidentialCity != null
+                    ? Localize.Pick(src.Person.ResidentialCity.Translations, ctx, t => t.Name)
+                    : null))
             .ForMember(dest => dest.ResidencyCard, opt => opt.MapFrom(s => s.Person.ResidencyCard))
             .ForMember(dest => dest.ProfileImage, opt => opt.MapFrom(s => s.Person.ProfileImage))
             .ForMember(dest => dest.NationalityCountryId, opt => opt.MapFrom(src => src.Person.NationalityCountryId))
-            .ForMember(dest => dest.NationalityCountryName, opt => opt.MapFrom(src =>
-                src.Person.NationalityCountry != null ? src.Person.NationalityCountry.EnCountryName : null))
+            .ForMember(dest => dest.NationalityCountryName, opt => opt.MapFrom((src, _, _, ctx) =>
+                src.Person.NationalityCountry != null
+                    ? Localize.Pick(src.Person.NationalityCountry.Translations, ctx, t => t.Name)
+                    : null))
             .ForMember(dest => dest.Relationship, opt => opt.MapFrom(src => src.Relationship.ToString()))
             .ForMember(dest => dest.RegistrationDate, opt => opt.Ignore())
             .ForMember(dest => dest.JoinedPackagesCount, opt => opt.Ignore())

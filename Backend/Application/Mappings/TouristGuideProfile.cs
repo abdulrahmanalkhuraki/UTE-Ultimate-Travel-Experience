@@ -1,5 +1,6 @@
 using Application.DTOs.TouristGuide.Request;
 using Application.DTOs.TouristGuide.Response;
+using Application.Mappings.Localization;
 using AutoMapper;
 using Domain.Entities;
 
@@ -16,15 +17,21 @@ namespace Application.Mappings
                 .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Person != null ? src.Person.Gender : null))
                 .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.Person != null ? src.Person.DateOfBirth : (DateOnly?)null))
                 .ForMember(dest => dest.ResidentialCityId, opt => opt.MapFrom(src => src.Person != null ? src.Person.ResidentialCityId : 0))
-                .ForMember(dest => dest.ResidentialCityName, opt => opt.MapFrom(src =>
-                    src.Person != null && src.Person.ResidentialCity != null ? src.Person.ResidentialCity.EnCityName : null))
+                .ForMember(dest => dest.ResidentialCityName, opt => opt.MapFrom((src, _, _, ctx) =>
+                    src.Person != null && src.Person.ResidentialCity != null
+                        ? Localize.Pick(src.Person.ResidentialCity.Translations, ctx, t => t.Name)
+                        : null))
                 .ForMember(dest => dest.NationalNumber, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalNumber : null))
                 .ForMember(dest => dest.PassportNumber, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportNumber : null))
                 .ForMember(dest => dest.ProfileImageUrl, opt => opt.MapFrom(src => src.Person != null ? src.Person.ProfileImage : null))
                 .ForMember(dest => dest.NationalIdCard, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalIdCard : null))
                 .ForMember(dest => dest.PassportScan, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportScan : null))
                 .ForMember(dest => dest.NationalityCountryName,
-                    opt => opt.MapFrom(src => src.NatinalityCountry != null ? src.NatinalityCountry.EnCountryName : null))
+                    opt => opt.MapFrom((src, _, _, ctx) => src.NatinalityCountry != null
+                        ? Localize.Pick(src.NatinalityCountry.Translations, ctx, t => t.Name)
+                        : null))
+                .ForMember(dest => dest.Bio,
+                    opt => opt.MapFrom((src, _, _, ctx) => Localize.Pick(src.Translations, ctx, t => t.Bio)))
                 .ForMember(dest => dest.LastTourPackageId,
                     opt => opt.MapFrom(src => src.TourPackageGuides
                         .OrderByDescending(tpg => tpg.CreatedAtUtc)
@@ -51,11 +58,6 @@ namespace Application.Mappings
                 {
                     opt.PreCondition(src => src.YearsOfExperiance.HasValue);
                     opt.MapFrom(src => src.YearsOfExperiance!.Value);
-                })
-                .ForMember(dest => dest.Bio, opt =>
-                {
-                    opt.PreCondition(src => src.Bio is not null);
-                    opt.MapFrom(src => src.Bio!.Trim());
                 })
                 .ForMember(dest => dest.Languages, opt =>
                 {

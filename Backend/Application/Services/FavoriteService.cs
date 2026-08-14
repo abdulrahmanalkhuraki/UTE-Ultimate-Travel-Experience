@@ -4,8 +4,9 @@ using Application.DTOs.Favorite.Response;
 using Application.DTOs.Pagination;
 using Application.Exceptions;
 using Application.Interfaces.Favorite;
+using Application.Interfaces.Localization;
 using Application.Interfaces.User;
-using AutoMapper;
+using Domain.Common;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Interfaces;
@@ -17,19 +18,19 @@ namespace Application.Services
     public class FavoriteService : IFavoriteService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly ILanguageContext _language;
         private readonly ILogger<FavoriteService> _logger;
         private readonly ICurrentUserService _currentUser;
         private const string ObjectName = "Favorite";
 
         public FavoriteService(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
+            ILanguageContext language,
             ILogger<FavoriteService> logger,
             ICurrentUserService currentUser)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _language = language ?? throw new ArgumentNullException(nameof(language));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
         }
@@ -101,7 +102,12 @@ namespace Application.Services
                         Id = f.Id,
                         CompanyId = f.CompanyId,
                         CompanyName = f.Company.Name,
-                        CompanyDescription = f.Company.Description,
+                        CompanyDescription = f.Company.Translations
+                            .OrderBy(t => t.LanguageCode == _language.LanguageCode ? 0
+                                : t.LanguageCode == LanguageCodes.Default ? 1
+                                : 2)
+                            .Select(t => t.Description)
+                            .FirstOrDefault(),
                         CompanyLogo = f.Company.Logo,
                         NumberOfPackages = f.Company.TourPackages.Count,
                         NumberOfTourists = f.Company.TourPackages

@@ -3,7 +3,7 @@ using Application.Common.Logging;
 using Application.DTOs.City.Response;
 using Application.Exceptions;
 using Application.Interfaces.City;
-using AutoMapper;
+using Application.Interfaces.Localization;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -14,7 +14,8 @@ namespace Application.Services
     public class CityService : ICityService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly ILocalizedMapper _mapper;
+        private readonly ILanguageContext _language;
         private readonly ILogger<CityService> _logger;
         private readonly IMemoryCache _cache;
         private const string ObjectName = "City";
@@ -26,12 +27,14 @@ namespace Application.Services
         private static readonly TimeSpan SlidingCacheDuration = TimeSpan.FromMinutes(2);
 
         public CityService(IUnitOfWork unitOfWork,
-            IMapper mapper,
+            ILocalizedMapper mapper,
+            ILanguageContext language,
             ILogger<CityService> logger,
             IMemoryCache cache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _language = language;
             _logger = logger;
             _cache = cache;
         }
@@ -44,7 +47,7 @@ namespace Application.Services
             _logger.StartOperation("Retrieve", ObjectName, id, 0);
 
             // Try cache first
-            var cacheKey = $"{CityCacheKeyPrefix}{id}";
+            var cacheKey = $"{CityCacheKeyPrefix}{id}_{_language.LanguageCode}";
             if (_cache.TryGetValue(cacheKey, out CityResponse? cachedCity) && cachedCity != null)
             {
                 _logger.LogDebug("Cache hit for City {CityId}", id);
@@ -57,7 +60,10 @@ namespace Application.Services
                     .Query()
                     .IgnoreQueryFilters()
                     .Include(c => c.Country)
+                        .ThenInclude(c => c.Translations)
+                    .Include(c => c.Translations)
                     .Include(c => c.Attractions)
+                        .ThenInclude(a => a.Translations)
                     .Where(h => h.Id == id)
                     .FirstOrDefaultAsync(cancellationToken);
 
@@ -95,7 +101,8 @@ namespace Application.Services
             _logger.LogDebug("Retrieving all cities");
 
             // Try cache
-            if (_cache.TryGetValue(CitiesListCacheKey, out IReadOnlyList<CityResponse>? cachedCitys) && cachedCitys != null)
+            var cacheKey = $"{CitiesListCacheKey}_{_language.LanguageCode}";
+            if (_cache.TryGetValue(cacheKey, out IReadOnlyList<CityResponse>? cachedCitys) && cachedCitys != null)
             {
                 _logger.LogDebug("Cache hit for all cities");
                 return cachedCitys;
@@ -106,13 +113,16 @@ namespace Application.Services
                 var entities = await _unitOfWork.Cities
                     .Query()
                     .Include(c => c.Country)
+                        .ThenInclude(c => c.Translations)
+                    .Include(c => c.Translations)
                     .Include(c => c.Attractions)
+                        .ThenInclude(a => a.Translations)
                     .ToListAsync(cancellationToken);
 
                 var response = _mapper.Map<IReadOnlyList<CityResponse>>(entities);
 
                 // Cache the result with lower priority
-                _cache.Set(CitiesListCacheKey, response, new MemoryCacheEntryOptions
+                _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = CacheDuration,
                     Priority = CacheItemPriority.Low

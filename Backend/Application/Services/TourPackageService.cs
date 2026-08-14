@@ -5,12 +5,13 @@ using Application.DTOs.Pagination;
 using Application.DTOs.TourPackage.Request;
 using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
+using Application.Interfaces.Localization;
 using Application.Interfaces.Notifications;
 using Application.Interfaces.TourPackage;
 using Application.Interfaces.User;
-using AutoMapper;
-using Azure;
+using Domain.Common;
 using Domain.Entities;
+using Domain.Entities.Translations;
 using Domain.Enums;
 using Domain.Interfaces;
 using Domain.Validators;
@@ -28,7 +29,9 @@ namespace Application.Services
     public partial class TourPackageService : ITourPackageService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly ILocalizedMapper _mapper;
+        private readonly ILanguageContext _language;
+        private readonly ITranslationService _translationService;
         private readonly ILogger<TourPackageService> _logger;
         private readonly IFileStorage _fileStorage;
         private readonly ICurrentUserService _currentUser;
@@ -52,7 +55,9 @@ namespace Application.Services
 
         public TourPackageService(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
+            ILocalizedMapper mapper,
+            ILanguageContext language,
+            ITranslationService translationService,
             ILogger<TourPackageService> logger,
             IFileStorage fileStorage,
             ICurrentUserService currentUser,
@@ -63,6 +68,8 @@ namespace Application.Services
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _language = language ?? throw new ArgumentNullException(nameof(language));
+            _translationService = translationService ?? throw new ArgumentNullException(nameof(translationService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
             _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
@@ -72,7 +79,7 @@ namespace Application.Services
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
         }
 
-        public async Task<TourPackageResponse> CreateAsync(TourPackageCreateRequest request, CancellationToken cancellationToken = default)
+        public async Task<TourPackageResponse> CreateAsync(TourPackageCreateRequest request, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
@@ -95,9 +102,6 @@ namespace Application.Services
             {
                 var entity = new TourPackage
                 {
-                    PackageName = request.PackageName.Trim(),
-                    Description = request.Description.Trim(),
-                    MeetingPoint = request.MeetingPoint.Trim(),
                     Currency = request.Currency.Trim(),
                     DurationInDays = request.DurationInDays,
                     TotalCapacity = request.TotalCapacity,
@@ -111,6 +115,21 @@ namespace Application.Services
                     CreatedAtUtc = DateTime.UtcNow,
                     UpdatedAtUtc = DateTime.UtcNow,
                 };
+
+                var sourceTexts = new[] { request.PackageName.Trim(), request.Description.Trim(), request.MeetingPoint.Trim() };
+                var translations = await _translationService.TranslateToAllSupportedAsync(
+                    sourceTexts, _language.LanguageCode, cancellationToken);
+
+                foreach (var (lang, values) in translations)
+                {
+                    entity.Translations.Add(new TourPackageTranslation
+                    {
+                        LanguageCode = lang,
+                        PackageName = values[0],
+                        Description = values[1],
+                        MeetingPoint = values[2],
+                    });
+                }
 
                 foreach (var mediaRequest in request.Media)
                     entity.Media.Add(new TourPackageMedia
@@ -200,6 +219,7 @@ namespace Application.Services
             {
                 var entity = await _unitOfWork.TourPackages
                     .Query()
+                    .Include(p => p.Translations)
                     .Include(p => p.PackageAttractions)
                     .Include(p => p.TourPackageGuides)
                     .Include(p => p.CabinClasses)
@@ -287,6 +307,7 @@ namespace Application.Services
             {
                 var entity = await _unitOfWork.TourPackages
                     .Query()
+                    .Include(p => p.Translations)
                     .Include(p => p.PackageAttractions)
                     .Include(p => p.TourPackageGuides)
                     .Include(p => p.CabinClasses)
@@ -376,6 +397,7 @@ namespace Application.Services
             {
                 var entity = await _unitOfWork.TourPackages
                     .Query()
+                    .Include(p => p.Translations)
                     .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
                 if (entity is null)
@@ -425,7 +447,8 @@ namespace Application.Services
 
         public async Task<IReadOnlyList<TourPackageResponse>> GetUnApprovedAsync(CancellationToken cancellationToken = default)
         {
-            if (_cache.TryGetValue(UnapprovedCacheKey, out IReadOnlyList<TourPackageResponse>? cached) && cached is not null)
+            var cacheKey = $"{UnapprovedCacheKey}_{_language.LanguageCode}";
+            if (_cache.TryGetValue(cacheKey, out IReadOnlyList<TourPackageResponse>? cached) && cached is not null)
                 return cached;
 
             var entities = await QueryWithGraph()
@@ -435,7 +458,7 @@ namespace Application.Services
 
             var response = _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
 
-            _cache.Set(UnapprovedCacheKey, response, new MemoryCacheEntryOptions
+            _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = UnapprovedCacheDuration,
                 Priority = CacheItemPriority.Normal
@@ -453,6 +476,7 @@ namespace Application.Services
             {
                 var entity = await _unitOfWork.TourPackages
                     .Query()
+                    .Include(p => p.Translations)
                     .Include(p => p.Company)
                     .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
@@ -519,6 +543,7 @@ namespace Application.Services
             {
                 var entity = await _unitOfWork.TourPackages
                     .Query()
+                    .Include(p => p.Translations)
                     .Include(p => p.Company)
                     .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
@@ -644,7 +669,7 @@ namespace Application.Services
             if (id <= 0)
                 throw new ArgumentException(ExceptionMessages.InvalidId(ObjectName), nameof(id));
 
-            var cacheKey = $"{CacheKeyPrefix}{id}";
+            var cacheKey = $"{CacheKeyPrefix}{id}_{_language.LanguageCode}";
             if (_cache.TryGetValue(cacheKey, out TourPackageResponse? cached) && cached is not null)
                 return cached;
 
@@ -672,7 +697,7 @@ namespace Application.Services
         public async Task<PaginatedResponse<TourPackageResponse>> GetAllAsync(int page = 1, int pageSize = 20,
             CancellationToken cancellationToken = default)
         {
-            var cacheKey = $"{AllCacheKey}_page{page}_pageSize{pageSize}";
+            var cacheKey = $"{AllCacheKey}_page{page}_pageSize{pageSize}_{_language.LanguageCode}";
 
             if (_cache.TryGetValue(cacheKey, out PaginatedResponse<TourPackageResponse>? cached) && cached is not null)
                 return cached;
@@ -730,7 +755,7 @@ namespace Application.Services
                     ? $"{MineCacheKeyPrefix}{companyId}_{status.Value}"
                     : $"{MineCacheKeyPrefix}{companyId}_all";
 
-                mineKey = mineKey + $"page{page}_pageSize{pageSize}";
+                mineKey = mineKey + $"page{page}_pageSize{pageSize}_{_language.LanguageCode}";
 
                 if (_cache.TryGetValue(mineKey, out PaginatedResponse<TourPackageResponse>? cached) && cached is not null)
                     return cached;
@@ -842,7 +867,7 @@ namespace Application.Services
                 throw new ValidationException(ExceptionMessages.InvalidPagination());
             }
 
-            var cacheKey = $"tourpackages_country{countryId}_city{cityId}_minPrice{minPrice}_maxPrice{maxPrice}_page{page}_size{pageSize}";
+            var cacheKey = $"tourpackages_country{countryId}_city{cityId}_minPrice{minPrice}_maxPrice{maxPrice}_page{page}_size{pageSize}_{_language.LanguageCode}";
 
             if (_cache.TryGetValue(cacheKey, out PaginatedResponse<TourPackageResponse>? cached) && cached is not null)
             {
@@ -913,7 +938,7 @@ namespace Application.Services
 
         public async Task<IReadOnlyList<TourPackageResponse>> GetMostWantedPackagesAsync(CancellationToken cancellationToken)
         {
-            var cacheKey = "mostWantedTourPackages";
+            var cacheKey = $"mostWantedTourPackages_{_language.LanguageCode}";
 
             _logger.LogInformation("Attemping to retrieve most wanted tour packages");
             try
@@ -927,6 +952,24 @@ namespace Application.Services
                 var mostWanted = await _unitOfWork.TourPackages
                     .Query()
                     .Where(tp => !tp.IsDeleted && tp.Status == TourPackageStatus.Active)
+                    .Include(tp => tp.Translations)
+                    .Include(tp => tp.Country)
+                        .ThenInclude(c => c.Translations)
+                    .Include(tp => tp.Company)
+                    .Include(tp => tp.Media)
+                    .Include(tp => tp.CabinClasses)
+                    .Include(tp => tp.TourPackageGuides)
+                        .ThenInclude(g => g.TouristGuide)
+                            .ThenInclude(tg => tg.Person)
+                    .Include(tp => tp.PackageAttractions)
+                        .ThenInclude(pa => pa.Attraction)
+                            .ThenInclude(a => a.City)
+                                .ThenInclude(c => c.Translations)
+                    .Include(tp => tp.PackageItineraries)
+                        .ThenInclude(i => i.Translations)
+                    .Include(tp => tp.PackageItineraries)
+                        .ThenInclude(i => i.Activities)
+                            .ThenInclude(a => a.Translations)
                     .Select(p => new
                     {
                         Package = p,
@@ -1120,7 +1163,10 @@ namespace Application.Services
                     TouristName = b.User.Person!.FirstName + " " + b.User.Person!.LastName,
                     TouristImage = b.User.Person!.ProfileImage,
                     BookingDate = b.BookingDate,
-                    PackageName = b.TourPackage.PackageName
+                    PackageName = b.TourPackage.Translations
+                        .Where(t => t.LanguageCode == LanguageCodes.Default)
+                        .Select(t => t.PackageName)
+                        .FirstOrDefault()
                 })
                 .ToListAsync(cancellationToken);
 
@@ -1172,10 +1218,50 @@ namespace Application.Services
             var oldClassPrices = entity.CabinClasses.ToDictionary(c => c.CabinClass, c => c.Price);
             var oldPricePerPerson = entity.PricePerPerson;
 
-            // Scalars — partial update: apply only the fields that were actually sent
-            if (request.PackageName is not null) entity.PackageName = request.PackageName.Trim();
-            if (request.Description is not null) entity.Description = request.Description.Trim();
-            if (request.MeetingPoint is not null) entity.MeetingPoint = request.MeetingPoint.Trim();
+            // Text fields — partial update: re-translate only the fields that were actually sent,
+            // in the user's current language, then apply the result to every language row.
+            var providedFields = new List<(string Name, string Value)>();
+            if (request.PackageName is not null)
+                providedFields.Add((nameof(TourPackageTranslation.PackageName), request.PackageName.Trim()));
+            if (request.Description is not null)
+                providedFields.Add((nameof(TourPackageTranslation.Description), request.Description.Trim()));
+            if (request.MeetingPoint is not null)
+                providedFields.Add((nameof(TourPackageTranslation.MeetingPoint), request.MeetingPoint.Trim()));
+
+            if (providedFields.Count > 0)
+            {
+                var translations = await _translationService.TranslateToAllSupportedAsync(
+                    providedFields.Select(f => f.Value).ToArray(),
+                    _language.LanguageCode,
+                    cancellationToken);
+
+                foreach (var (lang, values) in translations)
+                {
+                    var translation = entity.Translations.FirstOrDefault(t => t.LanguageCode == lang);
+                    if (translation is null)
+                    {
+                        translation = new TourPackageTranslation { LanguageCode = lang };
+                        entity.Translations.Add(translation);
+                    }
+
+                    for (var i = 0; i < providedFields.Count; i++)
+                    {
+                        switch (providedFields[i].Name)
+                        {
+                            case nameof(TourPackageTranslation.PackageName):
+                                translation.PackageName = values[i];
+                                break;
+                            case nameof(TourPackageTranslation.Description):
+                                translation.Description = values[i];
+                                break;
+                            case nameof(TourPackageTranslation.MeetingPoint):
+                                translation.MeetingPoint = values[i];
+                                break;
+                        }
+                    }
+                }
+            }
+
             if (request.Currency is not null) entity.Currency = request.Currency.Trim();
             if (request.DurationInDays.HasValue) entity.DurationInDays = request.DurationInDays.Value;
             if (request.TotalCapacity.HasValue)
@@ -1322,18 +1408,22 @@ namespace Application.Services
         /// <summary>Invalidates cached entries affected by a mutation to the given package.</summary>
         private void InvalidateTourPackageCache(int? packageId = null, int? companyId = null)
         {
-            if (packageId.HasValue)
-                _cache.Remove($"{CacheKeyPrefix}{packageId.Value}");
-
-            _cache.Remove(AllCacheKey);
-            _cache.Remove(UnapprovedCacheKey);
-
-            if (companyId.HasValue)
+            foreach (var language in LanguageCodes.Supported)
             {
-                _cache.Remove($"{MineCacheKeyPrefix}{companyId.Value}_all");
-                foreach (var status in Enum.GetValues<TourPackageStatus>())
+                if (packageId.HasValue)
+                    _cache.Remove($"{CacheKeyPrefix}{packageId.Value}_{language}");
+
+                _cache.Remove($"{AllCacheKey}_page1_pageSize20_{language}");
+                _cache.Remove($"{UnapprovedCacheKey}_{language}");
+                _cache.Remove($"mostWantedTourPackages_{language}");
+
+                if (companyId.HasValue)
                 {
-                    _cache.Remove($"mine_{companyId}_{status}");
+                    _cache.Remove($"{MineCacheKeyPrefix}{companyId.Value}_all");
+                    foreach (var status in Enum.GetValues<TourPackageStatus>())
+                    {
+                        _cache.Remove($"mine_{companyId}_{status}");
+                    }
                 }
             }
         }
@@ -1344,7 +1434,9 @@ namespace Application.Services
                 .Query()
                 .AsNoTracking()
                 .AsSplitQuery()
+                .Include(p => p.Translations)
                 .Include(p => p.Country)
+                    .ThenInclude(c => c.Translations)
                 .Include(p => p.Company)
                 .Include(p => p.Rates)
                 .Include(p => p.TourPackageGuides).ThenInclude(g => g.TouristGuide)
@@ -1353,7 +1445,10 @@ namespace Application.Services
                 .Include(p => p.Media)
                 .Include(p => p.PackageAttractions).ThenInclude(pa => pa.Attraction)
                     .ThenInclude(a => a.City)
-                .Include(p => p.PackageItineraries).ThenInclude(d => d.Activities);
+                        .ThenInclude(c => c.Translations)
+                .Include(p => p.PackageItineraries).ThenInclude(d => d.Translations)
+                .Include(p => p.PackageItineraries).ThenInclude(d => d.Activities)
+                    .ThenInclude(a => a.Translations);
 
 
         /// <summary>
@@ -1381,11 +1476,24 @@ namespace Application.Services
             var itinerary = new Itinerary
             {
                 DayNumber = day.DayNumber,
-                DayTitle = day.DayTitle.Trim(),
-                DayDescription = day.DayDescription?.Trim(),
                 CreatedAtUtc = DateTime.UtcNow,
                 UpdatedAtUtc = DateTime.UtcNow,
             };
+
+            var dayTranslations = await _translationService.TranslateToAllSupportedAsync(
+                [day.DayTitle.Trim(), day.DayDescription?.Trim() ?? string.Empty],
+                _language.LanguageCode,
+                cancellationToken);
+
+            foreach (var (lang, values) in dayTranslations)
+            {
+                itinerary.Translations.Add(new ItineraryTranslation
+                {
+                    LanguageCode = lang,
+                    DayTitle = values[0],
+                    DayDescription = values[1],
+                });
+            }
 
             foreach (var activity in day.Activities)
             {
@@ -1393,17 +1501,32 @@ namespace Application.Services
                     ? await _fileStorage.SaveAsync(activity.Image, ActivityImageFolder, cancellationToken)
                     : activity.ImageUrl;
 
-                itinerary.Activities.Add(new Activity
+                var activityEntity = new Activity
                 {
                     OrderNumber = activity.OrderNumber,
-                    Title = activity.Title.Trim(),
-                    Description = activity.Description?.Trim(),
                     ImageUrl = imageUrl,
                     StartTime = activity.StartTime,
                     EndTime = activity.EndTime,
                     CreatedAtUtc = DateTime.UtcNow,
                     UpdatedAtUtc = DateTime.UtcNow,
-                });
+                };
+
+                var activityTranslations = await _translationService.TranslateToAllSupportedAsync(
+                    [activity.Title.Trim(), activity.Description?.Trim() ?? string.Empty],
+                    _language.LanguageCode,
+                    cancellationToken);
+
+                foreach (var (lang, values) in activityTranslations)
+                {
+                    activityEntity.Translations.Add(new ActivityTranslation
+                    {
+                        LanguageCode = lang,
+                        Title = values[0],
+                        Description = values[1],
+                    });
+                }
+
+                itinerary.Activities.Add(activityEntity);
             }
 
             return itinerary;

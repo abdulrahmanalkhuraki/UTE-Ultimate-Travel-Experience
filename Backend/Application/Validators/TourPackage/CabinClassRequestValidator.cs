@@ -1,16 +1,22 @@
+using Application;
 using Application.DTOs.TourPackage.Request;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace Domain.Validators;
 
 public class CabinClassRequestValidator : AbstractValidator<CabinClassRequest>
 {
-    public CabinClassRequestValidator()
+    private readonly IStringLocalizer<SharedResource> _localizer;
+
+    public CabinClassRequestValidator(IStringLocalizer<SharedResource> localizer)
     {
-        RuleFor(x => x.CabinClass).IsInEnum().WithMessage("Invalid flight cabin class");
+        _localizer = localizer;
+
+        RuleFor(x => x.CabinClass).IsInEnum().WithMessage(_localizer["Invalid flight cabin class"]);
 
         RuleFor(x => x.Price)
-            .GreaterThanOrEqualTo(0).WithMessage("Cabin class price must not be negative")
-            .LessThan(1000000).WithMessage("Cabin class price must be less than 1,000,000");
+            .GreaterThanOrEqualTo(0).WithMessage(_localizer["Cabin class price must not be negative"])
+            .LessThan(1000000).WithMessage(_localizer["Cabin class price must be less than 1,000,000"]);
     }
 }

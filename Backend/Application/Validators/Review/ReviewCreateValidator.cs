@@ -1,15 +1,21 @@
-﻿using Application.DTOs.Review.Request;
+﻿using Application;
+using Application.DTOs.Review.Request;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace Application.Validators.Review
 {
     public sealed class ReviewCreateValidator : AbstractValidator<ReviewCreateRequest>
     {
-        public ReviewCreateValidator()
+        private readonly IStringLocalizer<SharedResource> _localizer;
+
+        public ReviewCreateValidator(IStringLocalizer<SharedResource> localizer)
         {
+            _localizer = localizer;
+
             RuleFor(p => p.comment)
-                .NotEmpty().WithMessage("Comment is Required.")
-                .MaximumLength(500).WithMessage("Comment must not exceed 50 characters");
+                .NotEmpty().WithMessage(_localizer["Comment is Required."])
+                .MaximumLength(500).WithMessage(_localizer["Comment must not exceed 50 characters"]);
         }
     }
 }

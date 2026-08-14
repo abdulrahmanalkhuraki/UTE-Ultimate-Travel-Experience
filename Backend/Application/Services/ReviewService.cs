@@ -4,11 +4,10 @@ using Application.DTOs.Booking.Response;
 using Application.DTOs.Review.Request;
 using Application.DTOs.Review.Response;
 using Application.Exceptions;
+using Application.Interfaces.Localization;
 using Application.Interfaces.Review;
 using Application.Interfaces.User;
 using Application.Validators.Review;
-using AutoMapper;
-using Azure;
 using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +18,7 @@ namespace Application.Services
     public class ReviewService : IReviewService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly ILocalizedMapper _mapper;
         private readonly ILogger<ReviewService> _logger;
         private readonly ReviewCreateValidator _createValidator;
         private readonly ICurrentUserService _currentUser;
@@ -27,7 +26,7 @@ namespace Application.Services
 
         public ReviewService(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
+            ILocalizedMapper mapper,
             ILogger<ReviewService> logger,
             ReviewCreateValidator createValidator,
             ICurrentUserService currentUser)

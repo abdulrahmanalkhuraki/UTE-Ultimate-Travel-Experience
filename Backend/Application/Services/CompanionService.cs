@@ -6,9 +6,10 @@ using Application.DTOs.Pagination;
 using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
 using Application.Interfaces.Companion;
+using Application.Interfaces.Localization;
 using Application.Interfaces.User;
 using Application.Validators.Companion;
-using AutoMapper;
+using Domain.Common;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Interfaces;
@@ -22,7 +23,8 @@ namespace Application.Services
     public class CompanionService : ICompanionService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly ILocalizedMapper _mapper;
+        private readonly ILanguageContext _language;
         private readonly ILogger<CompanionService> _logger;
         private readonly IFileStorage _fileStorage;
         private readonly ICurrentUserService _currentUser;
@@ -39,7 +41,8 @@ namespace Application.Services
 
         public CompanionService(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
+            ILocalizedMapper mapper,
+            ILanguageContext language,
             ILogger<CompanionService> logger,
             IFileStorage fileStorage,
             ICurrentUserService currentUser,
@@ -49,6 +52,7 @@ namespace Application.Services
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _language = language ?? throw new ArgumentNullException(nameof(language));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
             _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
@@ -119,7 +123,7 @@ namespace Application.Services
 
             _logger.StartOperation("Retrieve", ObjectName, id, userId);
 
-            var cacheKey = $"{CompanionCacheKeyPrefix}{id}";
+            var cacheKey = $"{CompanionCacheKeyPrefix}{id}_{_language.LanguageCode}";
             if(_cache.TryGetValue(cacheKey, out CompanionResponse? cached) && cached is not null)
             {
                 _logger.LogInformation("cache hit for companion with id {id}", id);
@@ -153,7 +157,7 @@ namespace Application.Services
 
             _logger.StartOperation("Retrieve All", ObjectName, userId);
 
-            var cacheKey = $"companions_page{page}_size{pageSize}";
+            var cacheKey = $"companions_page{page}_size{pageSize}_{_language.LanguageCode}";
 
             if (_cache.TryGetValue(cacheKey, out PaginatedResponse<CompanionResponseSummary>? cached) && cached is not null)
             {
@@ -288,8 +292,11 @@ namespace Application.Services
         {
             if (specificCompanionId.HasValue)
             {
-                var cacheKey = $"{CompanionCacheKeyPrefix}{specificCompanionId.Value}";
-                _cache.Remove(cacheKey);
+                foreach (var lang in LanguageCodes.Supported)
+                {
+                    var cacheKey = $"{CompanionCacheKeyPrefix}{specificCompanionId.Value}_{lang}";
+                    _cache.Remove(cacheKey);
+                }
             }
 
             _cache.Remove(CompanionListCacheKey);

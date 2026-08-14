@@ -5,11 +5,14 @@ using Application.DTOs.TourCompany.Request;
 using Application.DTOs.TourCompany.Response;
 using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
+using Application.Interfaces.Localization;
 using Application.Interfaces.Notifications;
 using Application.Interfaces.TourCompany;
 using Application.Interfaces.User;
 using Application.Validators.TourCompany;
-using AutoMapper;
+using Domain.Common;
+using Domain.Entities;
+using Domain.Entities.Translations;
 using Domain.Enums;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +27,9 @@ namespace Application.Services
     public class TourCompanyService : ITourCompanyService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly ILocalizedMapper _mapper;
+        private readonly ILanguageContext _language;
+        private readonly ITranslationService _translationService;
         private readonly ILogger<TourCompanyService> _logger;
         private readonly IMemoryCache _cache;
         private readonly IFileStorage _fileStorage;
@@ -44,7 +49,9 @@ namespace Application.Services
 
         public TourCompanyService(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
+            ILocalizedMapper mapper,
+            ILanguageContext language,
+            ITranslationService translationService,
             ILogger<TourCompanyService> logger,
             IMemoryCache cache,
             IFileStorage fileStorage,
@@ -55,6 +62,8 @@ namespace Application.Services
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _language = language ?? throw new ArgumentNullException(nameof(language));
+            _translationService = translationService ?? throw new ArgumentNullException(nameof(translationService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _fileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
@@ -105,6 +114,21 @@ namespace Application.Services
                 entity.CreatedAtUtc = DateTime.UtcNow;
                 entity.UpdatedAtUtc = DateTime.UtcNow;
 
+                var companyTranslations = await _translationService.TranslateToAllSupportedAsync(
+                    [request.Description?.Trim() ?? string.Empty, request.About?.Trim() ?? string.Empty],
+                    _language.LanguageCode,
+                    cancellationToken);
+
+                foreach (var (lang, values) in companyTranslations)
+                {
+                    entity.Translations.Add(new TourCompanyTranslation
+                    {
+                        LanguageCode = lang,
+                        Description = values[0],
+                        About = values[1],
+                    });
+                }
+
                 // Persist uploaded images, if any.
                 if (request.Logo is not null)
                     entity.Logo = await _fileStorage.SaveAsync(request.Logo, "company-logos", cancellationToken);
@@ -153,7 +177,7 @@ namespace Application.Services
 
             // Only approved companies are cached, since visibility of a non-approved
             // company depends on who is asking.
-            var cacheKey = $"{TourCompanyCacheKeyPrefix}{id}";
+            var cacheKey = $"{TourCompanyCacheKeyPrefix}{id}_{_language.LanguageCode}";
             if (_cache.TryGetValue(cacheKey, out TourCompanyResponse? cached) && cached != null)
             {
                 _logger.LogDebug("Cache hit for tour company {CompanyId}", id);
@@ -165,6 +189,7 @@ namespace Application.Services
                 var entity = await _unitOfWork.TourCompanies
                     .Query()
                     .AsNoTracking()
+                    .Include(c => c.Translations)
                     .SingleOrDefaultAsync(c => c.Id == id,cancellationToken);
 
                 if (entity == null)
@@ -241,7 +266,7 @@ namespace Application.Services
         {
             _logger.LogDebug("Retrieving all tour companies");
 
-            if (_cache.TryGetValue(TourCompaniesListCacheKey, out IReadOnlyList<TourCompanyResponse>? cached) && cached != null)
+            if (_cache.TryGetValue($"{TourCompaniesListCacheKey}_{_language.LanguageCode}", out IReadOnlyList<TourCompanyResponse>? cached) && cached != null)
             {
                 _logger.LogDebug("Cache hit for all tour companies");
                 return cached;
@@ -252,13 +277,14 @@ namespace Application.Services
                 var entities = await _unitOfWork.TourCompanies
                     .Query()
                     .AsNoTracking()
+                    .Include(c => c.Translations)
                     .Where(c => c.Status == TourCompanyStatus.Approved)
                     .OrderBy(c => c.Name)
                     .ToListAsync(cancellationToken);
 
                 var response = _mapper.Map<IReadOnlyList<TourCompanyResponse>>(entities);
 
-                _cache.Set(TourCompaniesListCacheKey, response, new MemoryCacheEntryOptions
+                _cache.Set($"{TourCompaniesListCacheKey}_{_language.LanguageCode}", response, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = CacheDuration,
                     Priority = CacheItemPriority.Low
@@ -298,7 +324,10 @@ namespace Application.Services
 
             try
             {
-                var entity = await _unitOfWork.TourCompanies.GetByIdAsync(id, cancellationToken);
+                var entity = await _unitOfWork.TourCompanies
+                    .Query()
+                    .Include(c => c.Translations)
+                    .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
 
                 if (entity == null)
                 {
@@ -312,8 +341,44 @@ namespace Application.Services
                     throw new ForbiddenException(ExceptionMessages.Forbidden(OperationName,ObjectName));
                 }
 
-
                 _mapper.Map(request, entity);
+
+                if (request.Description is not null || request.About is not null)
+                {
+                    var providedFields = new List<(string Name, string Value)>();
+                    if (request.Description is not null)
+                        providedFields.Add((nameof(TourCompanyTranslation.Description), request.Description.Trim()));
+                    if (request.About is not null)
+                        providedFields.Add((nameof(TourCompanyTranslation.About), request.About.Trim()));
+
+                    var translations = await _translationService.TranslateToAllSupportedAsync(
+                        providedFields.Select(f => f.Value).ToArray(),
+                        _language.LanguageCode,
+                        cancellationToken);
+
+                    foreach (var (lang, values) in translations)
+                    {
+                        var translation = entity.Translations.FirstOrDefault(t => t.LanguageCode == lang);
+                        if (translation is null)
+                        {
+                            translation = new TourCompanyTranslation { LanguageCode = lang };
+                            entity.Translations.Add(translation);
+                        }
+
+                        for (var i = 0; i < providedFields.Count; i++)
+                        {
+                            switch (providedFields[i].Name)
+                            {
+                                case nameof(TourCompanyTranslation.Description):
+                                    translation.Description = values[i];
+                                    break;
+                                case nameof(TourCompanyTranslation.About):
+                                    translation.About = values[i];
+                                    break;
+                            }
+                        }
+                    }
+                }
 
                 // Replace images only when a new file is uploaded.
                 if (request.Logo is not null)
@@ -461,6 +526,7 @@ namespace Application.Services
             {
                 // Filter is a public search, so only approved companies are returned.
                 var query = _unitOfWork.TourCompanies.Query().AsNoTracking()
+                    .Include(c => c.Translations)
                     .Where(c => c.Status == TourCompanyStatus.Approved);
 
                 if (!string.IsNullOrWhiteSpace(name))
@@ -499,6 +565,7 @@ namespace Application.Services
                 var entities = await _unitOfWork.TourCompanies
                     .Query()
                     .AsNoTracking()
+                    .Include(c => c.Translations)
                     .Where(c => c.Status == TourCompanyStatus.Pending)
                     .OrderBy(c => c.CreatedAtUtc)
                     .ToListAsync(cancellationToken);
@@ -536,7 +603,10 @@ namespace Application.Services
 
             try
             {
-                var entity = await _unitOfWork.TourCompanies.GetByIdAsync(id, cancellationToken);
+                var entity = await _unitOfWork.TourCompanies
+                    .Query()
+                    .Include(c => c.Translations)
+                    .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
                 if (entity == null)
                 {
                     _logger.LogWarning("Tour company {CompanyId} not found for status change", id);
@@ -615,6 +685,24 @@ namespace Application.Services
                 .Query()
                 .Where(tp => tp.CompanyId == TourCompanyId)
                 .Where(tp => !tp.IsDeleted && tp.Status == TourPackageStatus.Active)
+                .Include(tp => tp.Translations)
+                .Include(tp => tp.Country)
+                    .ThenInclude(c => c.Translations)
+                .Include(tp => tp.Company)
+                .Include(tp => tp.Media)
+                .Include(tp => tp.CabinClasses)
+                .Include(tp => tp.TourPackageGuides)
+                    .ThenInclude(g => g.TouristGuide)
+                        .ThenInclude(tg => tg.Person)
+                .Include(tp => tp.PackageAttractions)
+                    .ThenInclude(pa => pa.Attraction)
+                        .ThenInclude(a => a.City)
+                            .ThenInclude(c => c.Translations)
+                .Include(tp => tp.PackageItineraries)
+                    .ThenInclude(i => i.Translations)
+                .Include(tp => tp.PackageItineraries)
+                    .ThenInclude(i => i.Activities)
+                        .ThenInclude(a => a.Translations)
                 .Select(p => new
                 {
                     Package = p,
