@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Exception_NotFound" xml:space="preserve">
+    <value>{0} With Id {1} Not Found</value>
+  </data>
+  <data name="Exception_Auth" xml:space="preserve">
+    <value>You Must Be Logged In To Perform This Action.</value>
+  </data>
+  <data name="Exception_InvalidId" xml:space="preserve">
+    <value>Invalid {0} ID</value>
+  </data>
+  <data name="Exception_Forbidden" xml:space="preserve">
+    <value>Access denied: You do not Have Permission To {0} this {1}.</value>
+  </data>
+  <data name="Exception_ServiceException" xml:space="preserve">
+    <value>Failed to {0} {1}: {2}</value>
+  </data>
+  <data name="Exception_Conflict" xml:space="preserve">
+    <value>{0} conflict: {1}</value>
+  </data>
+  <data name="Exception_Concurrency" xml:space="preserve">
+    <value>{0} was modified by another user. Please reload and try again.</value>
+  </data>
+  <data name="Exception_AuthFailure" xml:space="preserve">
+    <value>Authentication failed: {0}</value>
+  </data>
+  <data name="Exception_InvalidPagination" xml:space="preserve">
+    <value>Page must be >= 1, PageSize must be between 1 and 100.</value>
+  </data>
+  <data name="Error_Unexpected" xml:space="preserve">
+    <value>An unexpected error occurred</value>
+  </data>
+  <data name="Error_ValidationTitle" xml:space="preserve">
+    <value>Validation Error</value>
+  </data>
+  <data name="Error_ValidationDetail" xml:space="preserve">
+    <value>One or more validation errors occurred</value>
+  </data>
+  <data name="Error_InvalidRequest" xml:space="preserve">
+    <value>Invalid Request</value>
+  </data>
+  <data name="Error_AuthRequired" xml:space="preserve">
+    <value>Authentication Required</value>
+  </data>
+  <data name="Error_AccessDenied" xml:space="preserve">
+    <value>Access Denied</value>
+  </data>
+  <data name="Error_NotFound" xml:space="preserve">
+    <value>Resource Not Found</value>
+  </data>
+  <data name="Error_Conflict" xml:space="preserve">
+    <value>Resource Conflict</value>
+  </data>
+  <data name="Error_Concurrency" xml:space="preserve">
+    <value>Concurrency Conflict</value>
+  </data>
+  <data name="Error_BusinessRule" xml:space="preserve">
+    <value>Business Rule Violation</value>
+  </data>
+  <data name="Error_Service" xml:space="preserve">
+    <value>Service Error</value>
+  </data>
+  <data name="Error_Processing" xml:space="preserve">
+    <value>An error occurred while processing your request</value>
+  </data>
+  <data name="Error_UnexpectedDetail" xml:space="preserve">
+    <value>An unexpected error occurred. Please try again later.</value>
+  </data>
+  <data name="Auth_NotAuthenticated" xml:space="preserve">
+    <value>You are not authenticated. Please log in to continue.</value>
+  </data>
+  <data name="Auth_ProfileIncomplete" xml:space="preserve">
+    <value>Your profile is not completed. Please complete it to perform this action.</value>
+  </data>
+  <data name="Auth_Forbidden" xml:space="preserve">
+    <value>You do not have the required permissions to perform this action.</value>
+  </data>
+</root>
