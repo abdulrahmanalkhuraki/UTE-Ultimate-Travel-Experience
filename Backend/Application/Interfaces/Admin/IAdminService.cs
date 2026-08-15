@@ -6,5 +6,8 @@ namespace Application.Interfaces.Admin
     {
         /// <summary>Retrieves aggregated statistics for the admin dashboard.</summary>
         Task<AdminDashboardResponse> GetDashboardAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Retrieves tourist statistics for the admin dashboard.</summary>
+        Task<AdminTouristsDashboardResponse> GetTouristsDashboardAsync(CancellationToken cancellationToken = default);
     }
 }

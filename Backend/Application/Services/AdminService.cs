@@ -76,15 +76,7 @@ namespace Application.Services
                 var windowStart = new DateTime(series[0].Year, series[0].Month, 1, 0, 0, 0, DateTimeKind.Utc);
                 var windowEnd = windowStart.AddMonths(GrowthMonths);
 
-                var touristCounts = await _unitOfWork.Users
-                    .Query()
-                    .AsNoTracking()
-                    .Where(u => u.Role.RoleName == "Tourist"
-                        && u.CreatedAtUtc >= windowStart
-                        && u.CreatedAtUtc < windowEnd)
-                    .GroupBy(u => new { u.CreatedAtUtc.Year, u.CreatedAtUtc.Month })
-                    .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
-                    .ToListAsync(cancellationToken);
+                var touristCounts = await GetTouristGrowthCountsAsync(windowStart, windowEnd, cancellationToken);
 
                 var packageCountsMonthly = await _unitOfWork.TourPackages
                     .Query()
@@ -109,11 +101,57 @@ namespace Application.Services
                     },
                     TotalRevenue = completedRevenue * commissionRate,
                     CommissionRate = commissionRate,
-                    TouristGrowth = BuildGrowthSeries(series, touristCounts.Select(c => (c.Year, c.Month, c.Count))),
+                    TouristGrowth = BuildGrowthSeries(series, touristCounts),
                     TourPackageGrowth = BuildGrowthSeries(series, packageCountsMonthly.Select(c => (c.Year, c.Month, c.Count)))
                 };
 
                 _logger.LogInformation("Successfully retrieved admin dashboard statistics");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.ServerError("retrieving", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
+            }
+        }
+
+        public async Task<AdminTouristsDashboardResponse> GetTouristsDashboardAsync(CancellationToken cancellationToken = default)
+        {
+            _logger.LogDebug("Retrieving admin tourist dashboard statistics");
+
+            try
+            {
+                var touristCounts = await _unitOfWork.Users
+                    .Query()
+                    .AsNoTracking()
+                    .Where(u => u.Role.RoleName == "Tourist")
+                    .GroupBy(u => 1)
+                    .Select(g => new
+                    {
+                        Active = g.Count(u => !u.IsDeleted),
+                        Deleted = g.Count(u => u.IsDeleted)
+                    })
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                var now = DateTime.UtcNow;
+                var series = BuildMonthSeries(now, GrowthMonths);
+                var windowStart = new DateTime(series[0].Year, series[0].Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                var windowEnd = windowStart.AddMonths(GrowthMonths);
+
+                var growth = await GetTouristGrowthCountsAsync(windowStart, windowEnd, cancellationToken);
+
+                var active = touristCounts?.Active ?? 0;
+                var deleted = touristCounts?.Deleted ?? 0;
+
+                var response = new AdminTouristsDashboardResponse
+                {
+                    ActiveTourists = active,
+                    DeletedTourists = deleted,
+                    TotalTourists = active + deleted,
+                    TouristGrowth = BuildGrowthSeries(series, growth)
+                };
+
+                _logger.LogInformation("Successfully retrieved admin tourist dashboard statistics");
                 return response;
             }
             catch (Exception ex)
@@ -164,6 +202,25 @@ namespace Application.Services
                     Count = lookup.GetValueOrDefault((s.Year, s.Month), 0)
                 })
                 .ToList();
+        }
+
+        /// <summary>Groups tourists by registration month within the given window (includes active and deleted accounts).</summary>
+        private async Task<List<(int Year, int Month, int Count)>> GetTouristGrowthCountsAsync(
+            DateTime windowStart,
+            DateTime windowEnd,
+            CancellationToken cancellationToken)
+        {
+            var raw = await _unitOfWork.Users
+                .Query()
+                .AsNoTracking()
+                .Where(u => u.Role.RoleName == "Tourist"
+                    && u.CreatedAtUtc >= windowStart
+                    && u.CreatedAtUtc < windowEnd)
+                .GroupBy(u => new { u.CreatedAtUtc.Year, u.CreatedAtUtc.Month })
+                .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
+                .ToListAsync(cancellationToken);
+
+            return raw.Select(c => (c.Year, c.Month, c.Count)).ToList();
         }
     }
 }
