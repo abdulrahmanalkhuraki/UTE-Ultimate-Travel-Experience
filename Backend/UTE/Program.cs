@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.Interfaces.Admin;
 using Application.Interfaces.Booking;
 using Application.Interfaces.Companion;
 using Application.Interfaces.Favorite;
@@ -293,6 +294,9 @@ builder.Services.AddCors(options =>
 // ==========================================
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+// Admin
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 // Country / City
 builder.Services.AddScoped<Application.Interfaces.Country.ICountryService, CountryService>();
