@@ -9,5 +9,8 @@ namespace Application.Interfaces.Admin
 
         /// <summary>Retrieves tourist statistics for the admin dashboard.</summary>
         Task<AdminTouristsDashboardResponse> GetTouristsDashboardAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Retrieves tour package statistics for the admin dashboard.</summary>
+        Task<AdminTourPackagesDashboardResponse> GetTourPackagesDashboardAsync(CancellationToken cancellationToken = default);
     }
 }

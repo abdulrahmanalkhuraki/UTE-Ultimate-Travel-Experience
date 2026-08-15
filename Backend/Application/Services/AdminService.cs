@@ -78,17 +78,7 @@ namespace Application.Services
 
                 var touristCounts = await GetTouristGrowthCountsAsync(windowStart, windowEnd, cancellationToken);
 
-                var packageCountsMonthly = await _unitOfWork.TourPackages
-                    .Query()
-                    .AsNoTracking()
-                    .Where(p => !p.IsDeleted
-                        && (p.Status == TourPackageStatus.Active || p.Status == TourPackageStatus.Completed)
-                        && p.PublishedAtUtc != null
-                        && p.PublishedAtUtc >= windowStart
-                        && p.PublishedAtUtc < windowEnd)
-                    .GroupBy(p => new { p.PublishedAtUtc!.Value.Year, p.PublishedAtUtc!.Value.Month })
-                    .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
-                    .ToListAsync(cancellationToken);
+                var packageCountsMonthly = await GetTourPackageGrowthCountsAsync(windowStart, windowEnd, cancellationToken);
 
                 var response = new AdminDashboardResponse
                 {
@@ -102,7 +92,7 @@ namespace Application.Services
                     TotalRevenue = completedRevenue * commissionRate,
                     CommissionRate = commissionRate,
                     TouristGrowth = BuildGrowthSeries(series, touristCounts),
-                    TourPackageGrowth = BuildGrowthSeries(series, packageCountsMonthly.Select(c => (c.Year, c.Month, c.Count)))
+                    TourPackageGrowth = BuildGrowthSeries(series, packageCountsMonthly)
                 };
 
                 _logger.LogInformation("Successfully retrieved admin dashboard statistics");
@@ -152,6 +142,50 @@ namespace Application.Services
                 };
 
                 _logger.LogInformation("Successfully retrieved admin tourist dashboard statistics");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.ServerError("retrieving", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
+            }
+        }
+
+        public async Task<AdminTourPackagesDashboardResponse> GetTourPackagesDashboardAsync(CancellationToken cancellationToken = default)
+        {
+            _logger.LogDebug("Retrieving admin tour package dashboard statistics");
+
+            try
+            {
+                var packageCounts = await _unitOfWork.TourPackages
+                    .Query()
+                    .AsNoTracking()
+                    .Where(p => !p.IsDeleted)
+                    .GroupBy(p => 1)
+                    .Select(g => new
+                    {
+                        Total = g.Count(),
+                        Rejected = g.Count(p => p.Status == TourPackageStatus.Rejected),
+                        Pending = g.Count(p => p.Status == TourPackageStatus.Pending)
+                    })
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                var now = DateTime.UtcNow;
+                var series = BuildMonthSeries(now, GrowthMonths);
+                var windowStart = new DateTime(series[0].Year, series[0].Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                var windowEnd = windowStart.AddMonths(GrowthMonths);
+
+                var growth = await GetTourPackageGrowthCountsAsync(windowStart, windowEnd, cancellationToken);
+
+                var response = new AdminTourPackagesDashboardResponse
+                {
+                    TotalTourPackages = packageCounts?.Total ?? 0,
+                    RejectedTourPackages = packageCounts?.Rejected ?? 0,
+                    PendingTourPackages = packageCounts?.Pending ?? 0,
+                    TourPackageGrowth = BuildGrowthSeries(series, growth)
+                };
+
+                _logger.LogInformation("Successfully retrieved admin tour package dashboard statistics");
                 return response;
             }
             catch (Exception ex)
@@ -217,6 +251,25 @@ namespace Application.Services
                     && u.CreatedAtUtc >= windowStart
                     && u.CreatedAtUtc < windowEnd)
                 .GroupBy(u => new { u.CreatedAtUtc.Year, u.CreatedAtUtc.Month })
+                .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
+                .ToListAsync(cancellationToken);
+
+            return raw.Select(c => (c.Year, c.Month, c.Count)).ToList();
+        }
+
+        /// <summary>Groups all non-deleted tour packages by creation month within the given window.</summary>
+        private async Task<List<(int Year, int Month, int Count)>> GetTourPackageGrowthCountsAsync(
+            DateTime windowStart,
+            DateTime windowEnd,
+            CancellationToken cancellationToken)
+        {
+            var raw = await _unitOfWork.TourPackages
+                .Query()
+                .AsNoTracking()
+                .Where(p => !p.IsDeleted
+                    && p.CreatedAtUtc >= windowStart
+                    && p.CreatedAtUtc < windowEnd)
+                .GroupBy(p => new { p.CreatedAtUtc.Year, p.CreatedAtUtc.Month })
                 .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
                 .ToListAsync(cancellationToken);
 
