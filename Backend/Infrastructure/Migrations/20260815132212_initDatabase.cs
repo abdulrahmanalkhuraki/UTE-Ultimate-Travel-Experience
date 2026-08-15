@@ -18,9 +18,7 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     CategoryId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    EnCategoryName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    ArCategoryName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1")
                 },
                 constraints: table =>
                 {
@@ -33,8 +31,6 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    EnCountryName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    ArCountryName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     CountryCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false)
                 },
                 constraints: table =>
@@ -56,13 +52,30 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AttractionCategoryTranslations",
+                columns: table => new
+                {
+                    LanguageCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    CategoryId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AttractionCategoryTranslations", x => new { x.CategoryId, x.LanguageCode });
+                    table.ForeignKey(
+                        name: "FK_AttractionCategoryTranslations_AttractionCategories",
+                        column: x => x.CategoryId,
+                        principalTable: "AttractionCategories",
+                        principalColumn: "CategoryId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Cities",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    EnCityName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    ArCityName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Image = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     CountryId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -77,15 +90,31 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CountryTranslations",
+                columns: table => new
+                {
+                    LanguageCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    CountryId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CountryTranslations", x => new { x.CountryId, x.LanguageCode });
+                    table.ForeignKey(
+                        name: "FK_CountryTranslations_Countries",
+                        column: x => x.CountryId,
+                        principalTable: "Countries",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Attractions",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    EnAttractionName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    ArAttractionName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     AttractionCategoryId = table.Column<int>(type: "int", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     Longitude = table.Column<decimal>(type: "decimal(18,8)", nullable: false),
                     Latitude = table.Column<decimal>(type: "decimal(18,8)", nullable: false),
                     CityId = table.Column<int>(type: "int", nullable: false),
@@ -107,6 +136,25 @@ namespace Infrastructure.Migrations
                         principalTable: "Cities",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CityTranslations",
+                columns: table => new
+                {
+                    LanguageCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    CityId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CityTranslations", x => new { x.CityId, x.LanguageCode });
+                    table.ForeignKey(
+                        name: "FK_CityTranslations_Cities",
+                        column: x => x.CityId,
+                        principalTable: "Cities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -149,6 +197,26 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AttractionTranslations",
+                columns: table => new
+                {
+                    LanguageCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    AttractionId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AttractionTranslations", x => new { x.AttractionId, x.LanguageCode });
+                    table.ForeignKey(
+                        name: "FK_AttractionTranslations_Attractions",
+                        column: x => x.AttractionId,
+                        principalTable: "Attractions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TouristGuides",
                 columns: table => new
                 {
@@ -156,7 +224,6 @@ namespace Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Email = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     YearsOfExperiance = table.Column<int>(type: "int", nullable: false),
-                    Bio = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
                     Languages = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
                     LicenseScan = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
@@ -195,6 +262,7 @@ namespace Infrastructure.Migrations
                     BankAccount = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     IsEmailVerified = table.Column<bool>(type: "bit", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    Language = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
                     PersonId = table.Column<int>(type: "int", nullable: true),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())"),
                     UpdatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())")
@@ -214,6 +282,25 @@ namespace Infrastructure.Migrations
                         principalTable: "Roles",
                         principalColumn: "RoleId",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TouristGuideTranslations",
+                columns: table => new
+                {
+                    LanguageCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    TouristGuideId = table.Column<int>(type: "int", nullable: false),
+                    Bio = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TouristGuideTranslations", x => new { x.TouristGuideId, x.LanguageCode });
+                    table.ForeignKey(
+                        name: "FK_TouristGuideTranslations_TouristGuides",
+                        column: x => x.TouristGuideId,
+                        principalTable: "TouristGuides",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -351,7 +438,6 @@ namespace Infrastructure.Migrations
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     RejectionReason = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     Logo = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     Location = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
@@ -360,7 +446,6 @@ namespace Infrastructure.Migrations
                     TourismLicenseNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     TourismLicenseImage = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     BankAccount = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    About = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())"),
                     UpdatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())")
@@ -459,14 +544,31 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TourCompanyTranslations",
+                columns: table => new
+                {
+                    LanguageCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    CompanyId = table.Column<int>(type: "int", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    About = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TourCompanyTranslations", x => new { x.CompanyId, x.LanguageCode });
+                    table.ForeignKey(
+                        name: "FK_TourCompanyTranslations_TourCompanies",
+                        column: x => x.CompanyId,
+                        principalTable: "TourCompanies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TourPackages",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    PackageName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    MeetingPoint = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     PricePerPerson = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     Currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
                     DurationInDays = table.Column<int>(type: "int", nullable: false),
@@ -558,8 +660,6 @@ namespace Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     DayNumber = table.Column<int>(type: "int", nullable: false),
-                    DayTitle = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    DayDescription = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     PackageId = table.Column<int>(type: "int", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())"),
                     UpdatedAtUtc = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())")
@@ -735,6 +835,27 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TourPackageTranslations",
+                columns: table => new
+                {
+                    LanguageCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    PackageId = table.Column<int>(type: "int", nullable: false),
+                    PackageName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    MeetingPoint = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TourPackageTranslations", x => new { x.PackageId, x.LanguageCode });
+                    table.ForeignKey(
+                        name: "FK_TourPackageTranslations_TourPackages",
+                        column: x => x.PackageId,
+                        principalTable: "TourPackages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Wishlists",
                 columns: table => new
                 {
@@ -824,8 +945,6 @@ namespace Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     OrderNumber = table.Column<int>(type: "int", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     ImageUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     StartTime = table.Column<TimeOnly>(type: "time(0)", nullable: false),
                     EndTime = table.Column<TimeOnly>(type: "time(0)", nullable: false),
@@ -841,6 +960,46 @@ namespace Infrastructure.Migrations
                         column: x => x.ItineraryId,
                         principalTable: "Itineraries",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ItineraryTranslations",
+                columns: table => new
+                {
+                    LanguageCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    ItineraryId = table.Column<int>(type: "int", nullable: false),
+                    DayTitle = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    DayDescription = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ItineraryTranslations", x => new { x.ItineraryId, x.LanguageCode });
+                    table.ForeignKey(
+                        name: "FK_ItineraryTranslations_Itineraries",
+                        column: x => x.ItineraryId,
+                        principalTable: "Itineraries",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ActivityTranslations",
+                columns: table => new
+                {
+                    LanguageCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    ActivityId = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ActivityTranslations", x => new { x.ActivityId, x.LanguageCode });
+                    table.ForeignKey(
+                        name: "FK_ActivityTranslations_Activities",
+                        column: x => x.ActivityId,
+                        principalTable: "Activities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.InsertData(
@@ -859,6 +1018,16 @@ namespace Infrastructure.Migrations
                 column: "ItineraryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ActivityTranslations_LanguageCode",
+                table: "ActivityTranslations",
+                column: "LanguageCode");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AttractionCategoryTranslations_LanguageCode",
+                table: "AttractionCategoryTranslations",
+                column: "LanguageCode");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Attractions_AttractionCategoryId",
                 table: "Attractions",
                 column: "AttractionCategoryId");
@@ -867,6 +1036,11 @@ namespace Infrastructure.Migrations
                 name: "IX_Attractions_CityId",
                 table: "Attractions",
                 column: "CityId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AttractionTranslations_LanguageCode",
+                table: "AttractionTranslations",
+                column: "LanguageCode");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_PaymentId",
@@ -888,6 +1062,11 @@ namespace Infrastructure.Migrations
                 name: "IX_Cities_CountryId",
                 table: "Cities",
                 column: "CountryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CityTranslations_LanguageCode",
+                table: "CityTranslations",
+                column: "LanguageCode");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Companion_Booking_BookingId",
@@ -920,6 +1099,11 @@ namespace Infrastructure.Migrations
                 name: "IX_Company_TouristGuide_TouristGuideId",
                 table: "Company_TouristGuide",
                 column: "TouristGuideId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CountryTranslations_LanguageCode",
+                table: "CountryTranslations",
+                column: "LanguageCode");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DeviceTokens_Token",
@@ -956,6 +1140,11 @@ namespace Infrastructure.Migrations
                 name: "IX_Itineraries_PackageId",
                 table: "Itineraries",
                 column: "PackageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ItineraryTranslations_LanguageCode",
+                table: "ItineraryTranslations",
+                column: "LanguageCode");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notifications_BookingId",
@@ -1036,6 +1225,11 @@ namespace Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_TourCompanyTranslations_LanguageCode",
+                table: "TourCompanyTranslations",
+                column: "LanguageCode");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TouristGuides_NatinalityCountryId",
                 table: "TouristGuides",
                 column: "NatinalityCountryId");
@@ -1045,6 +1239,11 @@ namespace Infrastructure.Migrations
                 table: "TouristGuides",
                 column: "PersonId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TouristGuideTranslations_LanguageCode",
+                table: "TouristGuideTranslations",
+                column: "LanguageCode");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TourPackage_TouristGuide_PackageId_TouristGuideId",
@@ -1080,6 +1279,11 @@ namespace Infrastructure.Migrations
                 column: "CountryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TourPackageTranslations_LanguageCode",
+                table: "TourPackageTranslations",
+                column: "LanguageCode");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_PersonId",
                 table: "Users",
                 column: "PersonId",
@@ -1106,13 +1310,25 @@ namespace Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Activities");
+                name: "ActivityTranslations");
+
+            migrationBuilder.DropTable(
+                name: "AttractionCategoryTranslations");
+
+            migrationBuilder.DropTable(
+                name: "AttractionTranslations");
+
+            migrationBuilder.DropTable(
+                name: "CityTranslations");
 
             migrationBuilder.DropTable(
                 name: "Companion_Booking");
 
             migrationBuilder.DropTable(
                 name: "Company_TouristGuide");
+
+            migrationBuilder.DropTable(
+                name: "CountryTranslations");
 
             migrationBuilder.DropTable(
                 name: "DeviceTokens");
@@ -1122,6 +1338,9 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Favorites");
+
+            migrationBuilder.DropTable(
+                name: "ItineraryTranslations");
 
             migrationBuilder.DropTable(
                 name: "Notifications");
@@ -1139,6 +1358,12 @@ namespace Infrastructure.Migrations
                 name: "SupportReplies");
 
             migrationBuilder.DropTable(
+                name: "TourCompanyTranslations");
+
+            migrationBuilder.DropTable(
+                name: "TouristGuideTranslations");
+
+            migrationBuilder.DropTable(
                 name: "TourPackage_TouristGuide");
 
             migrationBuilder.DropTable(
@@ -1148,10 +1373,13 @@ namespace Infrastructure.Migrations
                 name: "TourPackageMedias");
 
             migrationBuilder.DropTable(
+                name: "TourPackageTranslations");
+
+            migrationBuilder.DropTable(
                 name: "Wishlists");
 
             migrationBuilder.DropTable(
-                name: "Itineraries");
+                name: "Activities");
 
             migrationBuilder.DropTable(
                 name: "Companions");
@@ -1169,13 +1397,16 @@ namespace Infrastructure.Migrations
                 name: "TouristGuides");
 
             migrationBuilder.DropTable(
-                name: "TourPackages");
+                name: "Itineraries");
 
             migrationBuilder.DropTable(
                 name: "Payments");
 
             migrationBuilder.DropTable(
                 name: "AttractionCategories");
+
+            migrationBuilder.DropTable(
+                name: "TourPackages");
 
             migrationBuilder.DropTable(
                 name: "TourCompanies");

@@ -77,7 +77,7 @@ namespace UTE.Controllers
         /// <response code="500">If there was an internal server error</response>
         [HttpPost]
         [Authorize(Policy = "RequireCompletedProfile")]
-        [Authorize("TourCompany")]
+        [Authorize(Roles = "TourCompany")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(TourCompanyResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -103,6 +103,8 @@ namespace UTE.Controllers
         /// <response code="200">Returns the list of tour companies</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpGet]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(IReadOnlyList<TourCompanyResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<IReadOnlyList<TourCompanyResponse>>> GetAll(CancellationToken cancellationToken = default)
@@ -150,7 +152,7 @@ namespace UTE.Controllers
         /// <response code="500">If there was an internal server error</response>
         [HttpPut("{id:int:min(1)}")]
         [Authorize(Policy = "RequireCompletedProfile")]
-        [Authorize("TourCompany")]
+        [Authorize(Roles = "TourCompany")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(TourCompanyResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -181,7 +183,7 @@ namespace UTE.Controllers
         /// <response code="500">If there was an internal server error</response>
         [HttpDelete("{id:int:min(1)}")]
         [Authorize(Policy = "RequireCompletedProfile")]
-        [Authorize("TourCompany")]
+        [Authorize(Roles = "TourCompany")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
