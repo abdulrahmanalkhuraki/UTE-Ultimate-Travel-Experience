@@ -282,7 +282,7 @@ public class DbSeedService : IDbSeedService
                 LanguageCode = LanguageCodes.English,
                 Bio = x.BioEn
             });
-            _context.Entry(guide).Property("NatinalityCountryId").CurrentValue = x.NatinalityCountryId;
+            //_context.Entry(guide).Property("NatinalityCountryId").CurrentValue = x.NatinalityCountryId;
             _context.TouristGuides.Add(guide);
         }
 

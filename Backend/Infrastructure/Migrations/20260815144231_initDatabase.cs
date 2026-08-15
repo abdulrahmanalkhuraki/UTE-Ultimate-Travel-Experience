@@ -227,19 +227,12 @@ namespace Infrastructure.Migrations
                     Languages = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
                     LicenseScan = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
-                    PersonId = table.Column<int>(type: "int", nullable: false),
-                    NatinalityCountryId = table.Column<int>(type: "int", nullable: false)
+                    PersonId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TouristGuides", x => x.Id);
                     table.CheckConstraint("CHK_Positive_YearsOfExperience", "[YearsOfExperiance] BETWEEN 0 AND 70");
-                    table.ForeignKey(
-                        name: "FK_TouristGuides_Countries_NatinalityCountryId",
-                        column: x => x.NatinalityCountryId,
-                        principalTable: "Countries",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_TouristGuides_Persons_PersonId",
                         column: x => x.PersonId,
@@ -1228,11 +1221,6 @@ namespace Infrastructure.Migrations
                 name: "IX_TourCompanyTranslations_LanguageCode",
                 table: "TourCompanyTranslations",
                 column: "LanguageCode");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TouristGuides_NatinalityCountryId",
-                table: "TouristGuides",
-                column: "NatinalityCountryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TouristGuides_PersonId",

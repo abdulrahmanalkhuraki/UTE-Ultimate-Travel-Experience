@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260815132212_initDatabase")]
+    [Migration("20260815144231_initDatabase")]
     partial class initDatabase
     {
         /// <inheritdoc />
@@ -1180,9 +1180,6 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("NatinalityCountryId")
-                        .HasColumnType("int");
-
                     b.Property<int>("PersonId")
                         .HasColumnType("int");
 
@@ -1190,8 +1187,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("NatinalityCountryId");
 
                     b.HasIndex("PersonId")
                         .IsUnique();
@@ -1914,19 +1909,11 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.TouristGuide", b =>
                 {
-                    b.HasOne("Domain.Entities.Country", "NatinalityCountry")
-                        .WithMany()
-                        .HasForeignKey("NatinalityCountryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Domain.Entities.Person", "Person")
                         .WithOne("TouristGuide")
                         .HasForeignKey("Domain.Entities.TouristGuide", "PersonId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("NatinalityCountry");
 
                     b.Navigation("Person");
                 });

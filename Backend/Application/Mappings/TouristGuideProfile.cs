@@ -26,9 +26,10 @@ namespace Application.Mappings
                 .ForMember(dest => dest.ProfileImageUrl, opt => opt.MapFrom(src => src.Person != null ? src.Person.ProfileImage : null))
                 .ForMember(dest => dest.NationalIdCard, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalIdCard : null))
                 .ForMember(dest => dest.PassportScan, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportScan : null))
+                .ForMember(dest => dest.NationalityCountryId, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalityCountryId : 0))
                 .ForMember(dest => dest.NationalityCountryName,
-                    opt => opt.MapFrom((src, _, _, ctx) => src.NatinalityCountry != null
-                        ? Localize.Pick(src.NatinalityCountry.Translations, ctx, t => t.Name)
+                    opt => opt.MapFrom((src, _, _, ctx) => src.Person.NationalityCountry != null
+                        ? Localize.Pick(src.Person.NationalityCountry.Translations, ctx, t => t.Name)
                         : null))
                 .ForMember(dest => dest.Bio,
                     opt => opt.MapFrom((src, _, _, ctx) => Localize.Pick(src.Translations, ctx, t => t.Bio)))

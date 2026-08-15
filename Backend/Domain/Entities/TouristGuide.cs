@@ -20,8 +20,6 @@ namespace Domain.Entities
 
         public virtual Person Person { get; set; } = null!;
 
-        public virtual Country NatinalityCountry { get; set; } = null!;
-
         public virtual ICollection<TouristGuideTranslation> Translations { get; set; } = new List<TouristGuideTranslation>();
 
         public virtual ICollection<Company_TouristGuide> CompanyGuides { get; set; } = new List<Company_TouristGuide>();

@@ -358,7 +358,7 @@ namespace Application.Services
                 .Query()
                 .AsNoTracking()
                 .Include(g => g.Translations)
-                .Include(g => g.NatinalityCountry)
+                .Include(g => g.Person.NationalityCountry)
                     .ThenInclude(c => c.Translations)
                 .Include(g => g.Person)
                     .ThenInclude(p => p.ResidentialCity)
