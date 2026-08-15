@@ -767,10 +767,10 @@ namespace Application.Services
                     query = query.Where(p => p.Status == status.Value);
 
                 var entities = await query
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .OrderByDescending(p => p.CreatedAtUtc)
-                    .ToListAsync(cancellationToken);
+                        .OrderByDescending(p => p.CreatedAtUtc)
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToListAsync(cancellationToken);
 
                 var packageResponses = _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
                 var paginationMetadata = new PaginationMetadata()
@@ -943,7 +943,7 @@ namespace Application.Services
             _logger.LogInformation("Attemping to retrieve most wanted tour packages");
             try
             {
-                if(_cache.TryGetValue(cacheKey, out IReadOnlyList<TourPackageResponse>? cached) && cached is not null)
+                if (_cache.TryGetValue(cacheKey, out IReadOnlyList<TourPackageResponse>? cached) && cached is not null)
                 {
                     _logger.LogInformation("Cache hit for most wanted packages");
                     return cached;
