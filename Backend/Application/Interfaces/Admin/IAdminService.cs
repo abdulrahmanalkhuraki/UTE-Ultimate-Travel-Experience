@@ -15,5 +15,8 @@ namespace Application.Interfaces.Admin
 
         /// <summary>Retrieves tour company statistics for the admin dashboard.</summary>
         Task<AdminCompaniesDashboardResponse> GetCompaniesDashboardAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Retrieves statistics for a single tour company for the admin dashboard.</summary>
+        Task<AdminCompanyDashboardResponse> GetCompanyDashboardAsync(int companyId, CancellationToken cancellationToken = default);
     }
 }

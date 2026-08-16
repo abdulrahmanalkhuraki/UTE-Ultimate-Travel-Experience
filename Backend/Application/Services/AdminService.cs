@@ -1,8 +1,10 @@
 using Application.Common.Constants;
 using Application.Common.Logging;
 using Application.DTOs.Admin.Response;
+using Application.DTOs.TourCompany.Response;
 using Application.Exceptions;
 using Application.Interfaces.Admin;
+using Application.Interfaces.Localization;
 using Domain.Enums;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -21,15 +23,18 @@ namespace Application.Services
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
+        private readonly ILocalizedMapper _mapper;
         private readonly ILogger<AdminService> _logger;
 
         public AdminService(
             IUnitOfWork unitOfWork,
             IConfiguration configuration,
+            ILocalizedMapper mapper,
             ILogger<AdminService> logger)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -252,6 +257,144 @@ namespace Application.Services
                     && c.CreatedAtUtc >= windowStart
                     && c.CreatedAtUtc < windowEnd)
                 .GroupBy(c => new { c.CreatedAtUtc.Year, c.CreatedAtUtc.Month })
+                .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
+                .ToListAsync(cancellationToken);
+
+            return raw.Select(c => (c.Year, c.Month, c.Count)).ToList();
+        }
+
+        public async Task<AdminCompanyDashboardResponse> GetCompanyDashboardAsync(int companyId, CancellationToken cancellationToken = default)
+        {
+            if (companyId <= 0)
+                throw new ArgumentException("Invalid tour company ID", nameof(companyId));
+
+            _logger.LogDebug("Retrieving admin company dashboard statistics for company {CompanyId}", companyId);
+
+            try
+            {
+                var company = await _unitOfWork.TourCompanies
+                    .Query()
+                    .AsNoTracking()
+                    .Include(c => c.Translations)
+                    .SingleOrDefaultAsync(c => c.Id == companyId, cancellationToken);
+
+                if (company == null)
+                {
+                    _logger.LogDebug("Tour company with ID {CompanyId} not found", companyId);
+                    throw new NotFoundException($"Tour company with ID {companyId} not found");
+                }
+
+                var packageCounts = await _unitOfWork.TourPackages
+                    .Query()
+                    .AsNoTracking()
+                    .Where(p => p.CompanyId == companyId && !p.IsDeleted)
+                    .GroupBy(p => 1)
+                    .Select(g => new
+                    {
+                        Total = g.Count(),
+                        Reviews = g.Sum(p => p.Reviews.Count)
+                    })
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                var averageRating = await GetAverageRatingAsync(companyId, cancellationToken);
+
+                var completedRevenue = await _unitOfWork.Bookings
+                    .Query()
+                    .AsNoTracking()
+                    .Where(b => b.TourPackage.CompanyId == companyId
+                        && !b.TourPackage.IsDeleted
+                        && b.Status == BookingStatus.Completed
+                        && b.TourPackage.Status == TourPackageStatus.Completed)
+                    .SumAsync(b => b.TotalCost, cancellationToken) ?? 0m;
+
+                var bookingsCount = await _unitOfWork.Bookings
+                    .Query()
+                    .AsNoTracking()
+                    .CountAsync(b => b.TourPackage.CompanyId == companyId && !b.TourPackage.IsDeleted, cancellationToken);
+
+                var now = DateTime.UtcNow;
+                var series = BuildMonthSeries(now, GrowthMonths);
+                var windowStart = new DateTime(series[0].Year, series[0].Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                var windowEnd = windowStart.AddMonths(GrowthMonths);
+
+                var bookingGrowth = await GetBookingGrowthCountsAsync(companyId, windowStart, windowEnd, cancellationToken);
+                var packageGrowth = await GetTourPackageGrowthCountsAsync(companyId, windowStart, windowEnd, cancellationToken);
+
+                var response = new AdminCompanyDashboardResponse
+                {
+                    Company = _mapper.Map<TourCompanyResponse>(company),
+                    BookingsCount = bookingsCount,
+                    TotalTourPackages = packageCounts?.Total ?? 0,
+                    AverageRating = averageRating,
+                    ReviewsCount = packageCounts?.Reviews ?? 0,
+                    TotalRevenue = completedRevenue,
+                    BookingGrowth = BuildGrowthSeries(series, bookingGrowth),
+                    TourPackageGrowth = BuildGrowthSeries(series, packageGrowth)
+                };
+
+                _logger.LogInformation("Successfully retrieved admin company dashboard statistics for company {CompanyId}", companyId);
+                return response;
+            }
+            catch (NotFoundException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.ServerError("retrieving", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
+            }
+        }
+
+        /// <summary>Computes the average of the average rating of each rated tour package.</summary>
+        private async Task<double> GetAverageRatingAsync(int companyId, CancellationToken cancellationToken)
+        {
+            var packageAverages = await _unitOfWork.TourPackages
+                .Query()
+                .AsNoTracking()
+                .Where(p => p.CompanyId == companyId && !p.IsDeleted && p.Rates.Any())
+                .Select(p => p.Rates.Average(r => (double)r.RateValue))
+                .ToListAsync(cancellationToken);
+
+            return packageAverages.Count > 0 ? packageAverages.Average() : 0d;
+        }
+
+        /// <summary>Groups bookings of the company's packages by creation month within the given window.</summary>
+        private async Task<List<(int Year, int Month, int Count)>> GetBookingGrowthCountsAsync(
+            int companyId,
+            DateTime windowStart,
+            DateTime windowEnd,
+            CancellationToken cancellationToken)
+        {
+            var raw = await _unitOfWork.Bookings
+                .Query()
+                .AsNoTracking()
+                .Where(b => b.TourPackage.CompanyId == companyId
+                    && !b.TourPackage.IsDeleted
+                    && b.CreatedAtUtc >= windowStart
+                    && b.CreatedAtUtc < windowEnd)
+                .GroupBy(b => new { b.CreatedAtUtc.Year, b.CreatedAtUtc.Month })
+                .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
+                .ToListAsync(cancellationToken);
+
+            return raw.Select(c => (c.Year, c.Month, c.Count)).ToList();
+        }
+
+        /// <summary>Groups the company's tour packages by creation month within the given window.</summary>
+        private async Task<List<(int Year, int Month, int Count)>> GetTourPackageGrowthCountsAsync(
+            int companyId,
+            DateTime windowStart,
+            DateTime windowEnd,
+            CancellationToken cancellationToken)
+        {
+            var raw = await _unitOfWork.TourPackages
+                .Query()
+                .AsNoTracking()
+                .Where(p => p.CompanyId == companyId
+                    && !p.IsDeleted
+                    && p.CreatedAtUtc >= windowStart
+                    && p.CreatedAtUtc < windowEnd)
+                .GroupBy(p => new { p.CreatedAtUtc.Year, p.CreatedAtUtc.Month })
                 .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
                 .ToListAsync(cancellationToken);
 
