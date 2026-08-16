@@ -195,6 +195,69 @@ namespace Application.Services
             }
         }
 
+        public async Task<AdminCompaniesDashboardResponse> GetCompaniesDashboardAsync(CancellationToken cancellationToken = default)
+        {
+            _logger.LogDebug("Retrieving admin company dashboard statistics");
+
+            try
+            {
+                var companyCounts = await _unitOfWork.TourCompanies
+                    .Query()
+                    .AsNoTracking()
+                    .Where(c => c.User != null && c.User.Role.RoleName == "TourCompany")
+                    .GroupBy(c => 1)
+                    .Select(g => new
+                    {
+                        Active = g.Count(c => c.Status == TourCompanyStatus.Approved && !c.User.IsDeleted),
+                        Deleted = g.Count(c => c.User.IsDeleted),
+                        Pending = g.Count(c => c.Status == TourCompanyStatus.Pending)
+                    })
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                var now = DateTime.UtcNow;
+                var series = BuildMonthSeries(now, GrowthMonths);
+                var windowStart = new DateTime(series[0].Year, series[0].Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                var windowEnd = windowStart.AddMonths(GrowthMonths);
+
+                var growth = await GetTourCompanyGrowthCountsAsync(windowStart, windowEnd, cancellationToken);
+
+                var response = new AdminCompaniesDashboardResponse
+                {
+                    ActiveCompanies = companyCounts?.Active ?? 0,
+                    DeletedCompanies = companyCounts?.Deleted ?? 0,
+                    PendingCompanies = companyCounts?.Pending ?? 0,
+                    CompanyGrowth = BuildGrowthSeries(series, growth)
+                };
+
+                _logger.LogInformation("Successfully retrieved admin company dashboard statistics");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.ServerError("retrieving", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
+            }
+        }
+
+        /// <summary>Groups all companies by creation month within the given window.</summary>
+        private async Task<List<(int Year, int Month, int Count)>> GetTourCompanyGrowthCountsAsync(
+            DateTime windowStart,
+            DateTime windowEnd,
+            CancellationToken cancellationToken)
+        {
+            var raw = await _unitOfWork.TourCompanies
+                .Query()
+                .AsNoTracking()
+                .Where(c => c.User != null && c.User.Role.RoleName == "TourCompany"
+                    && c.CreatedAtUtc >= windowStart
+                    && c.CreatedAtUtc < windowEnd)
+                .GroupBy(c => new { c.CreatedAtUtc.Year, c.CreatedAtUtc.Month })
+                .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
+                .ToListAsync(cancellationToken);
+
+            return raw.Select(c => (c.Year, c.Month, c.Count)).ToList();
+        }
+
         private decimal GetCommissionRate()
         {
             if (decimal.TryParse(

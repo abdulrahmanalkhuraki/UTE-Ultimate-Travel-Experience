@@ -80,5 +80,26 @@ namespace UTE.Controllers
             var dashboard = await _adminService.GetTourPackagesDashboardAsync(cancellationToken);
             return Ok(dashboard);
         }
+
+        /// <summary>
+        /// Retrieves tour company dashboard statistics. Restricted to Admin role.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Tour company statistics for the admin frontend.</returns>
+        /// <response code="200">Returns the tour company dashboard statistics</response>
+        /// <response code="401">If the caller is not authenticated</response>
+        /// <response code="403">If the caller is not an Admin</response>
+        /// <response code="500">If there was an internal server error</response>
+        [HttpGet("dashboard/companies")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(AdminCompaniesDashboardResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<AdminCompaniesDashboardResponse>> GetCompaniesDashboard(CancellationToken cancellationToken = default)
+        {
+            var dashboard = await _adminService.GetCompaniesDashboardAsync(cancellationToken);
+            return Ok(dashboard);
+        }
     }
 }
