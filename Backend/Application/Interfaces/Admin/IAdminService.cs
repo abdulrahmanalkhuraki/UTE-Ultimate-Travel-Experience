@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.Admin.Response;
+using Application.DTOs.Pagination;
 
 namespace Application.Interfaces.Admin
 {
@@ -21,5 +22,9 @@ namespace Application.Interfaces.Admin
 
         /// <summary>Retrieves financial (profit) statistics for the admin dashboard.</summary>
         Task<AdminFinancialDashboardResponse> GetFinancialDashboardAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Retrieves paginated per-company financial statistics for the admin dashboard.</summary>
+        Task<PaginatedResponse<AdminCompanyFinancialResponse>> GetCompaniesFinancialAsync(
+            int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
     }
 }

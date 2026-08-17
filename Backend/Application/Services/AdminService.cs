@@ -1,6 +1,7 @@
 using Application.Common.Constants;
 using Application.Common.Logging;
 using Application.DTOs.Admin.Response;
+using Application.DTOs.Pagination;
 using Application.DTOs.TourCompany.Response;
 using Application.Exceptions;
 using Application.Interfaces.Admin;
@@ -235,6 +236,81 @@ namespace Application.Services
                 };
 
                 _logger.LogInformation("Successfully retrieved admin company dashboard statistics");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.ServerError("retrieving", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
+            }
+        }
+
+        public async Task<PaginatedResponse<AdminCompanyFinancialResponse>> GetCompaniesFinancialAsync(
+            int page, int pageSize, CancellationToken cancellationToken)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 20;
+
+            _logger.LogDebug("Retrieving admin companies financial dashboard statistics");
+
+            try
+            {
+                var commissionRate = GetCommissionRate();
+
+                var query = _unitOfWork.TourCompanies
+                    .Query()
+                    .AsNoTracking()
+                    .Where(c => c.User != null
+                        && !c.User.IsDeleted
+                        && c.User.Role.RoleName == "TourCompany"
+                        && c.Status == TourCompanyStatus.Approved);
+
+                var totalItems = await query.CountAsync(cancellationToken);
+
+                var companies = await query
+                    .OrderBy(c => c.Name)
+                    .ThenBy(c => c.Id)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(c => new
+                    {
+                        c.Id,
+                        c.Name,
+                        c.Location,
+                        c.Logo,
+                        Revenue = c.TourPackages
+                            .SelectMany(p => p.Bookings)
+                            .Where(b => b.Status == BookingStatus.Completed
+                                && b.TourPackage.Status == TourPackageStatus.Completed
+                                && !b.TourPackage.IsDeleted)
+                            .Sum(b => (decimal?)b.TotalCost) ?? 0m
+                    })
+                    .ToListAsync(cancellationToken);
+
+                var items = companies
+                    .Select(c => new AdminCompanyFinancialResponse
+                    {
+                        CompanyId = c.Id,
+                        CompanyName = c.Name,
+                        CompanyLocation = c.Location,
+                        CompanyLogo = c.Logo,
+                        CompanyRevenue = c.Revenue,
+                        OurProfit = c.Revenue * commissionRate
+                    })
+                    .ToList();
+
+                var response = new PaginatedResponse<AdminCompanyFinancialResponse>
+                {
+                    Items = items,
+                    Pagination = new PaginationMetadata
+                    {
+                        Page = page,
+                        PageSize = pageSize,
+                        TotalItems = totalItems
+                    }
+                };
+
+                _logger.LogInformation("Successfully retrieved admin companies financial dashboard statistics");
                 return response;
             }
             catch (Exception ex)

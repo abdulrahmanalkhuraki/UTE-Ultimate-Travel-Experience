@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.Admin.Response;
+using Application.DTOs.Pagination;
 using Application.Interfaces.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -123,6 +124,32 @@ namespace UTE.Controllers
         public async Task<ActionResult<AdminCompanyDashboardResponse>> GetCompanyDashboard(int companyId, CancellationToken cancellationToken = default)
         {
             var dashboard = await _adminService.GetCompanyDashboardAsync(companyId, cancellationToken);
+            return Ok(dashboard);
+        }
+
+        /// <summary>
+        /// Retrieves paginated per-company financial statistics. Restricted to Admin role.
+        /// </summary>
+        /// <param name="page">Page number, starting at 1.</param>
+        /// <param name="pageSize">Number of companies per page.</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Per-company financial statistics for the admin frontend.</returns>
+        /// <response code="200">Returns the per-company financial statistics</response>
+        /// <response code="401">If the caller is not authenticated</response>
+        /// <response code="403">If the caller is not an Admin</response>
+        /// <response code="500">If there was an internal server error</response>
+        [HttpGet("dashboard/companies/financial")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(PaginatedResponse<AdminCompanyFinancialResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PaginatedResponse<AdminCompanyFinancialResponse>>> GetCompaniesFinancial(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken cancellationToken = default)
+        {
+            var dashboard = await _adminService.GetCompaniesFinancialAsync(page, pageSize, cancellationToken);
             return Ok(dashboard);
         }
 
