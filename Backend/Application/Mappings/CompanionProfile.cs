@@ -56,7 +56,7 @@ public class CompanionProfile : Profile
             .ForMember(dest => dest.ProfileImage, opt => opt.MapFrom(s => s.Person.ProfileImage))
             .ForMember(dest => dest.NationalityCountryId, opt => opt.MapFrom(src => src.Person.NationalityCountryId))
             .ForMember(dest => dest.NationalityCountryName, opt => opt.MapFrom((src, _, _, ctx) =>
-                src.Person.NationalityCountry != null
+                src.Person?.NationalityCountry != null && src.Person.NationalityCountry.Translations != null
                     ? Localize.Pick(src.Person.NationalityCountry.Translations, ctx, t => t.Name)
                     : null))
             .ForMember(dest => dest.Relationship, opt => opt.MapFrom(src => src.Relationship.ToString()))

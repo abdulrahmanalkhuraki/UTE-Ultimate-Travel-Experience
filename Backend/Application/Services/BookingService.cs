@@ -217,12 +217,15 @@ namespace Application.Services
             try
             {
                 var entity = await _unitOfWork.Bookings
-                    .Query()
-                    .Include(b => b.TourPackage)
-                    .Include(b => b.Payment)
-                    .Include(b => b.CompanionBookings)
-                        .ThenInclude(cb => cb.Companion)
-                    .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
+                  .Query()
+                  .Include(b => b.TourPackage)
+                  .Include(b => b.Payment)
+                  .Include(b => b.CompanionBookings)
+                      .ThenInclude(cb => cb.Companion)
+                          .ThenInclude(c => c.Person)
+                              .ThenInclude(n => n.NationalityCountry)
+                                  .ThenInclude(t => t.Translations)
+                  .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
 
                 if (entity is null)
                 {
@@ -357,7 +360,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<PaginatedResponse<BookingResponse>> GetUnApprovedAsync(int page, int pageSize, 
+        public async Task<PaginatedResponse<BookingResponse>> GetUnApprovedAsync(int page, int pageSize,
             int? packageId, CancellationToken cancellationToken)
         {
             if (packageId.HasValue && packageId <= 0)
@@ -425,7 +428,7 @@ namespace Application.Services
                                 .ThenInclude(cb => cb.Companion)
                                     .ThenInclude(c => c.Person)
                             .OrderByDescending(b => b.BookingDate)
-                            .Skip((page - 1)  * pageSize)
+                            .Skip((page - 1) * pageSize)
                             .Take(pageSize)
                             .ToListAsync(cancellationToken);
 
