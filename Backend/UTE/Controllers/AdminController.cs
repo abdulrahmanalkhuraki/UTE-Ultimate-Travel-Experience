@@ -125,5 +125,26 @@ namespace UTE.Controllers
             var dashboard = await _adminService.GetCompanyDashboardAsync(companyId, cancellationToken);
             return Ok(dashboard);
         }
+
+        /// <summary>
+        /// Retrieves financial (profit) dashboard statistics. Restricted to Admin role.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Financial statistics for the admin frontend.</returns>
+        /// <response code="200">Returns the financial dashboard statistics</response>
+        /// <response code="401">If the caller is not authenticated</response>
+        /// <response code="403">If the caller is not an Admin</response>
+        /// <response code="500">If there was an internal server error</response>
+        [HttpGet("dashboard/financial")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(AdminFinancialDashboardResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<AdminFinancialDashboardResponse>> GetFinancialDashboard(CancellationToken cancellationToken = default)
+        {
+            var dashboard = await _adminService.GetFinancialDashboardAsync(cancellationToken);
+            return Ok(dashboard);
+        }
     }
 }

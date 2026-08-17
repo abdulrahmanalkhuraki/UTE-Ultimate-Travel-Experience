@@ -263,6 +263,46 @@ namespace Application.Services
             return raw.Select(c => (c.Year, c.Month, c.Count)).ToList();
         }
 
+        public async Task<AdminFinancialDashboardResponse> GetFinancialDashboardAsync(CancellationToken cancellationToken = default)
+        {
+            _logger.LogDebug("Retrieving admin financial dashboard statistics");
+
+            try
+            {
+                var commissionRate = GetCommissionRate();
+
+                var totalProfit = (await _unitOfWork.Bookings
+                    .Query()
+                    .AsNoTracking()
+                    .Where(b => b.Status == BookingStatus.Completed
+                        && b.TourPackage.Status == TourPackageStatus.Completed
+                        && !b.TourPackage.IsDeleted)
+                    .SumAsync(b => b.TotalCost, cancellationToken) ?? 0m) * commissionRate;
+
+                var now = DateTime.UtcNow;
+                var series = BuildMonthSeries(now, GrowthMonths);
+                var windowStart = new DateTime(series[0].Year, series[0].Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                var windowEnd = windowStart.AddMonths(GrowthMonths);
+
+                var monthlyProfit = await GetMonthlyProfitAsync(windowStart, windowEnd, commissionRate, cancellationToken);
+
+                var response = new AdminFinancialDashboardResponse
+                {
+                    TotalProfit = totalProfit,
+                    CommissionRate = commissionRate,
+                    ProfitGrowth = BuildProfitSeries(series, monthlyProfit)
+                };
+
+                _logger.LogInformation("Successfully retrieved admin financial dashboard statistics");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.ServerError("retrieving", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
+            }
+        }
+
         public async Task<AdminCompanyDashboardResponse> GetCompanyDashboardAsync(int companyId, CancellationToken cancellationToken = default)
         {
             if (companyId <= 0)
@@ -401,6 +441,31 @@ namespace Application.Services
             return raw.Select(c => (c.Year, c.Month, c.Count)).ToList();
         }
 
+        /// <summary>Groups tour package bookings by the package's end month within the given window and applies the commission rate.</summary>
+        private async Task<List<(int Year, int Month, decimal Profit)>> GetMonthlyProfitAsync(
+            DateTime windowStart,
+            DateTime windowEnd,
+            decimal commissionRate,
+            CancellationToken cancellationToken)
+        {
+            var from = DateOnly.FromDateTime(windowStart);
+            var to = DateOnly.FromDateTime(windowEnd);
+
+            var raw = await _unitOfWork.Bookings
+                .Query()
+                .AsNoTracking()
+                .Where(b => b.Status == BookingStatus.Completed
+                    && b.TourPackage.Status == TourPackageStatus.Completed
+                    && !b.TourPackage.IsDeleted
+                    && b.TourPackage.EndDate >= from
+                    && b.TourPackage.EndDate < to)
+                .GroupBy(b => new { b.TourPackage.EndDate.Year, b.TourPackage.EndDate.Month })
+                .Select(g => new { g.Key.Year, g.Key.Month, Profit = g.Sum(b => b.TotalCost) })
+                .ToListAsync(cancellationToken);
+
+            return raw.Select(c => (c.Year, c.Month, (c.Profit ?? 0m) * commissionRate)).ToList();
+        }
+
         private decimal GetCommissionRate()
         {
             if (decimal.TryParse(
@@ -440,6 +505,22 @@ namespace Application.Services
                 {
                     Month = $"{s.Year:D4}-{s.Month:D2}",
                     Count = lookup.GetValueOrDefault((s.Year, s.Month), 0)
+                })
+                .ToList();
+        }
+
+        /// <summary>Merges the raw monthly profits into the full series, zero-filling missing months.</summary>
+        private static List<MonthlyProfit> BuildProfitSeries(
+            IReadOnlyList<(int Year, int Month)> series,
+            IEnumerable<(int Year, int Month, decimal Profit)> profits)
+        {
+            var lookup = profits.ToDictionary(p => (p.Year, p.Month), p => p.Profit);
+
+            return series
+                .Select(s => new MonthlyProfit
+                {
+                    Month = $"{s.Year:D4}-{s.Month:D2}",
+                    Profit = lookup.GetValueOrDefault((s.Year, s.Month), 0m)
                 })
                 .ToList();
         }

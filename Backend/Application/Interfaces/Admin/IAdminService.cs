@@ -18,5 +18,8 @@ namespace Application.Interfaces.Admin
 
         /// <summary>Retrieves statistics for a single tour company for the admin dashboard.</summary>
         Task<AdminCompanyDashboardResponse> GetCompanyDashboardAsync(int companyId, CancellationToken cancellationToken = default);
+
+        /// <summary>Retrieves financial (profit) statistics for the admin dashboard.</summary>
+        Task<AdminFinancialDashboardResponse> GetFinancialDashboardAsync(CancellationToken cancellationToken = default);
     }
 }
