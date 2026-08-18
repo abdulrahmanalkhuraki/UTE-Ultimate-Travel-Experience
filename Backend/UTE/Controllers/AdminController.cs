@@ -154,6 +154,36 @@ namespace UTE.Controllers
         }
 
         /// <summary>
+        /// Retrieves paginated financial statistics for a company's completed tour packages. Restricted to Admin role.
+        /// </summary>
+        /// <param name="companyId">Identifier of the tour company.</param>
+        /// <param name="page">Page number, starting at 1.</param>
+        /// <param name="pageSize">Number of tour packages per page.</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Per-tour-package financial statistics for the admin frontend.</returns>
+        /// <response code="200">Returns the per-tour-package financial statistics</response>
+        /// <response code="401">If the caller is not authenticated</response>
+        /// <response code="403">If the caller is not an Admin</response>
+        /// <response code="404">If the tour company does not exist</response>
+        /// <response code="500">If there was an internal server error</response>
+        [HttpGet("dashboard/companies/{companyId:int}/tour-packages/financial")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(PaginatedResponse<AdminTourPackageFinancialResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PaginatedResponse<AdminTourPackageFinancialResponse>>> GetCompanyTourPackagesFinancial(
+            int companyId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken cancellationToken = default)
+        {
+            var dashboard = await _adminService.GetCompanyTourPackagesFinancialAsync(companyId, page, pageSize, cancellationToken);
+            return Ok(dashboard);
+        }
+
+        /// <summary>
         /// Retrieves financial (profit) dashboard statistics. Restricted to Admin role.
         /// </summary>
         /// <param name="cancellationToken">Cancellation token</param>

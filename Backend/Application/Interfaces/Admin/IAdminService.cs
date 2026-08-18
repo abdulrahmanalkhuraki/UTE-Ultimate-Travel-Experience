@@ -26,5 +26,9 @@ namespace Application.Interfaces.Admin
         /// <summary>Retrieves paginated per-company financial statistics for the admin dashboard.</summary>
         Task<PaginatedResponse<AdminCompanyFinancialResponse>> GetCompaniesFinancialAsync(
             int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
+
+        /// <summary>Retrieves paginated financial statistics for a company's completed tour packages for the admin dashboard.</summary>
+        Task<PaginatedResponse<AdminTourPackageFinancialResponse>> GetCompanyTourPackagesFinancialAsync(
+            int companyId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
     }
 }

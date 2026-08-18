@@ -17,8 +17,8 @@ public sealed record AdminCompanyFinancialResponse
     /// <summary>Logo URL of the tour company.</summary>
     public string? CompanyLogo { get; init; }
 
-    /// <summary>Sum of TotalCost from eligible completed bookings on the company's tour packages.</summary>
-    public decimal CompanyRevenue { get; init; }
+    /// <summary>Company earnings after the platform commission: revenue × (1 − commission rate).</summary>
+    public decimal CompanyEarnings { get; init; }
 
     /// <summary>Platform profit: company revenue multiplied by the commission rate.</summary>
     public decimal OurProfit { get; init; }

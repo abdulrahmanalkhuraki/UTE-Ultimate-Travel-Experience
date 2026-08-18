@@ -3,9 +3,11 @@ using Application.Common.Logging;
 using Application.DTOs.Admin.Response;
 using Application.DTOs.Pagination;
 using Application.DTOs.TourCompany.Response;
+using Application.DTOs.TourPackage.Response;
 using Application.Exceptions;
 using Application.Interfaces.Admin;
 using Application.Interfaces.Localization;
+using Domain.Common;
 using Domain.Enums;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -294,7 +296,7 @@ namespace Application.Services
                         CompanyName = c.Name,
                         CompanyLocation = c.Location,
                         CompanyLogo = c.Logo,
-                        CompanyRevenue = c.Revenue,
+                        CompanyEarnings = c.Revenue * (1 - commissionRate),
                         OurProfit = c.Revenue * commissionRate
                     })
                     .ToList();
@@ -312,6 +314,113 @@ namespace Application.Services
 
                 _logger.LogInformation("Successfully retrieved admin companies financial dashboard statistics");
                 return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.ServerError("retrieving", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
+            }
+        }
+
+        public async Task<PaginatedResponse<AdminTourPackageFinancialResponse>> GetCompanyTourPackagesFinancialAsync(
+            int companyId, int page, int pageSize, CancellationToken cancellationToken)
+        {
+            if (companyId <= 0)
+                throw new ArgumentException("Invalid tour company ID", nameof(companyId));
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 20;
+
+            _logger.LogDebug("Retrieving admin company tour packages financial statistics for company {CompanyId}", companyId);
+
+            try
+            {
+                var commissionRate = GetCommissionRate();
+
+                var companyExists = await _unitOfWork.TourCompanies
+                    .Query()
+                    .AsNoTracking()
+                    .AnyAsync(c => c.Id == companyId, cancellationToken);
+
+                if (!companyExists)
+                {
+                    _logger.LogDebug("Tour company with ID {CompanyId} not found", companyId);
+                    throw new NotFoundException($"Tour company with ID {companyId} not found");
+                }
+
+                var query = _unitOfWork.TourPackages
+                    .Query()
+                    .AsNoTracking()
+                    .Where(p => p.CompanyId == companyId
+                        && p.Status == TourPackageStatus.Completed
+                        && !p.IsDeleted);
+
+                var totalItems = await query.CountAsync(cancellationToken);
+
+                var packages = await query
+                    .OrderByDescending(p => p.EndDate)
+                    .ThenBy(p => p.Id)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new
+                    {
+                        p.Id,
+                        p.Translations,
+                        PackageImage = p.Media
+                            .Where(m => m.MediaType == MediaType.Image)
+                            .OrderBy(m => m.DisplayOrder)
+                            .Select(m => m.MediaUrl)
+                            .FirstOrDefault(),
+                        Cities = p.PackageAttractions
+                            .Select(pa => pa.Attraction.City)
+                            .Select(c => new { c.Id, c.Translations }),
+                        CompletedBookingsCount = p.Bookings.Count(b => b.Status == BookingStatus.Completed),
+                        AveragePrice = p.Bookings
+                            .Where(b => b.Status == BookingStatus.Completed)
+                            .Average(b => (decimal?)b.TotalCost) ?? 0m,
+                        Revenue = p.Bookings
+                            .Where(b => b.Status == BookingStatus.Completed)
+                            .Sum(b => (decimal?)b.TotalCost) ?? 0m
+                    })
+                    .ToListAsync(cancellationToken);
+
+                var items = packages
+                    .Select(p => new AdminTourPackageFinancialResponse
+                    {
+                        TourPackageId = p.Id,
+                        PackageName = TranslationLookup.Default(p.Translations, t => t.PackageName, "Unknown package") ?? string.Empty,
+                        PackageImage = p.PackageImage,
+                        PackageCities = p.Cities
+                            .DistinctBy(c => c.Id)
+                            .Select(c => new PackageCityResponse
+                            {
+                                CityId = c.Id,
+                                CityName = TranslationLookup.Default(c.Translations, t => t.Name, string.Empty) ?? string.Empty
+                            })
+                            .ToList(),
+                        CompletedBookingsCount = p.CompletedBookingsCount,
+                        AveragePrice = p.AveragePrice,
+                        CompanyEarnings = p.Revenue * (1 - commissionRate),
+                        OurProfit = p.Revenue * commissionRate
+                    })
+                    .ToList();
+
+                var response = new PaginatedResponse<AdminTourPackageFinancialResponse>
+                {
+                    Items = items,
+                    Pagination = new PaginationMetadata
+                    {
+                        Page = page,
+                        PageSize = pageSize,
+                        TotalItems = totalItems
+                    }
+                };
+
+                _logger.LogInformation("Successfully retrieved admin company tour packages financial statistics for company {CompanyId}", companyId);
+                return response;
+            }
+            catch (NotFoundException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
