@@ -75,6 +75,21 @@ namespace Application.Mappings
                     string.IsNullOrWhiteSpace(src.Lastname) ? null : src.Lastname.Trim()))
                 .ForMember(dest => dest.Phone, opt => opt.MapFrom(src =>
                     string.IsNullOrWhiteSpace(src.Phone) ? null : src.Phone.Trim()))
+                .ForMember(dest => dest.NationalityCountryId, opt =>
+                {
+                    opt.PreCondition(src => src.NationalityCountryId.HasValue);
+                    opt.MapFrom(src => src.NationalityCountryId!.Value);
+                })
+                .ForMember(dest => dest.ResidentialCityId, opt =>
+                {
+                    opt.PreCondition(src => src.ResidentialCityId.HasValue);
+                    opt.MapFrom(src => src.ResidentialCityId!.Value);
+                })
+                .ForMember(dest => dest.DateOfBirth, opt =>
+                {
+                    opt.PreCondition(src => src.DateOfBirth.HasValue);
+                    opt.MapFrom(src => src.DateOfBirth!.Value);
+                })
                 .ForMember(dest => dest.NationalIdCard, opt => opt.Ignore())
                 .ForMember(dest => dest.PassportScan, opt => opt.Ignore())
                 .ForMember(dest => dest.ProfileImage, opt => opt.Ignore())

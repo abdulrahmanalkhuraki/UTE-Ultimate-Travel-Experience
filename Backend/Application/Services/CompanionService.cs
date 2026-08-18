@@ -237,7 +237,7 @@ namespace Application.Services
 
                 InvalidateBookingCache(id);
 
-                return await BuildResponseFromEntity(entity, cancellationToken);
+                return await BuildResponseAsync(id, cancellationToken);
             }
             catch (Exception ex) when (ex is not ValidationException and not NotFoundException and not ForbiddenException)
             {
@@ -308,6 +308,8 @@ namespace Application.Services
 
             if (request.NationalityCountryId.HasValue)
                 entity.Person.NationalityCountryId = request.NationalityCountryId.Value;
+            if (request.ResidentialCityId.HasValue)
+                entity.Person.ResidentialCityId = request.ResidentialCityId.Value;
             if (request.Relationship.HasValue)
                 entity.Relationship = request.Relationship.Value;
 
