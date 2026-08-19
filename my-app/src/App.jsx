@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 
 // استدعاء واجهات النظام الداخلي
+import Login from './login';
+import { hasSession, getStoredUser } from './utils/auth';
 import Home from './home';
 //import Users from './users';س
 //import Companies from './companies';
@@ -24,6 +26,19 @@ import Users from './users'; // يمكنك إزالة التعليق لاحقا�
 
 export default function App() {
   const [activeMenu, setActiveMenu] = useState('Home');
+  const [isAuthenticated, setIsAuthenticated] = useState(hasSession);
+  const [currentUser, setCurrentUser] = useState(getStoredUser);
+
+  if (!isAuthenticated) {
+    return (
+      <Login
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          setIsAuthenticated(true);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#121212] text-white font-sans flex overflow-hidden">
@@ -109,9 +124,9 @@ export default function App() {
                   
                 
             >
-              <img src="https://i.pravatar.cc/150?img=11" alt="Admin" className="w-full h-full object-cover" />
+              <img src={currentUser?.image || "https://i.pravatar.cc/150?img=11"} alt="Admin" className="w-full h-full object-cover" />
               <h2 className="text-2xl font-semibold">
-              admins name
+              {currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'admins name'}
             </h2>
             </button>
           </div>

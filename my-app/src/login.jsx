@@ -58,7 +58,31 @@
 // }
 
 
-export default function Login() {
+import { useState } from 'react';
+import { login } from './services/authApi';
+import { saveSession } from './utils/auth';
+
+export default function Login({ onLoginSuccess }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const data = await login(email, password);
+      saveSession(data);
+      onLoginSuccess?.(data);
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0f1117] p-4 font-sans">
       {/* Main Card */}
@@ -71,22 +95,37 @@ export default function Login() {
             <p className="text-slate-400">Welcome back to UTE Tourism Admin Dashboard</p>
           </div>
 
-          <form className="space-y-4">
-            <input 
-              type="email" 
-              placeholder="Email Address" 
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl p-3">
+                {error}
+              </div>
+            )}
+            <input
+              type="email"
+              placeholder="Email Address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
               className="w-full bg-[#0f1117] border border-[#2d303e] text-white p-4 rounded-xl focus:outline-none focus:border-[#91B3FA] transition"
             />
-            <input 
-              type="password" 
-              placeholder="Password" 
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
               className="w-full bg-[#0f1117] border border-[#2d303e] text-white p-4 rounded-xl focus:outline-none focus:border-[#91B3FA] transition"
             />
             <div className="text-right">
               <a href="#" className="text-[#F4A261] text-sm hover:underline">Forgot password?</a>
             </div>
-            <button className="w-full bg-[#F4A261] hover:bg-[#e09258] text-white font-bold p-4 rounded-xl transition flex items-center justify-center gap-2">
-              Sign In <span>→</span>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-[#F4A261] hover:bg-[#e09258] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold p-4 rounded-xl transition flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? 'Signing In...' : (<>Sign In <span>→</span></>)}
             </button>
           </form>
 

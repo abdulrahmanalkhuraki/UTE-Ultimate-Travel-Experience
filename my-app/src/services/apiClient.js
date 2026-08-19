@@ -22,7 +22,16 @@ async function request(path, { params, ...options } = {}) {
   });
 
   if (!res.ok) {
-    throw new Error(`API ${res.status}: ${res.statusText} (${path})`);
+    let message = `API ${res.status}: ${res.statusText} (${path})`;
+    try {
+      const data = await res.clone().json();
+      if (typeof data === 'string' && data) message = data;
+      else if (data?.message) message = data.message;
+      else if (data?.title) message = data.title;
+    } catch {
+      // ما في جسم JSON بالرد، منستخدم الرسالة الافتراضية
+    }
+    throw new Error(message);
   }
 
   return res.json();
@@ -30,4 +39,8 @@ async function request(path, { params, ...options } = {}) {
 
 export function apiGet(path, params) {
   return request(path, { method: 'GET', params });
+}
+
+export function apiPost(path, body) {
+  return request(path, { method: 'POST', body: JSON.stringify(body) });
 }
