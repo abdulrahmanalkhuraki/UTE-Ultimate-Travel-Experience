@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-
 namespace Application.DTOs.User.Response
 {
     public class UserResponse
@@ -25,9 +18,15 @@ namespace Application.DTOs.User.Response
 
         public string? Gender { get; set; }
 
-        public string? PlaceOfResidence { get; set; }
+        public LocationResponse? CurrentLocation { get; set; }
 
-        public string? CurrentLocation { get; set; }
+        public int? NationalityCountryId { get; set; }
+
+        public string? NationalityCountryName { get; set; }
+
+        public int? ResidentialCityId { get; set; }
+
+        public string? ResidentialCityName { get; set; }
 
         public string? NationalNumber { get; set; }
 

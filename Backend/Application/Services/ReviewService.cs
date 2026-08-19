@@ -97,7 +97,11 @@ namespace Application.Services
             {
                 IQueryable<Review> query = _unitOfWork.Reviews
                     .Query()
-                    .Include(r => r.User)
+                    .Include(r => r.User).ThenInclude(u => u.Person)
+                        .ThenInclude(p => p.NationalityCountry).ThenInclude(n => n.Translations)
+                    .Include(r => r.User).ThenInclude(u => u.Person)
+                        .ThenInclude(p => p.ResidentialCity).ThenInclude(c => c.Translations)
+                    .Include(r => r.User).ThenInclude(u => u.Role)
                     .Include(r => r.Package);
 
                 if (userId.HasValue)

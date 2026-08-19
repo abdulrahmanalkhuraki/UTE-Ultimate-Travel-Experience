@@ -1,4 +1,5 @@
-﻿using Domain.Enums;
+﻿using Application.Common;
+using Domain.Enums;
 
 namespace Application.DTOs.Payment.Response
 {
@@ -7,6 +8,8 @@ namespace Application.DTOs.Payment.Response
         public decimal Amount { get; set; }
 
         public PaymentStatus PaymentStatus { get; set; }
+
+        public string StatusLabel => PaymentStatus.Humanize();
 
         public DateTime PaymentDate { get; set; }
     }

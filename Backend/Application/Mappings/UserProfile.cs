@@ -19,17 +19,23 @@ namespace Application.Mappings
                 .ForMember(dest => dest.Image, opt => opt.MapFrom(src => src.Person != null ? src.Person.ProfileImage : null))
                 .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.Person != null ? src.Person.DateOfBirth : (DateOnly?)null))
                 .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Person != null ? src.Person.Gender : null))
-                .ForMember(dest => dest.PlaceOfResidence, opt => opt.MapFrom((src, _, _, ctx) =>
-                    src.Person != null && src.Person.ResidentialCity != null
-                        ? Localize.Pick(src.Person.ResidentialCity.Translations, ctx, t => t.Name)
+                .ForMember(dest => dest.CurrentLocation, opt => opt.MapFrom(src =>
+                    src.Latitude.HasValue && src.Longitude.HasValue
+                        ? new LocationResponse { Longitude = src.Longitude, Latitude = src.Latitude }
                         : null))
                 .ForMember(dest => dest.NationalNumber, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalNumber : null))
                 .ForMember(dest => dest.NationalIdImage, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalIdCard : null))
                 .ForMember(dest => dest.PassportNumber, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportNumber : null))
                 .ForMember(dest => dest.PassportImage, opt => opt.MapFrom(src => src.Person != null ? src.Person.PassportScan : null))
-                .ForMember(dest => dest.CurrentLocation, opt => opt.MapFrom(src =>
-                    src.Latitude.HasValue && src.Longitude.HasValue
-                        ? $"{src.Latitude.Value:F6}, {src.Longitude.Value:F6}"
+                .ForMember(dest => dest.NationalityCountryId, opt => opt.MapFrom(src => src.Person != null ? src.Person.NationalityCountryId : (int?)null))
+                .ForMember(dest => dest.NationalityCountryName, opt => opt.MapFrom((src, _, _, ctx) =>
+                    src.Person != null && src.Person.NationalityCountry != null
+                        ? Localize.Pick(src.Person.NationalityCountry.Translations, ctx, t => t.Name)
+                        : null))
+                .ForMember(dest => dest.ResidentialCityId, opt => opt.MapFrom(src => src.Person != null ? src.Person.ResidentialCityId : (int?)null))
+                .ForMember(dest => dest.ResidentialCityName, opt => opt.MapFrom((src, _, _, ctx) =>
+                    src.Person != null && src.Person.ResidentialCity != null
+                        ? Localize.Pick(src.Person.ResidentialCity.Translations, ctx, t => t.Name)
                         : null));
         }
     }

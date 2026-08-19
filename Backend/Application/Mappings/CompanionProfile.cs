@@ -60,7 +60,7 @@ public class CompanionProfile : Profile
                     ? Localize.Pick(src.Person.NationalityCountry.Translations, ctx, t => t.Name)
                     : null))
             .ForMember(dest => dest.Relationship, opt => opt.MapFrom(src => src.Relationship.ToString()))
-            .ForMember(dest => dest.RegistrationDate, opt => opt.Ignore())
+            .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => src.Person != null ? DateOnly.FromDateTime(src.Person.CreatedAtUtc) : DateOnly.MinValue))
             .ForMember(dest => dest.JoinedPackagesCount, opt => opt.Ignore())
             .ForMember(dest => dest.TotalAmountSpent, opt => opt.Ignore())
             .ForMember(dest => dest.LastTourPackage, opt => opt.Ignore());

@@ -89,6 +89,14 @@ namespace Application.Services
             {
                 var package = await _unitOfWork.TourPackages
                     .Query()
+                    .Include(p => p.Translations)
+                    .Include(p => p.Country).ThenInclude(c => c.Translations)
+                    .Include(p => p.Company)
+                    .Include(p => p.PackageAttractions).ThenInclude(pa => pa.Attraction)
+                        .ThenInclude(a => a.City).ThenInclude(c => c.Translations)
+                    .Include(p => p.PackageItineraries).ThenInclude(d => d.Translations)
+                    .Include(p => p.PackageItineraries).ThenInclude(d => d.Activities)
+                        .ThenInclude(a => a.Translations)
                     .FirstOrDefaultAsync(x => x.Id == request.PackageId, cancellationToken);
 
                 // check if package exists
@@ -102,7 +110,10 @@ namespace Application.Services
                 var existingCompanions = await _unitOfWork.Companions
                     .Query()
                     .Where(c => companionIds.Contains(c.Id))
-                    .Include(c => c.Person)
+                    .Include(c => c.Person).ThenInclude(p => p.NationalityCountry)
+                        .ThenInclude(n => n.Translations)
+                    .Include(c => c.Person).ThenInclude(p => p.ResidentialCity)
+                        .ThenInclude(c => c.Translations)
                     .ToListAsync(cancellationToken);
 
                 var adultCompanions = existingCompanions.Count(c => c.Person.Age >= 6);
@@ -151,7 +162,11 @@ namespace Application.Services
                 await _unitOfWork.CommitTransactionAsync(cancellationToken);
                 transactionStarted = false;
 
-                var response = _mapper.Map<BookingResponse>(booking);
+                var createdBooking = await QueryWithGraph()
+                    .FirstOrDefaultAsync(b => b.Id == booking.Id, cancellationToken)
+                    ?? throw new NotFoundException(ExceptionMessages.NotFound(ObjectName, booking.Id));
+
+                var response = _mapper.Map<BookingResponse>(createdBooking);
 
                 _logger.SuccessfulOperation(userId, "Create", ObjectName, booking.Id);
 
@@ -216,16 +231,8 @@ namespace Application.Services
 
             try
             {
-                var entity = await _unitOfWork.Bookings
-                  .Query()
-                  .Include(b => b.TourPackage)
-                  .Include(b => b.Payment)
-                  .Include(b => b.CompanionBookings)
-                      .ThenInclude(cb => cb.Companion)
-                          .ThenInclude(c => c.Person)
-                              .ThenInclude(n => n.NationalityCountry)
-                                  .ThenInclude(t => t.Translations)
-                  .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
+                var entity = await QueryWithGraph()
+                    .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
 
                 if (entity is null)
                 {
@@ -421,6 +428,12 @@ namespace Application.Services
                             .Include(b => b.TourPackage)
                             .Include(b => b.User)
                                 .ThenInclude(u => u.Person)
+                                    .ThenInclude(p => p.NationalityCountry)
+                                        .ThenInclude(n => n.Translations)
+                            .Include(b => b.User)
+                                .ThenInclude(u => u.Person)
+                                    .ThenInclude(p => p.ResidentialCity)
+                                        .ThenInclude(c => c.Translations)
                             .Include(b => b.User)
                                 .ThenInclude(u => u.Role)
                             .Include(b => b.Payment)
@@ -482,6 +495,12 @@ namespace Application.Services
                             .Include(b => b.TourPackage)
                             .Include(b => b.User)
                                 .ThenInclude(u => u.Person)
+                                    .ThenInclude(p => p.NationalityCountry)
+                                        .ThenInclude(n => n.Translations)
+                            .Include(b => b.User)
+                                .ThenInclude(u => u.Person)
+                                    .ThenInclude(p => p.ResidentialCity)
+                                        .ThenInclude(c => c.Translations)
                             .Include(b => b.User)
                                 .ThenInclude(u => u.Role)
                             .Include(b => b.Payment)
@@ -700,6 +719,13 @@ namespace Application.Services
                                 .ThenInclude(b => b.Company)
                             .Include(b => b.Payment)
                             .Include(b => b.User)
+                                .ThenInclude(u => u.Person)
+                                    .ThenInclude(p => p.NationalityCountry)
+                                        .ThenInclude(n => n.Translations)
+                            .Include(b => b.User)
+                                .ThenInclude(u => u.Person)
+                                    .ThenInclude(p => p.ResidentialCity)
+                                        .ThenInclude(c => c.Translations)
                             .Include(b => b.CompanionBookings)
                                 .ThenInclude(cb => cb.Companion)
                             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
@@ -769,6 +795,13 @@ namespace Application.Services
                             .Include(b => b.TourPackage)
                                 .ThenInclude(b => b.Company)
                             .Include(b => b.User)
+                                .ThenInclude(u => u.Person)
+                                    .ThenInclude(p => p.NationalityCountry)
+                                        .ThenInclude(n => n.Translations)
+                            .Include(b => b.User)
+                                .ThenInclude(u => u.Person)
+                                    .ThenInclude(p => p.ResidentialCity)
+                                        .ThenInclude(c => c.Translations)
                             .Include(b => b.Payment)
                             .Include(b => b.CompanionBookings)
                                 .ThenInclude(cb => cb.Companion)
@@ -986,6 +1019,39 @@ namespace Application.Services
 
 
         #region Helpers
+
+        private IQueryable<Booking> QueryWithGraph() =>
+            _unitOfWork.Bookings
+                .Query()
+                .AsNoTracking()
+                .AsSplitQuery()
+                .Include(b => b.User).ThenInclude(u => u.Person)
+                    .ThenInclude(p => p.NationalityCountry).ThenInclude(n => n.Translations)
+                .Include(b => b.User).ThenInclude(u => u.Person)
+                    .ThenInclude(p => p.ResidentialCity).ThenInclude(c => c.Translations)
+                .Include(b => b.User).ThenInclude(u => u.Role)
+                .Include(b => b.Payment)
+                .Include(b => b.TourPackage).ThenInclude(p => p.Translations)
+                .Include(b => b.TourPackage).ThenInclude(p => p.CabinClasses)
+                .Include(b => b.TourPackage).ThenInclude(p => p.Media)
+                .Include(b => b.TourPackage).ThenInclude(p => p.TourPackageGuides)
+                .ThenInclude(tg => tg.TouristGuide).ThenInclude(tg => tg.Person)
+                .Include(b => b.TourPackage).ThenInclude(p => p.Country)
+                    .ThenInclude(c => c.Translations)
+                .Include(b => b.TourPackage).ThenInclude(p => p.Company)
+                .Include(b => b.TourPackage).ThenInclude(p => p.PackageAttractions)
+                    .ThenInclude(pa => pa.Attraction).ThenInclude(a => a.City)
+                        .ThenInclude(c => c.Translations)
+                .Include(b => b.TourPackage).ThenInclude(p => p.PackageItineraries)
+                    .ThenInclude(d => d.Translations)
+                .Include(b => b.TourPackage).ThenInclude(p => p.PackageItineraries)
+                    .ThenInclude(d => d.Activities).ThenInclude(a => a.Translations)
+                .Include(b => b.CompanionBookings).ThenInclude(cb => cb.Companion)
+                    .ThenInclude(c => c.Person).ThenInclude(p => p.NationalityCountry)
+                        .ThenInclude(n => n.Translations)
+                .Include(b => b.CompanionBookings).ThenInclude(cb => cb.Companion)
+                    .ThenInclude(c => c.Person).ThenInclude(p => p.ResidentialCity)
+                        .ThenInclude(c => c.Translations);
 
         private static bool Conflict(
             DateOnly firstBookingStartDate,

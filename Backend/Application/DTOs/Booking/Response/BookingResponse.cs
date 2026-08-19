@@ -1,4 +1,5 @@
-﻿using Application.DTOs.Companion.Response;
+﻿using Application.Common;
+using Application.DTOs.Companion.Response;
 using Application.DTOs.Payment.Response;
 using Application.DTOs.TourPackage.Response;
 using Application.DTOs.User.Response;
@@ -34,6 +35,8 @@ namespace Application.DTOs.Booking.Response
         public int TourPackageId { get; set; }
 
         public BookingStatus Status { get; set; }
+
+        public string StatusLabel => Status.Humanize();
 
         public FlightCabinClass FlightCabinClass { get; set; }
 

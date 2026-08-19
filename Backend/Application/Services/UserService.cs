@@ -91,7 +91,10 @@ namespace Application.Services
                 var user = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Role)
-                    .Include(u => u.Person)
+                    .Include(u => u.Person).ThenInclude(p => p.NationalityCountry)
+                        .ThenInclude(n => n.Translations)
+                    .Include(u => u.Person).ThenInclude(p => p.ResidentialCity)
+                        .ThenInclude(c => c.Translations)
                     .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
 
                 if (user == null)
@@ -160,6 +163,13 @@ namespace Application.Services
 
                 _unitOfWork.Users.Update(user);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                person.NationalityCountry = await _unitOfWork.Countries.Query()
+                    .Include(c => c.Translations)
+                    .FirstAsync(c => c.Id == person.NationalityCountryId, cancellationToken);
+                person.ResidentialCity = await _unitOfWork.Cities.Query()
+                    .Include(c => c.Translations)
+                    .FirstAsync(c => c.Id == person.ResidentialCityId, cancellationToken);
 
                 InvalidateUserCache(userId);
 
@@ -231,7 +241,10 @@ namespace Application.Services
                 var user = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Role)
-                    .Include(u => u.Person)
+                    .Include(u => u.Person).ThenInclude(p => p.NationalityCountry)
+                        .ThenInclude(n => n.Translations)
+                    .Include(u => u.Person).ThenInclude(p => p.ResidentialCity)
+                        .ThenInclude(c => c.Translations)
                     .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
 
                 if (user == null)
@@ -503,7 +516,10 @@ namespace Application.Services
                     .Query()
                     .IgnoreQueryFilters()
                     .Include(u => u.Role)
-                    .Include(u => u.Person)
+                    .Include(u => u.Person).ThenInclude(p => p.NationalityCountry)
+                        .ThenInclude(n => n.Translations)
+                    .Include(u => u.Person).ThenInclude(p => p.ResidentialCity)
+                        .ThenInclude(c => c.Translations)
                     .Where(u => u.Id == id && !u.IsDeleted)
                     .FirstOrDefaultAsync(cancellationToken);
 
@@ -555,7 +571,10 @@ namespace Application.Services
                 var entities = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Role)
-                    .Include(u => u.Person)
+                    .Include(u => u.Person).ThenInclude(p => p.NationalityCountry)
+                        .ThenInclude(n => n.Translations)
+                    .Include(u => u.Person).ThenInclude(p => p.ResidentialCity)
+                        .ThenInclude(c => c.Translations)
                     .Where(u => !u.IsDeleted)
                     .OrderBy(u => u.Person != null ? u.Person.FirstName : string.Empty)
                     .ThenBy(u => u.Person != null ? u.Person.LastName : string.Empty)
@@ -600,7 +619,10 @@ namespace Application.Services
                 var query = _unitOfWork.Users.Query()
                     .Where(u => !u.IsDeleted)
                     .Include(u => u.Role)
-                    .Include(u => u.Person)
+                    .Include(u => u.Person).ThenInclude(p => p.NationalityCountry)
+                        .ThenInclude(n => n.Translations)
+                    .Include(u => u.Person).ThenInclude(p => p.ResidentialCity)
+                        .ThenInclude(c => c.Translations)
                     .AsQueryable();
 
                 Role? role;
@@ -685,8 +707,10 @@ namespace Application.Services
                 var user = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Role)
-                    .Include(u => u.Person)
-                         .ThenInclude(p => p.ResidentialCity)
+                    .Include(u => u.Person).ThenInclude(p => p.NationalityCountry)
+                        .ThenInclude(n => n.Translations)
+                    .Include(u => u.Person).ThenInclude(p => p.ResidentialCity)
+                        .ThenInclude(c => c.Translations)
                     .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
 
                 if (user == null)
@@ -748,7 +772,10 @@ namespace Application.Services
                 var user = await _unitOfWork.Users
                     .Query()
                     .Include(u => u.Role)
-                    .Include(u => u.Person)
+                    .Include(u => u.Person).ThenInclude(p => p.NationalityCountry)
+                        .ThenInclude(n => n.Translations)
+                    .Include(u => u.Person).ThenInclude(p => p.ResidentialCity)
+                        .ThenInclude(c => c.Translations)
                     .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
 
                 if (user == null)
@@ -813,7 +840,10 @@ namespace Application.Services
                     .Query()
                     .IgnoreQueryFilters()
                     .Include(u => u.Role)
-                    .Include(u => u.Person)
+                    .Include(u => u.Person).ThenInclude(p => p.NationalityCountry)
+                        .ThenInclude(n => n.Translations)
+                    .Include(u => u.Person).ThenInclude(p => p.ResidentialCity)
+                        .ThenInclude(c => c.Translations)
                     .Where(u => u.IsDeleted);
 
                 var totalCount = await query.CountAsync(cancellationToken);

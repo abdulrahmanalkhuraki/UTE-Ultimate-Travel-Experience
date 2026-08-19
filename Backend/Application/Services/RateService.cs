@@ -65,8 +65,12 @@ namespace Application.Services
 
                 await EnsureUserBookedPackage(request.PackageId);
 
+                var userId = _currentUser.UserId ?? throw new AuthException(ExceptionMessages.Auth());
+
+                await EnsureNotRatedBeforeAsync(request.PackageId, userId, cancellationToken);
+
                 var rate = _mapper.Map<Rate>(request);
-                rate.UserId = _currentUser.UserId ?? 0;
+                rate.UserId = userId;
 
                 await _unitOfWork.Rates.AddAsync(rate, cancellationToken);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -96,7 +100,11 @@ namespace Application.Services
             {
                 IQueryable<Rate> query = _unitOfWork.Rates
                     .Query()
-                    .Include(r => r.User)
+                    .Include(r => r.User).ThenInclude(u => u.Person)
+                        .ThenInclude(p => p.NationalityCountry).ThenInclude(n => n.Translations)
+                    .Include(r => r.User).ThenInclude(u => u.Person)
+                        .ThenInclude(p => p.ResidentialCity).ThenInclude(c => c.Translations)
+                    .Include(r => r.User).ThenInclude(u => u.Role)
                     .Include(r => r.Package);
 
                 if (userId.HasValue)
@@ -141,6 +149,18 @@ namespace Application.Services
                 _logger.BusinessRuleViolated("Tour Package", "A completed booking is required before rating");
                 throw new BusinessRuleException(ExceptionMessages.BusinessRule(
                     "Unable to submit rating. A completed booking is required before rating a tour package."));
+            }
+        }
+
+        private async Task EnsureNotRatedBeforeAsync(int packageId, int userId, CancellationToken ct)
+        {
+            var isRatedBefore = await _unitOfWork.Rates
+                .AnyAsync(r => r.PackageId == packageId && r.UserId == userId, ct);
+
+            if (isRatedBefore)
+            {
+                _logger.BusinessRuleViolated(ObjectName, "The user has already rated this tour package");
+                throw new BusinessRuleException(ExceptionMessages.BusinessRule("You have already rated this tour package."));
             }
         }
         #endregion

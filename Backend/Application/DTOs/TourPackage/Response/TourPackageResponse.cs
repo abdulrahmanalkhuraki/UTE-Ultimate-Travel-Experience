@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Application.Common;
 using Domain.Enums;
 
 namespace Application.DTOs.TourPackage.Response
@@ -51,6 +52,8 @@ namespace Application.DTOs.TourPackage.Response
         public List<TourPackageCabinClassResponse> AvailableCabinClasses { get; set; } = new();
 
         public TourPackageStatus Status { get; set; }
+
+        public string StatusLabel => Status.Humanize();
 
         public float Rate { get; set; }
 
