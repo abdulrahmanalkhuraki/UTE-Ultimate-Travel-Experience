@@ -1,4 +1,5 @@
 using Application.DTOs.Booking.Response;
+using Application.Common;
 using Domain.Enums;
 
 namespace Application.DTOs.TourPackage.Response
@@ -23,6 +24,9 @@ namespace Application.DTOs.TourPackage.Response
 
         /// <summary>Current status (should be Active).</summary>
         public TourPackageStatus Status { get; set; }
+
+        /// <summary>Human-readable label for the current status.</summary>
+        public string StatusLabel => Status.Humanize();
 
         /// <summary>Number of times this package has been published.</summary>
         public int PublishCount { get; set; }
