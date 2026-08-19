@@ -25,9 +25,18 @@ async function request(path, { params, ...options } = {}) {
     let message = `API ${res.status}: ${res.statusText} (${path})`;
     try {
       const data = await res.clone().json();
-      if (typeof data === 'string' && data) message = data;
-      else if (data?.message) message = data.message;
-      else if (data?.title) message = data.title;
+      if (typeof data === 'string' && data) {
+        message = data;
+      } else if (data?.errors) {
+        // شكل ValidationProblemDetails تبع ASP.NET: { errors: { Email: ["Email is required."] } }
+        message = Object.values(data.errors).flat().join(' ');
+      } else if (data?.detail) {
+        message = data.detail;
+      } else if (data?.message) {
+        message = data.message;
+      } else if (data?.title) {
+        message = data.title;
+      }
     } catch {
       // ما في جسم JSON بالرد، منستخدم الرسالة الافتراضية
     }

@@ -71,9 +71,17 @@ export default function Login({ onLoginSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // بنقرأ القيم مباشرة من عناصر الفورم وقت الإرسال (مش من الـ state بس) لأنه بعض
+    // متصفحات/إضافات الـ autofill بتعبي الحقل بصرياً بدون ما تطلق onChange، فتضل قيمة
+    // الـ state فاضية حتى لو الحقل ظاهر فيه نص.
+    const formData = new FormData(e.currentTarget);
+    const emailValue = (formData.get('email') || email).toString().trim();
+    const passwordValue = (formData.get('password') || password).toString();
+
     setIsSubmitting(true);
     try {
-      const data = await login(email, password);
+      const data = await login(emailValue, passwordValue);
       saveSession(data);
       onLoginSuccess?.(data);
     } catch (err) {
@@ -103,6 +111,8 @@ export default function Login({ onLoginSuccess }) {
             )}
             <input
               type="email"
+              name="email"
+              autoComplete="username"
               placeholder="Email Address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -111,6 +121,8 @@ export default function Login({ onLoginSuccess }) {
             />
             <input
               type="password"
+              name="password"
+              autoComplete="current-password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
