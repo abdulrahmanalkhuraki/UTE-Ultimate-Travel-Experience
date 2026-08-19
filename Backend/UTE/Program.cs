@@ -1,4 +1,4 @@
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Interfaces.Admin;
 using Application.Interfaces.Booking;
 using Application.Interfaces.Companion;
@@ -60,7 +60,7 @@ builder.Services.AddHttpContextAccessor();
 // 2. CONFIGURE JWT AUTHENTICATION
 // ==========================================
 var jwt = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()
-          ?? throw new InvalidOperationException("Jwt section missing in configuration.");
+         ?? throw new InvalidOperationException("Jwt section missing in configuration.");
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -85,15 +85,11 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("RequireCompletedProfile", policy =>
     {
-        // Ensure the user is logged in
         policy.RequireAuthenticatedUser();
-
-        // Ensure the token/cookie contains the specific claim
         policy.RequireClaim("IsProfileCompleted", "true");
     });
 });
 
-// Register the custom authorization result handler
 builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, CustomAuthorizationResponseHandler>();
 
 // ==========================================
@@ -101,23 +97,17 @@ builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, CustomAutho
 // ==========================================
 builder.Services.AddControllers();
 
-
-
 // ==========================================
 // 3.1. CONFIGURE FORM OPTIONS (MULTIPART UPLOADS)
 // ==========================================
 builder.Services.Configure<FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = 10_000_000; // 10 MB
+    options.MultipartBodyLengthLimit = 10_000_000;
     options.ValueLengthLimit = 10_000_000;
     options.MemoryBufferThreshold = 10_000_000;
-    options.MultipartHeadersLengthLimit = 32_768; // Allow larger headers in multipart sections
+    options.MultipartHeadersLengthLimit = 32_768;
     options.MultipartHeadersCountLimit = 32;
-
-    Console.WriteLine("FormOptions configured: MultipartBodyLengthLimit = " + options.MultipartBodyLengthLimit);
 });
-
-
 
 // ==========================================
 // 4. CONFIGURE VALIDATION RESPONSE
@@ -127,7 +117,6 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.InvalidModelStateResponseFactory = context =>
     {
         var ms = context.ModelState;
-
         var bodyParamName = context.ActionDescriptor.Parameters
             .OfType<ControllerParameterDescriptor>()
             .FirstOrDefault(p =>
@@ -149,7 +138,6 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
         }
 
         var hasBodyParseError = ms.Any(IsBodyLevelError);
-
         Dictionary<string, string[]> errors;
         string title;
         string detail;
@@ -191,20 +179,17 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
                         }
                     }
                 }
-                catch
-                {
-                    // ignore reflection failures; fall back to a generic body error
-                }
+                catch { }
             }
 
             perFieldErrors["body"] = new List<string>
             {
-                "Request body is missing or has invalid JSON format. Send the data as a JSON object in the request body (not as URL params)."
+                "Request body is missing or has invalid JSON format. Send the data as a JSON object in the request body."
             };
 
             errors = perFieldErrors.ToDictionary(kv => kv.Key, kv => kv.Value.ToArray());
             title = "Invalid or missing request body.";
-            detail = "The request body could not be read. Send the data as JSON inside the request Body (not in URL params).";
+            detail = "The request body could not be read. Send the data as JSON inside the request Body.";
         }
         else
         {
@@ -225,17 +210,6 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
             Detail = detail,
             Instance = context.HttpContext.Request.Path
         };
-
-
-        foreach (var kv in context.ModelState)
-        {
-            foreach (var err in kv.Value.Errors)
-            {
-                Console.WriteLine($"KEY = {kv.Key}");
-                Console.WriteLine($"ERROR = {err.ErrorMessage}");
-                Console.WriteLine($"EXCEPTION = {err.Exception?.Message}");
-            }
-        }
 
         return new BadRequestObjectResult(problem)
         {
@@ -279,14 +253,23 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // ==========================================
-// 6. ADD CORS
+// 6. ADD CORS (مُحدث ليدعم React, Flutter, وجميع المنصات)
 // ==========================================
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(p => p
-        .AllowAnyOrigin()
-        .AllowAnyHeader()
-        .AllowAnyMethod());
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:5173",  // React Frontend (Vite)
+                "http://localhost:3000",  // React Frontend (Alternative)
+                "https://localhost:7016"  // Self / Local requests
+              )
+              .SetIsOriginAllowedToAllowWildcardSubdomains()
+              .SetIsOriginAllowed(_ => true) // مسموح لأي مصدر محلي أو تطبيقات الموبايل (Flutter) التي لا ترسل Origin تقليدي
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
 });
 
 // ==========================================
@@ -295,76 +278,58 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-// Admin
 builder.Services.AddScoped<IAdminService, AdminService>();
-
-// Country / City
 builder.Services.AddScoped<Application.Interfaces.Country.ICountryService, CountryService>();
 builder.Services.AddScoped<Application.Interfaces.City.ICityService, CityService>();
 
-// User
 builder.Services.AddScoped<UserUpdateValidator>();
 builder.Services.AddScoped<CompleteProfileValidator>();
 builder.Services.AddScoped<UpdateLocationValidator>();
 builder.Services.AddScoped<ChangePasswordValidator>();
 builder.Services.AddScoped<IUserService, UserService>();
 
-// Booking
 builder.Services.AddScoped<BookingCreateValidator>();
 builder.Services.AddScoped<BookingUpdateValidator>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-// TourCompany
 builder.Services.AddScoped<TourCompanyCreateValidator>();
 builder.Services.AddScoped<TourCompanyUpdateValidator>();
 builder.Services.AddScoped<ITourCompanyService, TourCompanyService>();
 
-// TourPackage
 builder.Services.AddScoped<TourPackageCreateValidator>();
 builder.Services.AddScoped<TourPackageUpdateValidator>();
 builder.Services.AddScoped<ITourPackageService, TourPackageService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 
-// TouristGuide
 builder.Services.AddScoped<TouristGuideCreateValidator>();
 builder.Services.AddScoped<TouristGuideUpdateValidator>();
 builder.Services.AddScoped<ITouristGuideService, TouristGuideService>();
 
-// Companion
 builder.Services.AddScoped<CompanionCreateValidator>();
 builder.Services.AddScoped<CompanionUpdateValidator>();
 builder.Services.AddScoped<ICompanionService, CompanionService>();
 
-// Notifications (IRealtimeNotifier/Firebase is registered in AddInfrastructure)
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
-
-// Rate
 builder.Services.AddScoped<RateCreateValidator>();
 builder.Services.AddScoped<IRateService, RateService>();
 
-// Review
 builder.Services.AddScoped<ReviewCreateValidator>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
-// Ticket
 builder.Services.AddScoped<TicketCreateValidator>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 
-// SupportReply
 builder.Services.AddScoped<SupportReplyCreateValidator>();
 builder.Services.AddScoped<ISupportReplyService, SupportReplyService>();
 
-// Favorite
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 
 builder.Services.AddMemoryCache();
 
-// Localization
 builder.Services.AddScoped<Application.Interfaces.Localization.ILanguageContext, LanguageContext>();
 builder.Services.AddScoped<Application.Interfaces.Localization.ILocalizedMapper, LocalizedMapper>();
-
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 // ==========================================
@@ -406,7 +371,6 @@ builder.Services.AddAutoMapper(cfg =>
 // ==========================================
 var app = builder.Build();
 
-// Initialize the static localizer backing ExceptionMessages before any request
 Application.Common.Constants.ExceptionMessages.Initialize(
     app.Services.GetRequiredService<Microsoft.Extensions.Localization.IStringLocalizer<Application.SharedResource>>());
 
@@ -418,7 +382,6 @@ using (var scope = app.Services.CreateScope())
     var seeder = scope.ServiceProvider.GetRequiredService<IDbSeedService>();
     await seeder.SeedAsync();
 }
-
 
 // ==========================================
 // 11. CONFIGURE DEVELOPMENT TOOLS
@@ -433,8 +396,14 @@ if (app.Environment.IsDevelopment())
 // ==========================================
 // 12. CONFIGURE MIDDLEWARE PIPELINE (ORDER MATTERS!)
 // ==========================================
+
+// 1. CORS يجب أن يكون في البداية المطلقة لمعالجة طلبات الـ Preflight (OPTIONS)
+app.UseCors();
+
+// 2. إعادة توجيه الـ HTTPS
 app.UseHttpsRedirection();
-app.UseStaticFiles();     // Serves files from wwwroot (e.g. /uploads/profiles/xxx.jpg)
+
+app.UseStaticFiles();
 
 var supportedCultures = Domain.Common.LanguageCodes.SupportedTags
     .Select(tag => new CultureInfo(tag))
@@ -449,9 +418,11 @@ app.UseRequestLocalization(options =>
 });
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseCors();
-app.UseAuthentication();  // Must be before Authorization
+
+// 3. المصادقة والتفويض
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 // ==========================================

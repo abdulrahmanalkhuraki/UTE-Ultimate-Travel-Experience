@@ -1,4 +1,5 @@
-import { apiPost } from './apiClient';
+import { apiPostForm } from './apiClient';
 
 // POST /api/Auth/login
-export const login = (email, password) => apiPost('/api/Auth/login', { email, password });
+export const login = (email, password) =>
+  apiPostForm('/api/Auth/login', { Email: email, Password: password });

@@ -53,3 +53,11 @@ export function apiGet(path, params) {
 export function apiPost(path, body) {
   return request(path, { method: 'POST', body: JSON.stringify(body) });
 }
+
+export function apiPostForm(path, data) {
+  return request(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(data).toString(),
+  });
+}
