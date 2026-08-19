@@ -32,7 +32,7 @@ namespace UTE.Controllers
         /// <response code="401">If the user is not authenticated</response>
         /// <response code="403">If the user does not have permission</response>
         /// <response code="404">If a referenced entity TourPackage is not found</response>
-        /// <response code="422">If the user doesn't have any Completed booking in referenced Tour Package</response>
+        /// <response code="422">If the user doesn't have any Completed booking in referenced Tour Package or has already rated it</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpPost]
         [Authorize(Policy = "RequireCompletedProfile")]
