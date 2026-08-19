@@ -91,7 +91,11 @@ namespace Application.Services
             {
                 IQueryable<Ticket> query = _unitOfWork.Tickets
                     .Query()
-                    .Include(t => t.User);
+                    .Include(t => t.User).ThenInclude(u => u.Person)
+                        .ThenInclude(p => p.NationalityCountry).ThenInclude(n => n.Translations)
+                    .Include(t => t.User).ThenInclude(u => u.Person)
+                        .ThenInclude(p => p.ResidentialCity).ThenInclude(c => c.Translations)
+                    .Include(t => t.User).ThenInclude(u => u.Role);
 
                 if (userId.HasValue)
                 {
