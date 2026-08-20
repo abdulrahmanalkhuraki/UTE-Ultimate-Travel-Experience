@@ -15,7 +15,8 @@ namespace Application.Mappings
                 .ForMember(dest => dest.UpdatedAtUtc, opt => opt.Ignore())
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.UserId, opt => opt.Ignore());
-            CreateMap<Review, ReviewResponse>();
+            CreateMap<Review, ReviewResponse>()
+                .ForMember(dest => dest.TourPackage, opt => opt.MapFrom(src => src.Package));
         }
     }
 }

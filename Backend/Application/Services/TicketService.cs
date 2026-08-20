@@ -71,7 +71,10 @@ namespace Application.Services
 
                 _logger.SuccessfulOperation(userId: _currentUser.UserId ?? 0, "Create", ObjectName, ticket.Id);
 
-                return _mapper.Map<TicketResponse>(ticket);
+                var created = await BuildDetailedQuery()
+                    .FirstOrDefaultAsync(t => t.Id == ticket.Id, cancellationToken);
+
+                return _mapper.Map<TicketResponse>(created!);
             }
             catch (Exception ex)
             {
@@ -89,13 +92,7 @@ namespace Application.Services
 
             try
             {
-                IQueryable<Ticket> query = _unitOfWork.Tickets
-                    .Query()
-                    .Include(t => t.User).ThenInclude(u => u.Person)
-                        .ThenInclude(p => p.NationalityCountry).ThenInclude(n => n.Translations)
-                    .Include(t => t.User).ThenInclude(u => u.Person)
-                        .ThenInclude(p => p.ResidentialCity).ThenInclude(c => c.Translations)
-                    .Include(t => t.User).ThenInclude(u => u.Role);
+                IQueryable<Ticket> query = BuildDetailedQuery();
 
                 if (userId.HasValue)
                 {
@@ -117,6 +114,16 @@ namespace Application.Services
                 _logger.ServerError("Retrieve", ObjectName, ex);
                 throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
             }
+        }
+
+        private IQueryable<Ticket> BuildDetailedQuery()
+        {
+            return _unitOfWork.Tickets.Query()
+                .Include(t => t.User).ThenInclude(u => u.Person)
+                    .ThenInclude(p => p.NationalityCountry).ThenInclude(n => n.Translations)
+                .Include(t => t.User).ThenInclude(u => u.Person)
+                    .ThenInclude(p => p.ResidentialCity).ThenInclude(c => c.Translations)
+                .Include(t => t.User).ThenInclude(u => u.Role);
         }
     }
 }
