@@ -193,6 +193,58 @@ namespace Application.Services
             return response;
         }
 
+        public async Task<PaginatedResponse<CompanionResponse>> GetByUserIdAsync(int userId, int page, int pageSize, CancellationToken cancellationToken)
+        {
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                throw new ValidationException(ExceptionMessages.InvalidPagination());
+
+            _logger.StartOperation("Retrieve All", ObjectName, userId);
+
+            var cacheKey = $"user_companions_{userId}_page{page}_size{pageSize}_{_language.LanguageCode}";
+
+            if (_cache.TryGetValue(cacheKey, out PaginatedResponse<CompanionResponse>? cached) && cached is not null)
+            {
+                _logger.LogInformation($"cache hit for companions of user {userId} page {page} | page size {pageSize}");
+                return cached;
+            }
+
+            var query = QueryWithGraph().Where(c => c.UserId == userId);
+
+            var totalItemsCount = await query.CountAsync(cancellationToken);
+
+            var entities = await query
+                .OrderByDescending(c => c.Person.CreatedAtUtc)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            var items = new List<CompanionResponse>(entities.Count);
+            foreach (var entity in entities)
+            {
+                items.Add(await BuildResponseFromEntity(entity, cancellationToken));
+            }
+
+            var response = new PaginatedResponse<CompanionResponse>
+            {
+                Items = items,
+                Pagination = new PaginationMetadata
+                {
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalItems = totalItemsCount
+                }
+            };
+
+            _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = CacheDuration,
+                Priority = CacheItemPriority.Low
+            });
+
+            _logger.LogInformation($"{items.Count} companion(s) successfully retrieved for user {userId}");
+            return response;
+        }
+
         public async Task<CompanionResponse> UpdateAsync(int id, CompanionUpdateRequest request, CancellationToken cancellationToken)
         {
             if (id <= 0)

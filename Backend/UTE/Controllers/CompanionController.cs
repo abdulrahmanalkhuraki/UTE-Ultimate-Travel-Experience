@@ -13,7 +13,6 @@ namespace UTE.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Policy = "RequireCompletedProfile")]
-    [Authorize(Roles = "Tourist")]
     [Produces(MediaTypeNames.Application.Json)]
     public class CompanionController : ControllerBase
     {
@@ -31,12 +30,39 @@ namespace UTE.Controllers
         /// <response code="401">If the user is not authenticated.</response>
         /// <response code="403">If the user is not a tourist.</response>
         [HttpGet]
+        [Authorize(Roles = "Tourist")]
         [ProducesResponseType(typeof(PaginatedResponse<CompanionResponseSummary>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<PaginatedResponse<CompanionResponseSummary>>> GetAll(int page = 1,int pageSize = 20,CancellationToken cancellationToken = default)
         {
             return Ok(await _companionService.GetAllAsync(page,pageSize,cancellationToken));
+        }
+
+        /// <summary>Retrieves all companions for a specific tourist by The Admin.</summary>
+        /// <param name="userId">the specific Tourist Id</param>
+        /// <param name="page">Page number (1-based)</param>
+        /// <param name="pageSize">Page size (max 100)</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Paginated list of the tourist's companions.</returns>
+        /// <response code="200">Returns the paginated list of companions.</response>
+        /// <response code="401">If the user is not authenticated.</response>
+        /// <response code="403">If the user is not an admin.</response>
+        /// <response code="500">If there was an internal server error.</response>
+        [HttpGet("UserCompanions/{userId:int:min(1)}")]
+        [Authorize(Policy = "RequireCompletedProfile")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(PaginatedResponse<CompanionResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PaginatedResponse<CompanionResponse>>> GetUserCompanions(
+            int userId,
+            int page = 1,
+            int pageSize = 20,
+            CancellationToken cancellationToken = default)
+        {
+            return Ok(await _companionService.GetByUserIdAsync(userId, page, pageSize, cancellationToken));
         }
 
         /// <summary>Retrieves a specific companion by ID.</summary>
@@ -49,6 +75,7 @@ namespace UTE.Controllers
         /// <response code="403">If the companion does not belong to the user.</response>
         /// <response code="404">If the companion is not found.</response>
         [HttpGet("{id:int:min(1)}")]
+        [Authorize(Roles = "Tourist")]
         [ProducesResponseType(typeof(CompanionResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -69,6 +96,7 @@ namespace UTE.Controllers
         /// <response code="403">If the user is not a tourist.</response>
         /// <response code="404">If a referenced country or city is not found.</response>
         [HttpPost]
+        [Authorize(Roles = "Tourist")]
         [ProducesResponseType(typeof(CompanionResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -94,6 +122,7 @@ namespace UTE.Controllers
         /// <response code="403">If the companion does not belong to the user.</response>
         /// <response code="404">If the companion or a referenced country/city is not found.</response>
         [HttpPut("{id:int:min(1)}")]
+        [Authorize(Roles = "Tourist")]
         [ProducesResponseType(typeof(CompanionResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -117,6 +146,7 @@ namespace UTE.Controllers
         /// <response code="403">If the companion does not belong to the user.</response>
         /// <response code="404">If the companion is not found.</response>
         [HttpDelete("{id:int:min(1)}")]
+        [Authorize(Roles = "Tourist")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]

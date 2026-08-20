@@ -5,7 +5,7 @@ import {
   Map as MapIcon, Plane, Wallet, Users, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Heart, Receipt,
 } from 'lucide-react';
 import { useApiData } from './hooks/useApiData';
-import { getUserBookings } from './services/dashboardApi';
+import { getUserBookings, getUserCompanions } from './services/dashboardApi';
 import { formatDate } from './utils/format';
 
 const DEFAULT_AVATAR =
@@ -139,23 +139,25 @@ export default function UserDetails({ user, onBack }) {
   const [expandedCompanionId, setExpandedCompanionId] = useState(null);
   const [bookingsPage, setBookingsPage] = useState(1);
   const [bookingsPageSize] = useState(10);
+  const [companionsPage, setCompanionsPage] = useState(1);
+  const [companionsPageSize] = useState(10);
 
   const currentUser = user || {};
   const { data: bookingsData, loading: bookingsLoading, error: bookingsError } = useApiData(
     () => getUserBookings(currentUser.id, bookingsPage, bookingsPageSize),
     [currentUser.id, bookingsPage, bookingsPageSize]
   );
+  const { data: companionsData, loading: companionsLoading, error: companionsError } = useApiData(
+    () => getUserCompanions(currentUser.id, companionsPage, companionsPageSize),
+    [currentUser.id, companionsPage, companionsPageSize]
+  );
 
   const pagination = bookingsData?.pagination ?? {};
   const bookings = bookingsData?.items ?? [];
   const totalSpent = bookingsData?.totalAmountSpent ?? 0;
 
-  // المرافقون متجمعين من داخل الحجوزات (نفس واجهة UserBookings) وتفريغ التكرارات حسب المعرّف
-  const companionsById = new Map();
-  bookings.forEach((b) =>
-    (b.companions ?? []).forEach((c) => companionsById.set(c.id, c))
-  );
-  const companionsList = [...companionsById.values()].map(mapApiCompanion);
+  const companionPagination = companionsData?.pagination ?? {};
+  const companionsList = (companionsData?.items ?? []).map(mapApiCompanion);
 
   return (
     <div className="p-8 space-y-6 font-sans animate-in fade-in duration-300">
@@ -333,37 +335,63 @@ export default function UserDetails({ user, onBack }) {
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <Users className="w-5 h-5 text-[#F4A261]" /> Companions
               </h3>
-              {!bookingsLoading && !bookingsError && (
+              {!companionsLoading && !companionsError && (
                 <span className="bg-[#D4AF37]/20 text-[#D4AF37] py-1 px-3 rounded-full text-xs font-bold">
-                  {companionsList.length} Total
+                  {companionPagination.totalItems ?? companionsList.length} Total
                 </span>
               )}
             </div>
 
-            {bookingsError ? (
-              <ErrorBlock message={bookingsError.message} />
-            ) : bookingsLoading ? (
+            {companionsError ? (
+              <ErrorBlock message={companionsError.message} />
+            ) : companionsLoading ? (
               <LoadingBlock />
             ) : (
-              <div className="space-y-4">
-                {companionsList.map((companion) => (
-                  <CompanionCard
-                    key={companion.id}
-                    companion={companion}
-                    isExpanded={expandedCompanionId === companion.id}
-                    onToggle={() => setExpandedCompanionId(
-                      expandedCompanionId === companion.id ? null : companion.id
-                    )}
-                  />
-                ))}
+              <>
+                <div className="space-y-4">
+                  {companionsList.map((companion) => (
+                    <CompanionCard
+                      key={companion.id}
+                      companion={companion}
+                      isExpanded={expandedCompanionId === companion.id}
+                      onToggle={() => setExpandedCompanionId(
+                        expandedCompanionId === companion.id ? null : companion.id
+                      )}
+                    />
+                  ))}
 
-                {companionsList.length === 0 && (
-                  <div className="text-center py-10 text-gray-500 flex flex-col items-center">
-                    <Users className="w-10 h-10 mb-2 opacity-20" />
-                    <p>No companions found for this user.</p>
+                  {companionsList.length === 0 && (
+                    <div className="text-center py-10 text-gray-500 flex flex-col items-center">
+                      <Users className="w-10 h-10 mb-2 opacity-20" />
+                      <p>No companions found for this user.</p>
+                    </div>
+                  )}
+                </div>
+
+                {companionsList.length > 0 && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#333]">
+                    <p className="text-xs text-gray-400">
+                      Page {companionPagination.page || '—'} of {companionPagination.totalPages || '—'}
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setCompanionsPage((p) => Math.max(1, p - 1))}
+                        disabled={!companionPagination.hasPreviousPage}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#2d303e] bg-[#121212] text-sm font-medium text-gray-300 hover:border-[#91B3FA]/40 hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <ChevronLeft className="w-4 h-4" /> Prev
+                      </button>
+                      <button
+                        onClick={() => setCompanionsPage((p) => p + 1)}
+                        disabled={!companionPagination.hasNextPage}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#2d303e] bg-[#121212] text-sm font-medium text-gray-300 hover:border-[#91B3FA]/40 hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        Next <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 )}
-              </div>
+              </>
             )}
 
           </div>

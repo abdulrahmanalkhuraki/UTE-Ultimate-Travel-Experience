@@ -69,3 +69,7 @@ export const getUserById = (id) => apiGet(`/api/User/${id}`);
 // GET /api/Booking/UserBookings/:touristId?page=&pageSize= -> PaginatedUserBookingsResponse
 export const getUserBookings = (touristId, page = 1, pageSize = 10) =>
   apiGet(`/api/Booking/UserBookings/${touristId}`, { page, pageSize });
+
+// GET /api/Companion/UserCompanions/:userId?page=&pageSize= -> PaginatedResponse<CompanionResponse>
+export const getUserCompanions = (userId, page = 1, pageSize = 20) =>
+  apiGet(`/api/Companion/UserCompanions/${userId}`, { page, pageSize });
