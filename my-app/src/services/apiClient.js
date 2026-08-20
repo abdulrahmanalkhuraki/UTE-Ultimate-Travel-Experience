@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '../config/constants';
 
-async function request(path, { params, ...options } = {}) {
+async function request(path, { params, isFormData, ...options } = {}) {
   const url = new URL(`${API_BASE_URL}${path}`);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
@@ -15,7 +15,9 @@ async function request(path, { params, ...options } = {}) {
   const res = await fetch(url.toString(), {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      // لما يكون الجسم FormData ما منحط Content-Type يدوياً — المتصفح
+      // بيضيفه لحاله مع الـ boundary الصح (multipart/form-data; boundary=...)
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
@@ -54,10 +56,11 @@ export function apiPost(path, body) {
   return request(path, { method: 'POST', body: JSON.stringify(body) });
 }
 
-export function apiPostForm(path, data) {
-  return request(path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams(data).toString(),
+// بيبعت الجسم كـ multipart/form-data بدل JSON — لأي endpoint بالباك محتاج [FromForm]
+export function apiPostForm(path, fields) {
+  const formData = new FormData();
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) formData.append(key, value);
   });
+  return request(path, { method: 'POST', body: formData, isFormData: true });
 }
