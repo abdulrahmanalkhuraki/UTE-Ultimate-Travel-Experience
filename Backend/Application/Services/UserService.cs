@@ -1,5 +1,6 @@
 using Application.Common.Constants;
 using Application.Common.Logging;
+using Application.DTOs.Pagination;
 using Application.DTOs.User.Request;
 using Application.DTOs.User.Response;
 using Application.Exceptions;
@@ -13,6 +14,7 @@ using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using ValidationException = Application.Exceptions.ValidationException;
 
 namespace Application.Services
@@ -556,40 +558,60 @@ namespace Application.Services
             }
         }
 
-        public async Task<IReadOnlyList<UserResponse>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<PaginatedResponse<UserResponse>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken)
         {
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                throw new ValidationException(ExceptionMessages.InvalidPagination());
+
             _logger.LogDebug("Retrieving all users");
 
+
+            var chachKey = $"{UsersListCacheKey}_page{page}_size{pageSize}";
             // Try cache
-            if (_cache.TryGetValue(UsersListCacheKey, out IReadOnlyList<UserResponse>? cachedUsers) && cachedUsers != null)
+            if (_cache.TryGetValue(chachKey, out PaginatedResponse<UserResponse>? cachedUsers) && cachedUsers != null)
             {
                 _logger.LogDebug("Cache hit for all users");
                 return cachedUsers;
             }
             try
             {
-                var entities = await _unitOfWork.Users
+                var query = _unitOfWork.Users
                     .Query()
-                    .Include(u => u.Role)
+                    .Where(u => !u.IsDeleted);
+
+                var entities = query
+                     .Include(u => u.Role)
                     .Include(u => u.Person).ThenInclude(p => p.NationalityCountry)
                         .ThenInclude(n => n.Translations)
                     .Include(u => u.Person).ThenInclude(p => p.ResidentialCity)
                         .ThenInclude(c => c.Translations)
-                    .Where(u => !u.IsDeleted)
-                    .OrderBy(u => u.Person != null ? u.Person.FirstName : string.Empty)
+                     .OrderBy(u => u.Person != null ? u.Person.FirstName : string.Empty)
                     .ThenBy(u => u.Person != null ? u.Person.LastName : string.Empty)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync(cancellationToken);
 
-                var response = _mapper.Map<IReadOnlyList<UserResponse>>(entities);
+                var totalItemsCount = await query.CountAsync(cancellationToken);
+
+                var items = _mapper.Map<IReadOnlyList<UserResponse>>(entities);
+
+                var pagenationMetadata = new PaginationMetadata
+                {
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalItems = totalItemsCount
+                };
+
+                var response = new PaginatedResponse<UserResponse> { Items = items, Pagination = pagenationMetadata };
 
                 // Cache the result with lower priority
-                _cache.Set(UsersListCacheKey, response, new MemoryCacheEntryOptions
+                _cache.Set(chachKey, response, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = CacheDuration,
                     Priority = CacheItemPriority.Low
                 });
 
-                _logger.LogDebug("Successfully retrieved {Count} users", response.Count);
+                _logger.LogDebug("Successfully retrieved {Count} users", totalItemsCount);
 
                 return response;
             }
@@ -600,19 +622,23 @@ namespace Application.Services
             }
         }
 
-        public async Task<IReadOnlyList<UserResponse>> FilterAsync(
-            string? firstName = null,
-            string? lastName = null,
-            string? email = null,
-            string? roleName = null,
-            bool? isEmailVerified = null,
-            CancellationToken cancellationToken = default)
+        public async Task<PaginatedResponse<UserResponse>> FilterAsync(
+            string? firstName,
+            string? lastName,
+            string? email,
+            string? roleName,
+            bool? isEmailVerified,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken)
         {
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                throw new ValidationException(ExceptionMessages.InvalidPagination());
+
             _logger.LogDebug("Filtering users with parameters - FirstName: {FirstName}, LastName: {LastName}, " +
                              "Email: {Email}, RoleId: {RoleId}, IsEmailVerified: {IsEmailVerified}",
                 firstName ?? "Any", lastName ?? "Any", email ?? "Any",
                 roleName ?? "Any", isEmailVerified?.ToString() ?? "Any");
-
 
             try
             {
@@ -669,12 +695,28 @@ namespace Application.Services
                     .AsNoTracking()
                     .OrderBy(u => u.Person != null ? u.Person.FirstName : string.Empty)
                     .ThenBy(u => u.Person != null ? u.Person.LastName : string.Empty)
-                    .Take(100)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync(cancellationToken);
 
-                var response = _mapper.Map<IReadOnlyList<UserResponse>>(entities);
+                var totalItemsCount = await query.CountAsync(cancellationToken);
 
-                _logger.LogInformation("User filter completed. Found {Count} users matching criteria", response.Count);
+                var items = _mapper.Map<IReadOnlyList<UserResponse>>(entities);
+
+                var pagenationMetadata = new PaginationMetadata
+                {
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalItems = totalItemsCount
+                };
+
+                var response = new PaginatedResponse<UserResponse>
+                {
+                    Items = items,
+                    Pagination = pagenationMetadata
+                };
+
+                _logger.LogInformation("User filter completed. Found {Count} users matching criteria", totalItemsCount);
 
                 return response;
             }

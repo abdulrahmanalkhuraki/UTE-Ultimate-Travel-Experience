@@ -445,6 +445,7 @@ namespace Application.Services
                             .Take(pageSize)
                             .ToListAsync(cancellationToken);
 
+                var totalItemsCount = await query.CountAsync(cancellationToken);
 
                 var items = _mapper.Map<IReadOnlyList<BookingResponse>>(entities);
 
@@ -452,7 +453,7 @@ namespace Application.Services
                 {
                     Page = page,
                     PageSize = pageSize,
-                    TotalItems = items.Count
+                    TotalItems = totalItemsCount
                 };
 
                 var response = new PaginatedResponse<BookingResponse> { Items = items, Pagination = paginationMetadata };

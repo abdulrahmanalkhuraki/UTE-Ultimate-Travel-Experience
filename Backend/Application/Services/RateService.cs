@@ -139,7 +139,7 @@ namespace Application.Services
                 .Include(r => r.User).ThenInclude(u => u.Person)
                     .ThenInclude(p => p.ResidentialCity).ThenInclude(c => c.Translations)
                 .Include(r => r.User).ThenInclude(u => u.Role)
-                .Include(r => r.Package);
+                .Include(r => r.Package).ThenInclude(p => p.Translations);
         }
 
         private async Task EnsureUserBookedPackage(int packageId)

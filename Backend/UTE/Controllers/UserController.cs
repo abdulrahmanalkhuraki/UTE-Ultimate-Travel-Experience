@@ -1,3 +1,4 @@
+using Application.DTOs.Pagination;
 using Application.DTOs.User.Request;
 using Application.DTOs.User.Response;
 using Application.Exceptions;
@@ -43,11 +44,11 @@ namespace UTE.Controllers
         /// <response code="500">If there was an internal server error</response>
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(typeof(IReadOnlyList<UserResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaginatedResponse<UserResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IReadOnlyList<UserResponse>>> GetAll(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<PaginatedResponse<UserResponse>>> GetAll(int page = 1,int pageSize = 20, CancellationToken cancellationToken = default)
         {
-            var users = await _userService.GetAllAsync(cancellationToken);
+            var users = await _userService.GetAllAsync(page, pageSize, cancellationToken);
             return Ok(users);
         }
 
@@ -357,15 +358,17 @@ namespace UTE.Controllers
         /// <response code="500">If there was an internal server error</response>
         [HttpGet("filter")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(typeof(IReadOnlyList<UserResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaginatedResponse<UserResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IReadOnlyList<UserResponse>>> Filter(
+        public async Task<ActionResult<PaginatedResponse<UserResponse>>> Filter(
             [FromQuery] string? firstName = null,
             [FromQuery] string? lastName = null,
             [FromQuery] string? email = null,
             [FromQuery] string? roleName = null,
             [FromQuery] bool? isEmailVerified = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
             CancellationToken cancellationToken = default)
         {
             var users = await _userService.FilterAsync(
@@ -374,6 +377,8 @@ namespace UTE.Controllers
                 email,
                 roleName,
                 isEmailVerified,
+                page,
+                pageSize,
                 cancellationToken);
 
             return Ok(users);
