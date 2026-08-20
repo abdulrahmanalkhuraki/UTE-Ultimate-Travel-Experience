@@ -60,7 +60,8 @@ async function call(method, path, { params, form, auth = true } = {}) {
     res = await fetch(url.toString(), { ...options, signal: controller.signal });
     bodyText = await res.text();
   } catch (err) {
-    const reason = err.name === 'AbortError' ? 'انتهت المهلة (8 ثواني) بدون رد' : err.message;
+    const causeInfo = err.cause ? ` (${err.cause.code || err.cause.message || err.cause})` : '';
+    const reason = err.name === 'AbortError' ? 'انتهت المهلة (8 ثواني) بدون رد' : `${err.message}${causeInfo}`;
     console.log(`  💥 تعذر الاتصال: ${reason}`);
     console.log('');
     return null;
