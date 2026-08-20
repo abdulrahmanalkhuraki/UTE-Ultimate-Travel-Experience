@@ -1,0 +1,142 @@
+[
+  {
+    "Id": 1,
+    "UserId": 7,
+    "Amount": 1100,
+    "PaymentStatus": 0,
+    "PaymentDate": "2026-08-18T10:00:00"
+  },
+  {
+    "Id": 2,
+    "UserId": 10,
+    "Amount": 900,
+    "PaymentStatus": 0,
+    "PaymentDate": "2026-08-19T09:30:00"
+  },
+  {
+    "Id": 3,
+    "UserId": 8,
+    "Amount": 1050,
+    "PaymentStatus": 0,
+    "PaymentDate": "2026-08-18T14:45:00"
+  },
+  {
+    "Id": 4,
+    "UserId": 11,
+    "Amount": 800,
+    "PaymentStatus": 0,
+    "PaymentDate": "2026-08-17T11:20:00"
+  },
+  {
+    "Id": 5,
+    "UserId": 9,
+    "Amount": 1400,
+    "PaymentStatus": 0,
+    "PaymentDate": "2026-08-16T13:10:00"
+  },
+  {
+    "Id": 6,
+    "UserId": 12,
+    "Amount": 950,
+    "PaymentStatus": 0,
+    "PaymentDate": "2026-08-18T08:55:00"
+  },
+  {
+    "Id": 7,
+    "UserId": 7,
+    "Amount": 1200,
+    "PaymentStatus": 1,
+    "PaymentDate": "2026-08-06T16:00:00"
+  },
+  {
+    "Id": 8,
+    "UserId": 10,
+    "Amount": 1500,
+    "PaymentStatus": 1,
+    "PaymentDate": "2026-08-11T10:40:00"
+  },
+  {
+    "Id": 9,
+    "UserId": 8,
+    "Amount": 800,
+    "PaymentStatus": 3,
+    "PaymentDate": "2026-08-12T12:05:00"
+  },
+  {
+    "Id": 10,
+    "UserId": 11,
+    "Amount": 1300,
+    "PaymentStatus": 3,
+    "PaymentDate": "2026-08-13T15:25:00"
+  },
+  {
+    "Id": 11,
+    "UserId": 9,
+    "Amount": 1560,
+    "PaymentStatus": 3,
+    "PaymentDate": "2026-08-14T09:15:00"
+  },
+  {
+    "Id": 12,
+    "UserId": 12,
+    "Amount": 580,
+    "PaymentStatus": 3,
+    "PaymentDate": "2026-08-15T17:30:00"
+  },
+  {
+    "Id": 13,
+    "UserId": 7,
+    "Amount": 2400,
+    "PaymentStatus": 1,
+    "PaymentDate": "2026-07-21T11:50:00"
+  },
+  {
+    "Id": 14,
+    "UserId": 10,
+    "Amount": 600,
+    "PaymentStatus": 1,
+    "PaymentDate": "2026-08-02T13:35:00"
+  },
+  {
+    "Id": 15,
+    "UserId": 8,
+    "Amount": 1700,
+    "PaymentStatus": 1,
+    "PaymentDate": "2026-06-21T10:00:00"
+  },
+  {
+    "Id": 16,
+    "UserId": 11,
+    "Amount": 2550,
+    "PaymentStatus": 1,
+    "PaymentDate": "2026-06-26T12:45:00"
+  },
+  {
+    "Id": 17,
+    "UserId": 9,
+    "Amount": 2400,
+    "PaymentStatus": 1,
+    "PaymentDate": "2026-07-02T15:10:00"
+  },
+  {
+    "Id": 18,
+    "UserId": 12,
+    "Amount": 1560,
+    "PaymentStatus": 3,
+    "PaymentDate": "2026-08-08T10:20:00"
+  },
+  {
+    "Id": 19,
+    "UserId": 7,
+    "Amount": 580,
+    "PaymentStatus": 3,
+    "PaymentDate": "2026-08-09T14:00:00"
+  },
+  {
+    "Id": 20,
+    "UserId": 8,
+    "Amount": 850,
+    "PaymentStatus": 1,
+    "PaymentDate": "2026-06-28T09:05:00"
+  }
+]

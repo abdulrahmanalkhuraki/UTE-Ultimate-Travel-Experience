@@ -37,6 +37,12 @@ public class DbSeedService : IDbSeedService
         await SeedPackageTouristGuidesAsync(ct);
         await SeedPackageAttractionsAsync(ct);
         await SeedPackageMediaAsync(ct);
+        await SeedPaymentsAsync(ct);
+        await SeedBookingsAsync(ct);
+        await SeedRatesAsync(ct);
+        await SeedReviewsAsync(ct);
+        await SeedTicketsAsync(ct);
+        await SeedSupportRepliesAsync(ct);
     }
 
     private async Task SeedAttractionCategoriesAsync(CancellationToken ct)
@@ -476,6 +482,129 @@ public class DbSeedService : IDbSeedService
         await WithIdentityInsert("TourPackageMedias", ct);
     }
 
+    private async Task SeedPaymentsAsync(CancellationToken ct)
+    {
+        if (await _context.Payments.AnyAsync(ct))
+            return;
+
+        var items = await LoadJsonAsync<PaymentJson>("payments.json", ct);
+
+        _context.Payments.AddRange(items.Select(x => new Payment
+        {
+            Id = x.Id,
+            Amount = x.Amount,
+            PaymentStatus = (Domain.Enums.PaymentStatus)x.PaymentStatus,
+            PaymentDate = DateTime.Parse(x.PaymentDate),
+            UserId = x.UserId
+        }));
+
+        await WithIdentityInsert("Payments", ct);
+    }
+
+    private async Task SeedBookingsAsync(CancellationToken ct)
+    {
+        if (await _context.Bookings.AnyAsync(ct))
+            return;
+
+        var items = await LoadJsonAsync<BookingJson>("bookings.json", ct);
+
+        _context.Bookings.AddRange(items.Select(x => new Booking
+        {
+            Id = x.Id,
+            BookingDate = DateTime.Parse(x.BookingDate),
+            NumberOfAdults = x.NumberOfAdults,
+            NumberOfChildren = x.NumberOfChildren,
+            RoomTypePreference = x.RoomTypePreference,
+            DietaryRequirements = x.DietaryRequirements,
+            SpecialRequests = x.SpecialRequests,
+            RejectReason = x.RejectReason,
+            TotalCost = x.TotalCost,
+            TourPackageId = x.TourPackageId,
+            Status = (Domain.Enums.BookingStatus)x.Status,
+            FlightCabinClass = (Domain.Enums.FlightCabinClass)x.FlightCabinClass,
+            UserId = x.UserId,
+            PaymentId = x.PaymentId
+        }));
+
+        await WithIdentityInsert("Bookings", ct);
+    }
+
+    private async Task SeedRatesAsync(CancellationToken ct)
+    {
+        if (await _context.Rates.AnyAsync(ct))
+            return;
+
+        var items = await LoadJsonAsync<RateJson>("rates.json", ct);
+
+        _context.Rates.AddRange(items.Select(x => new Rate
+        {
+            Id = x.Id,
+            RateValue = x.RateValue,
+            UserId = x.UserId,
+            PackageId = x.PackageId
+        }));
+
+        await WithIdentityInsert("Rates", ct);
+    }
+
+    private async Task SeedReviewsAsync(CancellationToken ct)
+    {
+        if (await _context.Reviews.AnyAsync(ct))
+            return;
+
+        var items = await LoadJsonAsync<ReviewJson>("reviews.json", ct);
+
+        _context.Reviews.AddRange(items.Select(x => new Review
+        {
+            Id = x.Id,
+            Comment = x.Comment,
+            UserId = x.UserId,
+            PackageId = x.PackageId
+        }));
+
+        await WithIdentityInsert("Reviews", ct);
+    }
+
+    private async Task SeedTicketsAsync(CancellationToken ct)
+    {
+        if (await _context.Tickets.AnyAsync(ct))
+            return;
+
+        var items = await LoadJsonAsync<TicketJson>("tickets.json", ct);
+
+        _context.Tickets.AddRange(items.Select(x => new Ticket
+        {
+            Id = x.Id,
+            UserId = x.UserId,
+            Subject = x.Subject,
+            Description = x.Description,
+            ImageUrl = x.ImageUrl,
+            Status = (Domain.Enums.TicketStatus)x.Status,
+            CreatedAt = DateTime.Parse(x.CreatedAt)
+        }));
+
+        await WithIdentityInsert("Tickets", ct);
+    }
+
+    private async Task SeedSupportRepliesAsync(CancellationToken ct)
+    {
+        if (await _context.SupportReplies.AnyAsync(ct))
+            return;
+
+        var items = await LoadJsonAsync<SupportReplyJson>("support_replies.json", ct);
+
+        _context.SupportReplies.AddRange(items.Select(x => new SupportReply
+        {
+            Id = x.Id,
+            TicketId = x.TicketId,
+            AdminId = x.AdminId,
+            ReplyContent = x.ReplyContent,
+            CreatedAt = DateTime.Parse(x.CreatedAt)
+        }));
+
+        await WithIdentityInsert("SupportReplies", ct);
+    }
+
     private static async Task<List<T>> LoadJsonAsync<T>(string fileName, CancellationToken ct)
     {
         var assembly = Assembly.GetExecutingAssembly();
@@ -671,5 +800,68 @@ public class DbSeedService : IDbSeedService
         public int Relationship { get; init; }
         public int PersonId { get; init; }
         public int UserId { get; init; }
+    }
+
+    private sealed record PaymentJson
+    {
+        public int Id { get; init; }
+        public int UserId { get; init; }
+        public decimal Amount { get; init; }
+        public int PaymentStatus { get; init; }
+        public string PaymentDate { get; init; } = null!;
+    }
+
+    private sealed record BookingJson
+    {
+        public int Id { get; init; }
+        public string BookingDate { get; init; } = null!;
+        public int NumberOfAdults { get; init; }
+        public int NumberOfChildren { get; init; }
+        public string? RoomTypePreference { get; init; }
+        public string? DietaryRequirements { get; init; }
+        public string? SpecialRequests { get; init; }
+        public string? RejectReason { get; init; }
+        public decimal? TotalCost { get; init; }
+        public int TourPackageId { get; init; }
+        public int Status { get; init; }
+        public int FlightCabinClass { get; init; }
+        public int UserId { get; init; }
+        public int PaymentId { get; init; }
+    }
+
+    private sealed record RateJson
+    {
+        public int Id { get; init; }
+        public int RateValue { get; init; }
+        public int UserId { get; init; }
+        public int PackageId { get; init; }
+    }
+
+    private sealed record ReviewJson
+    {
+        public int Id { get; init; }
+        public string Comment { get; init; } = null!;
+        public int UserId { get; init; }
+        public int PackageId { get; init; }
+    }
+
+    private sealed record TicketJson
+    {
+        public int Id { get; init; }
+        public int UserId { get; init; }
+        public string Subject { get; init; } = null!;
+        public string Description { get; init; } = null!;
+        public string? ImageUrl { get; init; }
+        public int Status { get; init; }
+        public string CreatedAt { get; init; } = null!;
+    }
+
+    private sealed record SupportReplyJson
+    {
+        public int Id { get; init; }
+        public int TicketId { get; init; }
+        public int AdminId { get; init; }
+        public string ReplyContent { get; init; } = null!;
+        public string CreatedAt { get; init; } = null!;
     }
 }

@@ -1,0 +1,74 @@
+[
+  {
+    "Id": 1,
+    "UserId": 7,
+    "Subject": "Request to change tour date",
+    "Description": "I need to change my booking date for the Palmyra tour due to a work conflict. Please advise if this is possible at this stage.",
+    "ImageUrl": null,
+    "Status": 0,
+    "CreatedAt": "2026-08-10T09:00:00"
+  },
+  {
+    "Id": 2,
+    "UserId": 8,
+    "Subject": "Cancellation of Damascus reservation",
+    "Description": "I would like to cancel my Historical Damascus Tour booking. Please help me process the cancellation and confirm any refund.",
+    "ImageUrl": null,
+    "Status": 1,
+    "CreatedAt": "2026-06-15T11:30:00"
+  },
+  {
+    "Id": 3,
+    "UserId": 9,
+    "Subject": "Refund request for unused booking",
+    "Description": "I was not able to attend the Greater Damascus Tour. I would like to request information about a possible refund for the unused booking.",
+    "ImageUrl": null,
+    "Status": 0,
+    "CreatedAt": "2026-07-05T14:20:00"
+  },
+  {
+    "Id": 4,
+    "UserId": 10,
+    "Subject": "Question about payment confirmation",
+    "Description": "I completed the payment for my Aleppo booking but have not received a confirmation email. Could you verify the payment status?",
+    "ImageUrl": null,
+    "Status": 0,
+    "CreatedAt": "2026-08-12T10:15:00"
+  },
+  {
+    "Id": 5,
+    "UserId": 11,
+    "Subject": "Complaint about company rejection",
+    "Description": "My booking for the Palmyra and Syrian Desert tour was rejected without clear explanation. I would like details about the rejection reason.",
+    "ImageUrl": null,
+    "Status": 1,
+    "CreatedAt": "2026-08-14T13:40:00"
+  },
+  {
+    "Id": 6,
+    "UserId": 12,
+    "Subject": "Help with dietary requirements",
+    "Description": "I need to update my dietary requirements for an upcoming coast tour. Could you add a note to my booking?",
+    "ImageUrl": null,
+    "Status": 0,
+    "CreatedAt": "2026-08-17T09:45:00"
+  },
+  {
+    "Id": 7,
+    "UserId": 8,
+    "Subject": "Billing discrepancy on my booking",
+    "Description": "The charged amount does not match the price shown for my History of Damascus tour. Please review my invoice.",
+    "ImageUrl": null,
+    "Status": 1,
+    "CreatedAt": "2026-07-20T15:05:00"
+  },
+  {
+    "Id": 8,
+    "UserId": 10,
+    "Subject": "Request to extend registration deadline",
+    "Description": "I would like to extend the registration deadline for my upcoming tour booking. Is it possible to complete it later?",
+    "ImageUrl": null,
+    "Status": 0,
+    "CreatedAt": "2026-08-19T08:30:00"
+  }
+]

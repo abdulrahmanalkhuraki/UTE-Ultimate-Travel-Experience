@@ -1,0 +1,37 @@
+[
+  {
+    "Id": 1,
+    "TicketId": 2,
+    "AdminId": 1,
+    "ReplyContent": "Your booking has been cancelled successfully. A full refund has been initiated and should appear on your account within 5–7 business days. Thank you for choosing our services.",
+    "CreatedAt": "2026-06-16T09:20:00"
+  },
+  {
+    "Id": 2,
+    "TicketId": 5,
+    "AdminId": 2,
+    "ReplyContent": "We apologize for the inconvenience. The tour was rejected by the company because the requested dates conflicted with an already confirmed group. We encourage you to book the alternative Palmyra tour dates.",
+    "CreatedAt": "2026-08-15T10:10:00"
+  },
+  {
+    "Id": 3,
+    "TicketId": 7,
+    "AdminId": 1,
+    "ReplyContent": "We have reviewed your invoice and confirmed the charge matches the final price after the cabin class upgrade you selected. A detailed breakdown has been sent to your email.",
+    "CreatedAt": "2026-07-21T12:00:00"
+  },
+  {
+    "Id": 4,
+    "TicketId": 1,
+    "AdminId": 2,
+    "ReplyContent": "Thanks for reaching out. You can change your tour date up to 24 hours before departure without any additional fees. Please let us know your preferred new dates and we will arrange it.",
+    "CreatedAt": "2026-08-11T09:50:00"
+  },
+  {
+    "Id": 5,
+    "TicketId": 4,
+    "AdminId": 1,
+    "ReplyContent": "Your payment has been received and confirmed. Confirmation emails are usually sent shortly after; please check your spam folder. If it does not arrive within 24 hours, reply to this ticket and we will resend it.",
+    "CreatedAt": "2026-08-13T11:25:00"
+  }
+]

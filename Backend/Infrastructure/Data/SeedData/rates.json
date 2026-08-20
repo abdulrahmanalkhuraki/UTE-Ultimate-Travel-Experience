@@ -1,0 +1,62 @@
+[
+  {
+    "Id": 1,
+    "RateValue": 5,
+    "UserId": 8,
+    "PackageId": 1
+  },
+  {
+    "Id": 2,
+    "RateValue": 4,
+    "UserId": 11,
+    "PackageId": 1
+  },
+  {
+    "Id": 3,
+    "RateValue": 5,
+    "UserId": 9,
+    "PackageId": 11
+  },
+  {
+    "Id": 4,
+    "RateValue": 4,
+    "UserId": 7,
+    "PackageId": 11
+  },
+  {
+    "Id": 5,
+    "RateValue": 5,
+    "UserId": 10,
+    "PackageId": 3
+  },
+  {
+    "Id": 6,
+    "RateValue": 5,
+    "UserId": 11,
+    "PackageId": 11
+  },
+  {
+    "Id": 7,
+    "RateValue": 4,
+    "UserId": 9,
+    "PackageId": 1
+  },
+  {
+    "Id": 8,
+    "RateValue": 4,
+    "UserId": 8,
+    "PackageId": 3
+  },
+  {
+    "Id": 9,
+    "RateValue": 5,
+    "UserId": 7,
+    "PackageId": 1
+  },
+  {
+    "Id": 10,
+    "RateValue": 4,
+    "UserId": 10,
+    "PackageId": 1
+  }
+]

@@ -70,5 +70,53 @@
     "RoleId": 2,
     "PersonId": 9,
     "IsEmailVerified": true
+  },
+  {
+    "Id": 10,
+    "Email": "tourist4@example.com",
+    "Password": "P@ssw0rd",
+    "RoleId": 2,
+    "PersonId": 23,
+    "IsEmailVerified": true
+  },
+  {
+    "Id": 11,
+    "Email": "tourist5@example.com",
+    "Password": "P@ssw0rd",
+    "RoleId": 2,
+    "PersonId": 24,
+    "IsEmailVerified": true
+  },
+  {
+    "Id": 12,
+    "Email": "tourist6@example.com",
+    "Password": "P@ssw0rd",
+    "RoleId": 2,
+    "PersonId": 25,
+    "IsEmailVerified": true
+  },
+  {
+    "Id": 13,
+    "Email": "company4@example.com",
+    "Password": "P@ssw0rd",
+    "RoleId": 3,
+    "PersonId": 26,
+    "IsEmailVerified": true
+  },
+  {
+    "Id": 14,
+    "Email": "company5@example.com",
+    "Password": "P@ssw0rd",
+    "RoleId": 3,
+    "PersonId": 27,
+    "IsEmailVerified": true
+  },
+  {
+    "Id": 15,
+    "Email": "company6@example.com",
+    "Password": "P@ssw0rd",
+    "RoleId": 3,
+    "PersonId": 28,
+    "IsEmailVerified": true
   }
 ]

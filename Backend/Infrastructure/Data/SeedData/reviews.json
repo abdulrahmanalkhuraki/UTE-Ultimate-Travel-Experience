@@ -1,0 +1,62 @@
+[
+  {
+    "Id": 1,
+    "Comment": "An unforgettable trip to the ancient city of Damascus. The guides were knowledgeable and the itinerary was perfectly organized.",
+    "UserId": 8,
+    "PackageId": 1
+  },
+  {
+    "Id": 2,
+    "Comment": "Great historical tour with excellent accommodation. Would have loved one more day at the Umayyad Mosque.",
+    "UserId": 11,
+    "PackageId": 1
+  },
+  {
+    "Id": 3,
+    "Comment": "The Greater Damascus tour was fantastic. Luxury hotels and a very professional team made the whole experience seamless.",
+    "UserId": 9,
+    "PackageId": 11
+  },
+  {
+    "Id": 4,
+    "Comment": "Very well organized with comfortable transport. The old city walking route was a highlight.",
+    "UserId": 7,
+    "PackageId": 11
+  },
+  {
+    "Id": 5,
+    "Comment": "Palmyra under the stars was breathtaking. The whole tour felt authentic and well-paced.",
+    "UserId": 10,
+    "PackageId": 3
+  },
+  {
+    "Id": 6,
+    "Comment": "Second time on this package and it keeps getting better. Highly recommended for history lovers.",
+    "UserId": 11,
+    "PackageId": 11
+  },
+  {
+    "Id": 7,
+    "Comment": "Beautiful introduction to Syria's capital. The markets and the citadel exceeded my expectations.",
+    "UserId": 9,
+    "PackageId": 1
+  },
+  {
+    "Id": 8,
+    "Comment": "The desert tour was good overall, though the heat was intense in the afternoon. Great guides though.",
+    "UserId": 8,
+    "PackageId": 3
+  },
+  {
+    "Id": 9,
+    "Comment": "Perfect three days exploring Damascus. The local food included in the package was delicious.",
+    "UserId": 7,
+    "PackageId": 1
+  },
+  {
+    "Id": 10,
+    "Comment": "Solid value for money. The historical sites are world class and the logistics were smooth.",
+    "UserId": 10,
+    "PackageId": 1
+  }
+]
