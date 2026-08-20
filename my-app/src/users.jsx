@@ -21,7 +21,8 @@ function mapApiUser(u) {
     companions: '—',
     programs: '—',
     companies: '—',
-    location: u.currentLocation || u.placeOfResidence || '—',
+    // currentLocation إحداثيات (lat/long) مو عنوان نصي — أقرب شي نصي هو المدينة/الجنسية
+    location: u.residentialCityName || u.nationalityCountryName || '—',
     joined: timeAgo(u.createdAtUtc),
     avatar: u.image || FALLBACK_AVATAR,
     nationalId: u.nationalNumber || '—',
@@ -36,7 +37,8 @@ export default function Users() {
   const [isDeletedExpanded, setIsDeletedExpanded] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const { data: touristsData } = useApiData(getTouristsDashboard, []);
-  const { data: touristUsersData } = useApiData(() => getUsersByRole('Tourist'), []);
+  // pageSize كبيرة لأن التصميم الحالي بيعرض القائمة كاملة بدون Pagination UI
+  const { data: touristUsersData } = useApiData(() => getUsersByRole('Tourist', 1, 100), []);
   const { data: deletedUsersData } = useApiData(getDeletedUsers, []);
 
   // GET /api/Admin/dashboard/tourists -> touristGrowth
@@ -45,7 +47,7 @@ export default function Users() {
     tourists: g.count,
   }));
 
-  const activeUsers = (touristUsersData ?? []).map(mapApiUser);
+  const activeUsers = (touristUsersData?.items ?? []).map(mapApiUser);
   const deletedUsers = (deletedUsersData?.users ?? []).map(mapApiUser);
 
   const UserCard = ({ user, isClickable = false }) => (

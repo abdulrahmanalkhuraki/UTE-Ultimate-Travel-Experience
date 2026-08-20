@@ -12,7 +12,14 @@ import {
 import { useApiData } from './hooks/useApiData';
 import { useSyncedState } from './hooks/useSyncedState';
 import { useCompanyProgramCounts } from './hooks/useCompanyProgramCounts';
-import { getCompaniesDashboard, getTourCompanies, getPendingTourCompanies } from './services/dashboardApi';
+import {
+  getCompaniesDashboard,
+  getTourCompanies,
+  getPendingTourCompanies,
+  getDeletedUsers,
+  approveTourCompany,
+  rejectTourCompany,
+} from './services/dashboardApi';
 import { mapApiCompany } from './utils/mappers';
 
 export default function Companies() {
@@ -24,9 +31,12 @@ export default function Companies() {
   const [itemToReject, setItemToReject] = useState(null);
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [itemToApprove, setItemToApprove] = useState(null);
+  const [actionError, setActionError] = useState('');
   const { data: companiesData } = useApiData(getCompaniesDashboard, []);
   const { data: allCompaniesData } = useApiData(getTourCompanies, []);
   const { data: pendingCompaniesData } = useApiData(getPendingTourCompanies, []);
+  // "شركة محذوفة" = شركة موافَق عليها لكن حساب مالكها انحذف (soft-deleted) — ما في status خاص فيها
+  const { data: deletedUsersData } = useApiData(getDeletedUsers, []);
 
   // نسخة محلية قابلة للتعديل من قائمة الشركات المعلّقة (حتى تنشيل العنصر فوراً بعد قبول/رفض)
   const [pendingCompanies, setPendingCompanies] = useSyncedState(
@@ -40,11 +50,11 @@ export default function Companies() {
     count: g.count,
   }));
 
-  // GET /api/TourCompany -> نفلترها حسب status لتصير Current/Deleted
-  // ملاحظة: ما في قيم status موثقة رسمياً ولا endpoint مخصص للشركات المحذوفة، فهاد أفضل تخمين ممكن
+  // GET /api/TourCompany -> Status بالباك: Pending/Approved/Rejected (ما في "Deleted")
   const allCompanies = (allCompaniesData ?? []).map(mapApiCompany);
-  const approvedCompanies = allCompanies.filter((c) => !(c.status || '').toLowerCase().includes('delet'));
-  const removedCompanies = allCompanies.filter((c) => (c.status || '').toLowerCase().includes('delet'));
+  const deletedUserIds = new Set((deletedUsersData?.users ?? []).map((u) => u.id));
+  const approvedCompanies = allCompanies.filter((c) => c.status === 'Approved' && !deletedUserIds.has(c.userId));
+  const removedCompanies = allCompanies.filter((c) => c.status === 'Approved' && deletedUserIds.has(c.userId));
 
   // GET /api/Admin/dashboard/companies/:companyId -> totalTourPackages (عدد البرامج المنشورة لكل شركة)
   const approvedProgramCounts = useCompanyProgramCounts(approvedCompanies.map((c) => c.id));
@@ -59,35 +69,52 @@ export default function Companies() {
   // دالة التعامل مع ضغطة زر الرفض
   const handleRejectClick = (e, company) => {
     e.stopPropagation(); // لمنع فتح تفاصيل الشركة عند الضغط على الزر
+    setActionError('');
     setItemToReject(company);
     setIsRejectDialogOpen(true);
   };
 
-  // دالة الإرسال الفعلية (بعد كتابة السبب)
-  const handleConfirmRejection = (reason) => {
-    console.log(`Rejecting ${itemToReject.name} for reason: ${reason}`);
-    setPendingCompanies((prev) => prev.filter((company) => company.id !== itemToReject.id));
-    if (selectedPendingCompany?.id === itemToReject.id) {
-      setSelectedPendingCompany(null);
+  // POST /api/TourCompany/:id/reject  body: { reason }
+  const handleConfirmRejection = async (reason) => {
+    if (!itemToReject) return;
+    setActionError('');
+    try {
+      await rejectTourCompany(itemToReject.id, reason);
+      setPendingCompanies((prev) => prev.filter((company) => company.id !== itemToReject.id));
+      if (selectedPendingCompany?.id === itemToReject.id) {
+        setSelectedPendingCompany(null);
+      }
+      setIsRejectDialogOpen(false);
+      setItemToReject(null);
+    } catch (err) {
+      setIsRejectDialogOpen(false);
+      setActionError(err.message || 'Failed to reject the company.');
     }
-    setIsRejectDialogOpen(false);
-    setItemToReject(null);
   };
 
   const handleApproveClick = (e, company) => {
     e.stopPropagation();
+    setActionError('');
     setItemToApprove(company);
     setIsApproveDialogOpen(true);
   };
 
-  const handleConfirmApproval = () => {
-    console.log(`Approving ${itemToApprove?.name}`);
-    setPendingCompanies((prev) => prev.filter((company) => company.id !== itemToApprove.id));
-    if (selectedPendingCompany?.id === itemToApprove.id) {
-      setSelectedPendingCompany(null);
+  // POST /api/TourCompany/:id/approve
+  const handleConfirmApproval = async () => {
+    if (!itemToApprove) return;
+    setActionError('');
+    try {
+      await approveTourCompany(itemToApprove.id);
+      setPendingCompanies((prev) => prev.filter((company) => company.id !== itemToApprove.id));
+      if (selectedPendingCompany?.id === itemToApprove.id) {
+        setSelectedPendingCompany(null);
+      }
+      setIsApproveDialogOpen(false);
+      setItemToApprove(null);
+    } catch (err) {
+      setIsApproveDialogOpen(false);
+      setActionError(err.message || 'Failed to approve the company.');
     }
-    setIsApproveDialogOpen(false);
-    setItemToApprove(null);
   };
 
   // تصميم موحد لكارت الشركة للـ Accordion (يمين اللوجو، يسار التاريخ)
@@ -128,18 +155,37 @@ export default function Companies() {
 
   if (selectedPendingCompany) {
     return (
-      <PendingCompanyDetails 
-        company={selectedPendingCompany} 
-        onBack={() => setSelectedPendingCompany(null)} 
-        onApprove={() => {
-          alert("تم القبول بنجاح!"); // لاحقاً تربطها بالـ API
-          setSelectedPendingCompany(null);
-        }}
-        onReject={() => {
-          alert("تم رفض الطلب.");
-          setSelectedPendingCompany(null);
-        }}
-      />
+      <>
+        <PendingCompanyDetails
+          company={selectedPendingCompany}
+          onBack={() => setSelectedPendingCompany(null)}
+          onApprove={() => {
+            setActionError('');
+            setItemToApprove(selectedPendingCompany);
+            setIsApproveDialogOpen(true);
+          }}
+          onReject={() => {
+            setActionError('');
+            setItemToReject(selectedPendingCompany);
+            setIsRejectDialogOpen(true);
+          }}
+        />
+        <RejectDialog
+          isOpen={isRejectDialogOpen}
+          onClose={() => setIsRejectDialogOpen(false)}
+          onSubmit={handleConfirmRejection}
+          targetName={itemToReject?.name}
+        />
+        <ApproveDialog
+          isOpen={isApproveDialogOpen}
+          onClose={() => {
+            setIsApproveDialogOpen(false);
+            setItemToApprove(null);
+          }}
+          onConfirm={handleConfirmApproval}
+          targetName={itemToApprove?.name}
+        />
+      </>
     );
   }
 
@@ -246,7 +292,12 @@ export default function Companies() {
             <h3 className="text-lg font-semibold justify-content text-white mb-6 ml-5 text-left border-b border-[#333] pb-4">
               Pending Company Applications
             </h3>
-            
+            {actionError && (
+              <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
+                {actionError}
+              </div>
+            )}
+
             <div className="space-y-5 overflow-y-auto flex-1 pr-2 custom-scrollbar">
               {pendingCompaniesDisplay.length === 0 ? (
                 <p className="text-gray-400 text-center text-xl mt-10">No pending companies.</p>

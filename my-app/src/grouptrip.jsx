@@ -25,8 +25,14 @@ import ProgramDetails from './programDetailes';
 import PendingProgramReview from './PendingProgramReview';
 import { useApiData } from './hooks/useApiData';
 import { useSyncedState } from './hooks/useSyncedState';
-import { getTourPackagesDashboard, getTourPackages } from './services/dashboardApi';
-import { mapTourPackage } from './utils/mappers';
+import {
+  getTourPackagesDashboard,
+  getTourPackages,
+  getUnapprovedTourPackages,
+  approveTourPackage,
+  rejectTourPackage,
+} from './services/dashboardApi';
+import { mapTourPackage, TOUR_PACKAGE_STATUS } from './utils/mappers';
 
 export default function GroupTrip() {
   const [isRejectedOpen, setIsRejectedOpen] = useState(false);
@@ -36,9 +42,11 @@ export default function GroupTrip() {
   const [selectedPendingProgram, setSelectedPendingProgram] = useState(null);
   const [selectedProgramDetails, setSelectedProgramDetails] = useState(null);
   const [selectedPendingReviewProgram, setSelectedPendingReviewProgram] = useState(null);
+  const [actionError, setActionError] = useState('');
   const { data: tourPackagesData } = useApiData(getTourPackagesDashboard, []);
   // pageSize كبيرة لأن التصميم الحالي بيعرض القوائم كاملة بدون Pagination UI
   const { data: allPackagesData } = useApiData(() => getTourPackages(1, 200), []);
+  const { data: unapprovedData } = useApiData(getUnapprovedTourPackages, []);
 
   // GET /api/Admin/dashboard/tour-packages -> tourPackageGrowth
   const chartData = (tourPackagesData?.tourPackageGrowth ?? []).map((g) => ({
@@ -46,16 +54,17 @@ export default function GroupTrip() {
     Programs: g.count,
   }));
 
-  // GET /api/TourPackage -> نفلترها حسب publishLabel لتصير Cancelled/All/Pending
-  // ملاحظة: القيم الدقيقة لـ status/publishLabel مو موثقة رسمياً، فهاد أفضل تخمين ممكن بالاعتماد على النص
+  // GET /api/TourPackage -> نفلترها حسب status (رقم من enum TourPackageStatus بالباك)
   const allPackages = (allPackagesData?.items ?? []).map(mapTourPackage);
   const sampleTrips = allPackages.filter(
-    (p) => !/reject|cancel|pending/i.test(p.publishLabel)
+    (p) => p.status === TOUR_PACKAGE_STATUS.ACTIVE || p.status === TOUR_PACKAGE_STATUS.COMPLETED
   );
-  const cancelledTrips = allPackages.filter((p) => /reject|cancel/i.test(p.publishLabel));
-  const [pendingProgramsList, setPendingProgramsList] = useSyncedState(
-    allPackagesData,
-    (d) => (d?.items ?? []).map(mapTourPackage).filter((p) => /pending/i.test(p.publishLabel))
+  const cancelledTrips = allPackages.filter(
+    (p) => p.status === TOUR_PACKAGE_STATUS.CANCELLED || p.status === TOUR_PACKAGE_STATUS.REJECTED
+  );
+  // GET /api/TourPackage/unApproved -> قائمة جاهزة بالبرامج قيد المراجعة (Admin only)
+  const [pendingProgramsList, setPendingProgramsList] = useSyncedState(unapprovedData, (d) =>
+    (d ?? []).map(mapTourPackage)
   );
 
   const openRejectDialog = (program) => {
@@ -81,18 +90,34 @@ export default function GroupTrip() {
     setSelectedPendingReviewProgram(null);
   };
 
-  const handleRejectSubmit = (reason) => {
-    console.log(`Rejected ${selectedPendingProgram?.title} for reason: ${reason}`);
-    setPendingProgramsList((prev) => prev.filter((item) => item.id !== selectedPendingProgram?.id));
-    setIsRejectDialogOpen(false);
-    setSelectedPendingProgram(null);
+  // POST /api/TourPackage/:id/reject  body: { reason }
+  const handleRejectSubmit = async (reason) => {
+    if (!selectedPendingProgram) return;
+    setActionError('');
+    try {
+      await rejectTourPackage(selectedPendingProgram.id, reason);
+      setPendingProgramsList((prev) => prev.filter((item) => item.id !== selectedPendingProgram.id));
+      setIsRejectDialogOpen(false);
+      setSelectedPendingProgram(null);
+    } catch (err) {
+      setIsRejectDialogOpen(false);
+      setActionError(err.message || 'Failed to reject the program.');
+    }
   };
 
-  const handleApproveConfirm = () => {
-    console.log(`Approved ${selectedPendingProgram?.title}`);
-    setPendingProgramsList((prev) => prev.filter((item) => item.id !== selectedPendingProgram?.id));
-    setIsApproveDialogOpen(false);
-    setSelectedPendingProgram(null);
+  // POST /api/TourPackage/:id/approve
+  const handleApproveConfirm = async () => {
+    if (!selectedPendingProgram) return;
+    setActionError('');
+    try {
+      await approveTourPackage(selectedPendingProgram.id);
+      setPendingProgramsList((prev) => prev.filter((item) => item.id !== selectedPendingProgram.id));
+      setIsApproveDialogOpen(false);
+      setSelectedPendingProgram(null);
+    } catch (err) {
+      setIsApproveDialogOpen(false);
+      setActionError(err.message || 'Failed to approve the program.');
+    }
   };
 
   if (selectedPendingReviewProgram) {
@@ -238,6 +263,11 @@ export default function GroupTrip() {
         <div className="lg:col-span-5">
           <div className="flex h-full flex-col rounded-2xl border border-[#D4AF37]/30 bg-[#1C1C1E] p-6 shadow-[0_10px_25px_rgba(0,0,0,0.25)]">
             <h3 className="border-b border-[#333] pb-4 text-left text-lg ml-5 font-semibold text-white">Pending Programs</h3>
+            {actionError && (
+              <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
+                {actionError}
+              </div>
+            )}
             <div className="mt-5 flex flex-1 flex-col gap-4 overflow-y-auto pr-2">
               {pendingProgramsList.map((program) => (
                 <div

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import RejectDialog from './components/RejectDialog';
 import ApproveDialog from './components/ApproveDialog';
+import { approveTourPackage, rejectTourPackage } from './services/dashboardApi';
 
 // --- مكون القائمة المنسدلة للأيام ---
 const DayAccordion = ({ day, isExpanded, onToggle }) => (
@@ -53,10 +54,11 @@ const DayAccordion = ({ day, isExpanded, onToggle }) => (
 
 export default function PendingProgramReview({ program, onBack, onDecision }) {
   const [expandedDay, setExpandedDay] = useState(0);
-  
+
   // حالات الـ Dialog للرفض والقبول
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
+  const [actionError, setActionError] = useState('');
 
   // === بيانات وهمية لبرنامج قيد الانتظار (مستمدة من واجهة الإضافة) ===
   const mockPendingProgram = {
@@ -131,17 +133,30 @@ export default function PendingProgramReview({ program, onBack, onDecision }) {
     setIsApproveDialogOpen(true);
   };
 
-  const handleApproveConfirm = () => {
-    console.log("Program Approved:", selectedProgram.id);
-    setIsApproveDialogOpen(false);
-    onDecision?.(selectedProgram.id);
+  // POST /api/TourPackage/:id/approve
+  const handleApproveConfirm = async () => {
+    setActionError('');
+    try {
+      await approveTourPackage(selectedProgram.id);
+      setIsApproveDialogOpen(false);
+      onDecision?.(selectedProgram.id);
+    } catch (err) {
+      setIsApproveDialogOpen(false);
+      setActionError(err.message || 'Failed to approve the program.');
+    }
   };
 
-  const handleRejectConfirm = (reason) => {
-    // هنا تضع كود إرسال سبب الرفض (API Call)
-    console.log(`Program Rejected: ${selectedProgram.id}. Reason: ${reason}`);
-    setIsRejectDialogOpen(false);
-    onDecision?.(selectedProgram.id);
+  // POST /api/TourPackage/:id/reject  body: { reason }
+  const handleRejectConfirm = async (reason) => {
+    setActionError('');
+    try {
+      await rejectTourPackage(selectedProgram.id, reason);
+      setIsRejectDialogOpen(false);
+      onDecision?.(selectedProgram.id);
+    } catch (err) {
+      setIsRejectDialogOpen(false);
+      setActionError(err.message || 'Failed to reject the program.');
+    }
   };
 
   return (
@@ -155,6 +170,12 @@ export default function PendingProgramReview({ program, onBack, onDecision }) {
           <p className="text-xs text-[#EB996E]/80 mt-0.5">Please review the program details below before accepting or rejecting the company's application.</p>
         </div>
       </div>
+
+      {actionError && (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
+          {actionError}
+        </div>
+      )}
 
       {/* --- 1. الترويسة العلوية --- */}
       <div className="space-y-6">

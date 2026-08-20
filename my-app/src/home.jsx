@@ -10,7 +10,16 @@ import ProgramDetails from './programDetailes';
 import PendingCompanyDetails from './PendingCompanyDetails';
 import { useApiData } from './hooks/useApiData';
 import { useSyncedState } from './hooks/useSyncedState';
-import { getMainDashboard, getCompaniesDashboard, getTourPackages, getPendingTourCompanies } from './services/dashboardApi';
+import {
+  getMainDashboard,
+  getCompaniesDashboard,
+  getUnapprovedTourPackages,
+  getPendingTourCompanies,
+  approveTourPackage,
+  rejectTourPackage,
+  approveTourCompany,
+  rejectTourCompany,
+} from './services/dashboardApi';
 import { mapApiCompany, mapTourPackage } from './utils/mappers';
 
 export default function Home() {
@@ -41,14 +50,12 @@ export default function Home() {
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [rejectTargetType, setRejectTargetType] = useState('program');
   const [approveTargetType, setApproveTargetType] = useState('program');
+  const [actionError, setActionError] = useState('');
 
-  // GET /api/TourPackage -> برامج قيد المراجعة (نفلترها حسب publishLabel، نفس منطق صفحة Group Trips)
-  const { data: allPackagesData } = useApiData(() => getTourPackages(1, 200), []);
-  const [programRows, setProgramRows] = useSyncedState(allPackagesData, (d) =>
-    (d?.items ?? [])
-      .map(mapTourPackage)
-      .filter((p) => /pending/i.test(p.publishLabel))
-      .map((p) => ({ name: p.title, trip: p.title, comp: p.company, program: p }))
+  // GET /api/TourPackage/unApproved -> برامج قيد المراجعة (نفس endpoint صفحة Group Trips)
+  const { data: unapprovedData } = useApiData(getUnapprovedTourPackages, []);
+  const [programRows, setProgramRows] = useSyncedState(unapprovedData, (d) =>
+    (d ?? []).map(mapTourPackage).map((p) => ({ name: p.title, trip: p.title, comp: p.company, program: p }))
   );
 
   // GET /api/TourCompany/pending -> شركات قيد المراجعة
@@ -59,6 +66,7 @@ export default function Home() {
 
   const handleRejectClick = (e, item, type) => {
     e.stopPropagation();
+    setActionError('');
     setItemToReject(item);
     setRejectTargetType(type);
     setIsRejectDialogOpen(true);
@@ -66,6 +74,7 @@ export default function Home() {
 
   const handleApproveClick = (e, item, type) => {
     e.stopPropagation();
+    setActionError('');
     setItemToApprove(item);
     setApproveTargetType(type);
     setIsApproveDialogOpen(true);
@@ -81,28 +90,45 @@ export default function Home() {
     setSelectedProgram(null);
   };
 
-  const handleConfirmRejection = (reason) => {
-    console.log(`Rejecting ${itemToReject?.name} for reason: ${reason}`);
-    if (itemToReject) {
+  // POST /api/TourPackage/:id/reject أو /api/TourCompany/:id/reject  body: { reason }
+  const handleConfirmRejection = async (reason) => {
+    if (!itemToReject) return;
+    setActionError('');
+    try {
       if (rejectTargetType === 'program') {
+        await rejectTourPackage(itemToReject.program.id, reason);
         setProgramRows((prev) => prev.filter((item) => item.name !== itemToReject.name));
       } else {
+        await rejectTourCompany(itemToReject.company.id, reason);
         setCompanyRows((prev) => prev.filter((item) => item.name !== itemToReject.name));
+        if (selectedCompany?.id === itemToReject.company.id) setSelectedCompany(null);
       }
+      setIsRejectDialogOpen(false);
+      setItemToReject(null);
+      setRejectTargetType('program');
+    } catch (err) {
+      setIsRejectDialogOpen(false);
+      setActionError(err.message || 'Failed to reject.');
     }
-
-    setIsRejectDialogOpen(false);
-    setItemToReject(null);
-    setRejectTargetType('program');
   };
 
-  const handleConfirmApproval = () => {
-    if (itemToApprove) {
+  // POST /api/TourPackage/:id/approve أو /api/TourCompany/:id/approve
+  const handleConfirmApproval = async () => {
+    if (!itemToApprove) return;
+    setActionError('');
+    try {
       if (approveTargetType === 'program') {
+        await approveTourPackage(itemToApprove.program.id);
         setProgramRows((prev) => prev.filter((item) => item.name !== itemToApprove.name));
       } else {
+        await approveTourCompany(itemToApprove.company.id);
         setCompanyRows((prev) => prev.filter((item) => item.name !== itemToApprove.name));
+        if (selectedCompany?.id === itemToApprove.company.id) setSelectedCompany(null);
       }
+    } catch (err) {
+      setIsApproveDialogOpen(false);
+      setActionError(err.message || 'Failed to approve.');
+      return;
     }
     setIsApproveDialogOpen(false);
     setItemToApprove(null);
@@ -115,7 +141,41 @@ export default function Home() {
   }
 
   if (selectedCompany) {
-    return <PendingCompanyDetails company={selectedCompany} onBack={() => setSelectedCompany(null)} />;
+    return (
+      <>
+        <PendingCompanyDetails
+          company={selectedCompany}
+          onBack={() => setSelectedCompany(null)}
+          onApprove={() => {
+            setActionError('');
+            setItemToApprove({ name: selectedCompany.name, company: selectedCompany });
+            setApproveTargetType('company');
+            setIsApproveDialogOpen(true);
+          }}
+          onReject={() => {
+            setActionError('');
+            setItemToReject({ name: selectedCompany.name, company: selectedCompany });
+            setRejectTargetType('company');
+            setIsRejectDialogOpen(true);
+          }}
+        />
+        <RejectDialog
+          isOpen={isRejectDialogOpen}
+          onClose={() => setIsRejectDialogOpen(false)}
+          onSubmit={handleConfirmRejection}
+          targetName={itemToReject?.name}
+        />
+        <ApproveDialog
+          isOpen={isApproveDialogOpen}
+          onClose={() => {
+            setIsApproveDialogOpen(false);
+            setItemToApprove(null);
+          }}
+          onConfirm={handleConfirmApproval}
+          targetName={itemToApprove?.name}
+        />
+      </>
+    );
   }
 
   return (
@@ -182,6 +242,12 @@ export default function Home() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      {actionError && (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
+          {actionError}
+        </div>
+      )}
 
       {/* الجداول السفلية (Tables) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

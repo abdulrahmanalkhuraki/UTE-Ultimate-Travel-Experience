@@ -118,12 +118,13 @@ async function main() {
 
   console.log('--- 4) Tour Packages ---');
   await call('GET', '/api/TourPackage', { params: { page: 1, pageSize: 5 } });
+  await call('GET', '/api/TourPackage/unApproved');
 
   console.log('--- 5) Users ---');
-  const touristUsers = await call('GET', '/api/User/filter', { params: { roleName: 'Tourist' } });
+  const touristUsers = await call('GET', '/api/User/filter', { params: { roleName: 'Tourist', page: 1, pageSize: 5 } });
   await call('GET', '/api/User/deleted');
 
-  const sampleUserId = touristUsers?.[0]?.id;
+  const sampleUserId = touristUsers?.items?.[0]?.id;
   if (sampleUserId) {
     console.log(`  (استخدمت userId = ${sampleUserId} من نتيجة /api/User/filter)\n`);
     await call('GET', `/api/User/${sampleUserId}`);

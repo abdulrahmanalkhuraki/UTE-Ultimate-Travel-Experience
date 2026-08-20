@@ -3,6 +3,15 @@ import { formatDate, timeAgo } from './format';
 const FALLBACK_LOGO = 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=150&q=80';
 const FALLBACK_TRIP_IMAGE = 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=150&auto=format&fit=crop&q=60';
 
+// Domain.Enums.TourPackageStatus بالباك — الحقل status برد /api/TourPackage رقم (مو نص)
+export const TOUR_PACKAGE_STATUS = {
+  PENDING: 0,
+  ACTIVE: 1,
+  COMPLETED: 2,
+  CANCELLED: 3,
+  REJECTED: 4,
+};
+
 // GET /api/TourCompany أو /api/TourCompany/pending -> عنصر شركة
 export function mapApiCompany(c) {
   return {
@@ -68,6 +77,8 @@ export function mapTourPackage(pkg) {
         desc: a.description,
       })),
     })),
-    publishLabel: pkg.publishLabel || '',
+    // status: رقم (TourPackageStatus enum بالباك) — 0=Pending 1=Active 2=Completed 3=Cancelled 4=Rejected
+    status: pkg.status,
+    statusLabel: pkg.statusLabel || '',
   };
 }

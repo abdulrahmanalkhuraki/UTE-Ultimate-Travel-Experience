@@ -1,4 +1,4 @@
-import { apiGet } from './apiClient';
+import { apiGet, apiPost } from './apiClient';
 
 // GET /api/Admin/dashboard
 export const getMainDashboard = () => apiGet('/api/Admin/dashboard');
@@ -24,24 +24,39 @@ export const getCompaniesFinancial = (page = 1, pageSize = 20) =>
   apiGet('/api/Admin/dashboard/companies/financial', { page, pageSize });
 
 // GET /api/Admin/dashboard/companies/:companyId/tour-packages/financial?page=&pageSize=
-// ملاحظة: المسار الدقيق مو مكتوب صراحة بملف الـ API (بس البارامترات موصوفة) — خمّنته حسب نمط بقية الـ endpoints، تأكد منه معي.
 export const getTourPackagesFinancial = (companyId, page = 1, pageSize = 20) =>
   apiGet(`/api/Admin/dashboard/companies/${companyId}/tour-packages/financial`, { page, pageSize });
 
 // GET /api/TourCompany/pending
 export const getPendingTourCompanies = () => apiGet('/api/TourCompany/pending');
 
-// GET /api/TourCompany
+// GET /api/TourCompany (Admin only — يحتاج بروفايل مكتمل + دور Admin)
 export const getTourCompanies = () => apiGet('/api/TourCompany');
 
-// GET /api/TourPackage?page=&pageSize=
+// POST /api/TourCompany/:id/approve
+export const approveTourCompany = (id) => apiPost(`/api/TourCompany/${id}/approve`);
+
+// POST /api/TourCompany/:id/reject  body: { reason }
+export const rejectTourCompany = (id, reason) => apiPost(`/api/TourCompany/${id}/reject`, { reason });
+
+// GET /api/TourPackage?page=&pageSize= (Admin only، كل البرامج بكل الحالات)
 export const getTourPackages = (page = 1, pageSize = 20) =>
   apiGet('/api/TourPackage', { page, pageSize });
 
-// GET /api/User/filter?roleName=
-export const getUsersByRole = (roleName) => apiGet('/api/User/filter', { roleName });
+// GET /api/TourPackage/unApproved (Admin only — البرامج قيد المراجعة فقط)
+export const getUnapprovedTourPackages = () => apiGet('/api/TourPackage/unApproved');
 
-// GET /api/User/deleted
+// POST /api/TourPackage/:id/approve
+export const approveTourPackage = (id) => apiPost(`/api/TourPackage/${id}/approve`);
+
+// POST /api/TourPackage/:id/reject  body: { reason }
+export const rejectTourPackage = (id, reason) => apiPost(`/api/TourPackage/${id}/reject`, { reason });
+
+// GET /api/User/filter?roleName=&page=&pageSize= -> PaginatedResponse<UserResponse>
+export const getUsersByRole = (roleName, page = 1, pageSize = 100) =>
+  apiGet('/api/User/filter', { roleName, page, pageSize });
+
+// GET /api/User/deleted -> { totalCount, users }
 export const getDeletedUsers = () => apiGet('/api/User/deleted');
 
 // GET /api/User/:id

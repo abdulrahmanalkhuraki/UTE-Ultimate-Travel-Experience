@@ -82,6 +82,10 @@ export default function Login({ onLoginSuccess }) {
     setIsSubmitting(true);
     try {
       const data = await login(emailValue, passwordValue);
+      if (data.role !== 'Admin') {
+        setError('This account is not an admin account. Only admins can access this dashboard.');
+        return;
+      }
       saveSession(data);
       onLoginSuccess?.(data);
     } catch (err) {
