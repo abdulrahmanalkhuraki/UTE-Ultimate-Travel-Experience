@@ -71,7 +71,10 @@ namespace Application.Services
 
                 _logger.SuccessfulOperation("Create", ObjectName);
 
-                return _mapper.Map<ReviewResponse>(review);
+                var created = await BuildDetailedQuery()
+                    .FirstOrDefaultAsync(r => r.Id == review.Id, cancellationToken);
+
+                return _mapper.Map<ReviewResponse>(created!);
             }
             catch (Exception ex) when (ex is NotFoundException)
             {
@@ -95,14 +98,7 @@ namespace Application.Services
 
             try
             {
-                IQueryable<Review> query = _unitOfWork.Reviews
-                    .Query()
-                    .Include(r => r.User).ThenInclude(u => u.Person)
-                        .ThenInclude(p => p.NationalityCountry).ThenInclude(n => n.Translations)
-                    .Include(r => r.User).ThenInclude(u => u.Person)
-                        .ThenInclude(p => p.ResidentialCity).ThenInclude(c => c.Translations)
-                    .Include(r => r.User).ThenInclude(u => u.Role)
-                    .Include(r => r.Package);
+                IQueryable<Review> query = BuildDetailedQuery();
 
                 if (userId.HasValue)
                 {
@@ -132,6 +128,17 @@ namespace Application.Services
         }
 
         #region Helpers
+        private IQueryable<Review> BuildDetailedQuery()
+        {
+            return _unitOfWork.Reviews.Query()
+                .Include(r => r.User).ThenInclude(u => u.Person)
+                    .ThenInclude(p => p.NationalityCountry).ThenInclude(n => n.Translations)
+                .Include(r => r.User).ThenInclude(u => u.Person)
+                    .ThenInclude(p => p.ResidentialCity).ThenInclude(c => c.Translations)
+                .Include(r => r.User).ThenInclude(u => u.Role)
+                .Include(r => r.Package);
+        }
+
         private async Task EnsureUserBookedPackage(int packageId)
         {
             var isBooked = await _unitOfWork.Bookings
