@@ -11,11 +11,11 @@ import {
 } from 'recharts';
 import {
   ChevronDown,
-  //ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   MapPin,
   Building2,
   PlaneTakeoff,
-  CircleOff,
   CalendarDays,
   Hourglass,
 } from 'lucide-react';
@@ -32,10 +32,9 @@ import {
   approveTourPackage,
   rejectTourPackage,
 } from './services/dashboardApi';
-import { mapTourPackage, TOUR_PACKAGE_STATUS } from './utils/mappers';
+import { mapTourPackage } from './utils/mappers';
 
 export default function GroupTrip() {
-  const [isRejectedOpen, setIsRejectedOpen] = useState(false);
   const [isTotalOpen, setIsTotalOpen] = useState(true);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
@@ -43,10 +42,19 @@ export default function GroupTrip() {
   const [selectedProgramDetails, setSelectedProgramDetails] = useState(null);
   const [selectedPendingReviewProgram, setSelectedPendingReviewProgram] = useState(null);
   const [actionError, setActionError] = useState('');
+  const [allProgramsPage, setAllProgramsPage] = useState(1);
+  const [allProgramsPageSize] = useState(10);
+  const [pendingPage, setPendingPage] = useState(1);
+  const [pendingPageSize] = useState(10);
   const { data: tourPackagesData } = useApiData(getTourPackagesDashboard, []);
-  // pageSize كبيرة لأن التصميم الحالي بيعرض القوائم كاملة بدون Pagination UI
-  const { data: allPackagesData } = useApiData(() => getTourPackages(1, 200), []);
-  const { data: unapprovedData } = useApiData(getUnapprovedTourPackages, []);
+  const { data: allPackagesData } = useApiData(
+    () => getTourPackages(allProgramsPage, allProgramsPageSize),
+    [allProgramsPage, allProgramsPageSize]
+  );
+  const { data: unapprovedData } = useApiData(
+    () => getUnapprovedTourPackages(pendingPage, pendingPageSize),
+    [pendingPage, pendingPageSize]
+  );
 
   // GET /api/Admin/dashboard/tour-packages -> tourPackageGrowth
   const chartData = (tourPackagesData?.tourPackageGrowth ?? []).map((g) => ({
@@ -54,17 +62,13 @@ export default function GroupTrip() {
     Programs: g.count,
   }));
 
-  // GET /api/TourPackage -> نفلترها حسب status (رقم من enum TourPackageStatus بالباك)
+  // GET /api/TourPackage -> البرامج النشطة (publicly visible) بشكل paginated
+  const allProgramsPagination = allPackagesData?.pagination ?? {};
   const allPackages = (allPackagesData?.items ?? []).map(mapTourPackage);
-  const sampleTrips = allPackages.filter(
-    (p) => p.status === TOUR_PACKAGE_STATUS.ACTIVE || p.status === TOUR_PACKAGE_STATUS.COMPLETED
-  );
-  const cancelledTrips = allPackages.filter(
-    (p) => p.status === TOUR_PACKAGE_STATUS.CANCELLED || p.status === TOUR_PACKAGE_STATUS.REJECTED
-  );
-  // GET /api/TourPackage/unApproved -> قائمة جاهزة بالبرامج قيد المراجعة (Admin only)
+  // GET /api/TourPackage/unApproved -> البرامج قيد المراجعة (Admin only) بشكل paginated
+  const pendingPagination = unapprovedData?.pagination ?? {};
   const [pendingProgramsList, setPendingProgramsList] = useSyncedState(unapprovedData, (d) =>
-    (d ?? []).map(mapTourPackage)
+    (d?.items ?? []).map(mapTourPackage)
   );
 
   const openRejectDialog = (program) => {
@@ -178,10 +182,10 @@ export default function GroupTrip() {
               </ResponsiveContainer>
             </div>
 
-            <div className=" grid grid-cols-3 gap-4 border-t border-[#333] pt-6">
+            <div className="grid grid-cols-2 gap-4 border-t border-[#333] pt-6">
               <div className="flex items-center gap-4 rounded-xl border border-[#2a2a2a] bg-[#121212] p-4">
                 <div className="flex h-8 w-8 items-center justify-center text-[#91B3FA]">
-                  <PlaneTakeoff className="w-8 h-8 " />
+                  <PlaneTakeoff className="w-8 h-8" />
                 </div>
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Total Programs</p>
@@ -190,18 +194,8 @@ export default function GroupTrip() {
               </div>
 
               <div className="flex items-center gap-4 rounded-xl border border-[#2a2a2a] bg-[#121212] p-4">
-                <div className="flex h-8 w-8   items-center justify-center text-red-400">
-                  <CircleOff className="w-8 h-8 " />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Cancelled Programs</p>
-                  <p className="mt-0.5 text-xl font-bold text-red-400">{tourPackagesData ? tourPackagesData.rejectedTourPackages.toLocaleString() : '—'}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4 rounded-xl border border-[#2a2a2a] bg-[#121212] p-4">
-                <div className="flex h-10 w-10 items-center justify-center text-[#F4A261]">
-                  <Hourglass className="w-8 h-8 "  />
+                <div className="flex h-8 w-8 items-center justify-center text-[#F4A261]">
+                  <Hourglass className="w-8 h-8" />
                 </div>
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Pending Programs</p>
@@ -211,50 +205,55 @@ export default function GroupTrip() {
             </div>
           </div>
           <div className="bg-[#1C1C1E] border border-[#D4AF37]/30 rounded-2xl overflow-hidden shadow-lg transition-all duration-300">
-                      <button 
-                        onClick={() => setIsRejectedOpen(!isRejectedOpen)}
-                        className="w-full p-5 flex justify-between items-center bg-[#202022] hover:bg-[#252528] transition"
-                      >
-                        <div className="flex items-center gap-4">
-                          <CircleOff className="w-8 h-8  text-red-400 ml-5" />
-                          <h3 className="text-base font-semibold text-white ">Cancelled Programs</h3>
-                        </div>
-                        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform mr-10 duration-300 ${isRejectedOpen ? 'rotate-180' : ''}`} />
-                        
-                        
-                      </button>
-                      {isRejectedOpen && (
-                        <div className="p-5 space-y-4 max-h-[350px] overflow-y-auto custom-scrollbar border-t border-[#333]">
-                          {cancelledTrips.map(trip => (
-                            <TripCard key={trip.id} trip={trip} isDeleted={true} />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-          
-                   
-                    <div className="bg-[#1C1C1E] border border-[#D4AF37]/30 rounded-2xl overflow-hidden shadow-lg transition-all duration-300">
-                      <button 
+                      <button
                         onClick={() => setIsTotalOpen(!isTotalOpen)}
-                        className="w-full p-5 flex justify-between items-center bg-[#202022] hover:bg-[#252528] transition"
+                        className="w-full flex items-center justify-between bg-[#202022] p-5 hover:bg-[#252528] transition"
                       >
                         <div className="flex items-center gap-4">
-                          <PlaneTakeoff className="w-8 h-8   ml-5 text-[#91B3FA]" />
-                          <h3 className="text-base text-[#91B3FA] font-semibold  ml-10">All Programs</h3>
+                          <PlaneTakeoff className="h-8 w-8 text-[#91B3FA]" />
+                          <h3 className="text-base font-semibold text-[#91B3FA]">All Programs</h3>
                         </div>
-                        <ChevronDown className={`w-5 h-5 text-gray-400 mr-10 transition-transform duration-300 ${isTotalOpen ? 'rotate-180' : ''}`} />
-                        
+                        <div className="flex items-center gap-3">
+                          <span className="bg-[#91B3FA]/10 text-[#91B3FA] text-xs font-bold px-3 py-1.5 rounded-full">
+                            {allProgramsPagination.totalItems ?? allPackages.length} Total
+                          </span>
+                          <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform duration-300 ${isTotalOpen ? 'rotate-180' : ''}`} />
+                        </div>
                       </button>
                       {isTotalOpen && (
-                        <div className="p-5 space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar border-t border-[#333]">
-                          {sampleTrips.map(trip => (
-                            <TripCard
-                              key={trip.id}
-                              trip={trip}
-                              isDeleted={false}
-                              onSelect={() => handleSelectProgram(trip)}
-                            />
-                          ))}
+                        <div className="border-t border-[#333]">
+                          <div className="space-y-4 p-5 max-h-[400px] overflow-y-auto custom-scrollbar">
+                            {allPackages.map(trip => (
+                              <TripCard
+                                key={trip.id}
+                                trip={trip}
+                                onSelect={() => handleSelectProgram(trip)}
+                              />
+                            ))}
+                          </div>
+                          {allPackages.length > 0 && (
+                            <div className="flex items-center justify-between border-t border-[#333] px-5 py-4">
+                              <p className="text-xs text-gray-400">
+                                Page {allProgramsPagination.page || '—'} of {allProgramsPagination.totalPages || '—'}
+                              </p>
+                              <div className="flex items-center gap-3">
+                                <button
+                                  onClick={() => setAllProgramsPage((p) => Math.max(1, p - 1))}
+                                  disabled={!allProgramsPagination.hasPreviousPage}
+                                  className="flex items-center gap-1.5 rounded-xl border border-[#2d303e] bg-[#121212] px-4 py-2 text-sm font-medium text-gray-300 transition hover:border-[#91B3FA]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                  <ChevronLeft className="h-4 w-4" /> Prev
+                                </button>
+                                <button
+                                  onClick={() => setAllProgramsPage((p) => p + 1)}
+                                  disabled={!allProgramsPagination.hasNextPage}
+                                  className="flex items-center gap-1.5 rounded-xl border border-[#2d303e] bg-[#121212] px-4 py-2 text-sm font-medium text-gray-300 transition hover:border-[#91B3FA]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                  Next <ChevronRight className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -262,7 +261,12 @@ export default function GroupTrip() {
 
         <div className="lg:col-span-5">
           <div className="flex h-full flex-col rounded-2xl border border-[#D4AF37]/30 bg-[#1C1C1E] p-6 shadow-[0_10px_25px_rgba(0,0,0,0.25)]">
-            <h3 className="border-b border-[#333] pb-4 text-left text-lg ml-5 font-semibold text-white">Pending Programs</h3>
+            <div className="flex items-center justify-between border-b border-[#333] pb-4">
+              <h3 className="text-lg font-semibold text-white">Pending Programs</h3>
+              <span className="bg-[#F4A261]/10 text-[#F4A261] text-xs font-bold px-3 py-1.5 rounded-full">
+                {pendingPagination.totalItems ?? pendingProgramsList.length} Total
+              </span>
+            </div>
             {actionError && (
               <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
                 {actionError}
@@ -314,6 +318,30 @@ export default function GroupTrip() {
                 </div>
               ))}
             </div>
+
+            {pendingProgramsList.length > 0 && (
+              <div className="mt-5 flex items-center justify-between border-t border-[#333] pt-4">
+                <p className="text-xs text-gray-400">
+                  Page {pendingPagination.page || '—'} of {pendingPagination.totalPages || '—'}
+                </p>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setPendingPage((p) => Math.max(1, p - 1))}
+                    disabled={!pendingPagination.hasPreviousPage}
+                    className="flex items-center gap-1.5 rounded-xl border border-[#2d303e] bg-[#121212] px-4 py-2 text-sm font-medium text-gray-300 transition hover:border-[#F4A261]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <ChevronLeft className="h-4 w-4" /> Prev
+                  </button>
+                  <button
+                    onClick={() => setPendingPage((p) => p + 1)}
+                    disabled={!pendingPagination.hasNextPage}
+                    className="flex items-center gap-1.5 rounded-xl border border-[#2d303e] bg-[#121212] px-4 py-2 text-sm font-medium text-gray-300 transition hover:border-[#F4A261]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Next <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -445,26 +445,54 @@ namespace Application.Services
             }
         }
 
-        public async Task<IReadOnlyList<TourPackageResponse>> GetUnApprovedAsync(CancellationToken cancellationToken = default)
+        public async Task<PaginatedResponse<TourPackageResponse>> GetUnApprovedAsync(int page = 1, int pageSize = 20,
+            CancellationToken cancellationToken = default)
         {
-            var cacheKey = $"{UnapprovedCacheKey}_{_language.LanguageCode}";
-            if (_cache.TryGetValue(cacheKey, out IReadOnlyList<TourPackageResponse>? cached) && cached is not null)
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                throw new ValidationException(ExceptionMessages.InvalidPagination());
+
+            var cacheKey = $"{UnapprovedCacheKey}_page{page}_size{pageSize}_{_language.LanguageCode}";
+            if (_cache.TryGetValue(cacheKey, out PaginatedResponse<TourPackageResponse>? cached) && cached is not null)
                 return cached;
 
-            var entities = await QueryWithGraph()
-                .Where(p => p.Status == TourPackageStatus.Pending)
-                .OrderBy(p => p.CreatedAtUtc) // longest-waiting first
-                .ToListAsync(cancellationToken);
-
-            var response = _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
-
-            _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
+            try
             {
-                AbsoluteExpirationRelativeToNow = UnapprovedCacheDuration,
-                Priority = CacheItemPriority.Normal
-            });
+                var query = QueryWithGraph().Where(p => p.Status == TourPackageStatus.Pending);
 
-            return response;
+                var totalItemsCount = await query.CountAsync(cancellationToken);
+
+                var entities = await query
+                    .OrderBy(p => p.CreatedAtUtc) // longest-waiting first
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync(cancellationToken);
+
+                var items = _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
+
+                var response = new PaginatedResponse<TourPackageResponse>
+                {
+                    Items = items,
+                    Pagination = new PaginationMetadata
+                    {
+                        Page = page,
+                        PageSize = pageSize,
+                        TotalItems = totalItemsCount
+                    }
+                };
+
+                _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = UnapprovedCacheDuration,
+                    Priority = CacheItemPriority.Normal
+                });
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.ServerError("Retrieve", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
+            }
         }
 
         public async Task<ProgramStatusResponse> ApproveAsync(int id, CancellationToken cancellationToken = default)

@@ -176,11 +176,21 @@ namespace UTE.Controllers
 
         [HttpGet("unApproved")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(typeof(IReadOnlyList<TourPackageResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaginatedResponse<TourPackageResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<IReadOnlyList<TourPackageResponse>>> GetUnApproved(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<PaginatedResponse<TourPackageResponse>>> GetUnApproved(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken cancellationToken = default)
         {
-            return Ok(await _service.GetUnApprovedAsync(cancellationToken));
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                return BadRequest(CreateProblemDetails(
+                    "Invalid Pagination",
+                    "Page must be >= 1, PageSize must be between 1 and 100.",
+                    StatusCodes.Status400BadRequest));
+
+            return Ok(await _service.GetUnApprovedAsync(page, pageSize, cancellationToken));
         }
 
         [HttpPost("{id:int:min(1)}/approve")]

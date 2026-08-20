@@ -23,7 +23,7 @@ namespace Application.Interfaces.TourPackage
 
         Task<ProgramStatusResponse> CancelAsync(int id, CancellationToken cancellationToken);
 
-        Task<IReadOnlyList<TourPackageResponse>> GetUnApprovedAsync(CancellationToken cancellationToken);
+        Task<PaginatedResponse<TourPackageResponse>> GetUnApprovedAsync(int page, int pageSize, CancellationToken cancellationToken);
 
         Task<ProgramStatusResponse> ApproveAsync(int id, CancellationToken cancellationToken);
 

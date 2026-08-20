@@ -53,12 +53,12 @@ export default function App() {
           
           <nav className="px-4 space-y-2 mt-4">
             {[
-              { id: 'Home', icon: HomeIcon },
-              { id: 'Users', icon: UserIcon },
-              { id: 'Group Trips', icon: Map },
-              { id: 'Companies', icon: Building2 },
-              { id: 'Financials', icon: Wallet },
-              { id: 'Support', icon: HeadphonesIcon },
+              { id: 'Home', label: 'Home', icon: HomeIcon },
+              { id: 'Users', label: 'Tourists', icon: UserIcon },
+              { id: 'Group Trips', label: 'Tour Packages', icon: Map },
+              { id: 'Companies', label: 'Companies', icon: Building2 },
+              { id: 'Financials', label: 'Financials', icon: Wallet },
+              { id: 'Support', label: 'Support', icon: HeadphonesIcon },
             ].map((item) => (
               <button
                 key={item.id}
@@ -70,7 +70,7 @@ export default function App() {
                 }`}
               >
                 <item.icon className="w-5 h-5 mr-3" />
-                <span className="font-medium">{item.id}</span>
+                <span className="font-medium">{item.label}</span>
               </button>
             ))}
           </nav>

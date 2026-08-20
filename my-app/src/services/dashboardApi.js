@@ -43,8 +43,9 @@ export const rejectTourCompany = (id, reason) => apiPost(`/api/TourCompany/${id}
 export const getTourPackages = (page = 1, pageSize = 20) =>
   apiGet('/api/TourPackage', { page, pageSize });
 
-// GET /api/TourPackage/unApproved (Admin only — البرامج قيد المراجعة فقط)
-export const getUnapprovedTourPackages = () => apiGet('/api/TourPackage/unApproved');
+// GET /api/TourPackage/unApproved?page=&pageSize= (Admin only — البرامج قيد المراجعة فقط)
+export const getUnapprovedTourPackages = (page = 1, pageSize = 100) =>
+  apiGet('/api/TourPackage/unApproved', { page, pageSize });
 
 // POST /api/TourPackage/:id/approve
 export const approveTourPackage = (id) => apiPost(`/api/TourPackage/${id}/approve`);

@@ -55,7 +55,7 @@ export default function Home() {
   // GET /api/TourPackage/unApproved -> برامج قيد المراجعة (نفس endpoint صفحة Group Trips)
   const { data: unapprovedData } = useApiData(getUnapprovedTourPackages, []);
   const [programRows, setProgramRows] = useSyncedState(unapprovedData, (d) =>
-    (d ?? []).map(mapTourPackage).map((p) => ({ name: p.title, trip: p.title, comp: p.company, program: p }))
+    (d?.items ?? []).map(mapTourPackage).map((p) => ({ name: p.title, trip: p.title, comp: p.company, program: p }))
   );
 
   // GET /api/TourCompany/pending -> شركات قيد المراجعة
