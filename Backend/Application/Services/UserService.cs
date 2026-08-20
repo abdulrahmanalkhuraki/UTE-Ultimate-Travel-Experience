@@ -579,7 +579,7 @@ namespace Application.Services
                     .Query()
                     .Where(u => !u.IsDeleted);
 
-                var entities = query
+                var entities = await query
                      .Include(u => u.Role)
                     .Include(u => u.Person).ThenInclude(p => p.NationalityCountry)
                         .ThenInclude(n => n.Translations)

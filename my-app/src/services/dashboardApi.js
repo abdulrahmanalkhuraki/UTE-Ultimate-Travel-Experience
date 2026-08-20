@@ -52,6 +52,10 @@ export const approveTourPackage = (id) => apiPost(`/api/TourPackage/${id}/approv
 // POST /api/TourPackage/:id/reject  body: { reason }
 export const rejectTourPackage = (id, reason) => apiPost(`/api/TourPackage/${id}/reject`, { reason });
 
+// GET /api/User?page=&pageSize= -> PaginatedResponse<UserResponse>
+export const getAllUsers = (page = 1, pageSize = 12) =>
+  apiGet('/api/User', { page, pageSize });
+
 // GET /api/User/filter?roleName=&page=&pageSize= -> PaginatedResponse<UserResponse>
 export const getUsersByRole = (roleName, page = 1, pageSize = 100) =>
   apiGet('/api/User/filter', { roleName, page, pageSize });
@@ -61,3 +65,7 @@ export const getDeletedUsers = () => apiGet('/api/User/deleted');
 
 // GET /api/User/:id
 export const getUserById = (id) => apiGet(`/api/User/${id}`);
+
+// GET /api/Booking/UserBookings/:touristId?page=&pageSize= -> PaginatedUserBookingsResponse
+export const getUserBookings = (touristId, page = 1, pageSize = 10) =>
+  apiGet(`/api/Booking/UserBookings/${touristId}`, { page, pageSize });

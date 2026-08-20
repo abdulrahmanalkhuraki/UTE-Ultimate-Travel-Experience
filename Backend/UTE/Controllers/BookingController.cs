@@ -50,22 +50,26 @@ namespace UTE.Controllers
         /// Retrieves all bookings for the authenticated tourist, optionally filtered by status
         /// </summary>
         /// <param name="status">Optional booking status to filter by (e.g. Cancelled, Completed, In_Progress)</param>
+        /// <param name="page">Page number (1-based)</param>
+        /// <param name="pageSize">Page size (max 100)</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>List of bookings matching the filter</returns>
-        /// <response code="200">Returns the list of bookings</response>
+        /// <returns>Paginated list of bookings matching the filter</returns>
+        /// <response code="200">Returns the paginated list of bookings</response>
         /// <response code="401">If the user is not authenticated</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpGet("Filter")]
         [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "Tourist")]
-        [ProducesResponseType(typeof(IReadOnlyList<BookingResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaginatedResponse<BookingResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IReadOnlyList<BookingResponse>>> Filter(
+        public async Task<ActionResult<PaginatedResponse<BookingResponse>>> Filter(
             [FromQuery] BookingStatus? status = null,
+            int page = 1,
+            int pageSize = 20,
             CancellationToken cancellationToken = default)
         {
-            var bookings = await _bookingService.FilterAsync(status, cancellationToken);
+            var bookings = await _bookingService.FilterAsync(status, page, pageSize, cancellationToken);
             return Ok(bookings);
         }
 
@@ -74,21 +78,27 @@ namespace UTE.Controllers
         /// </summary>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="touristId">the specific Tourist Id</param>
-        /// <returns>List of all bookings</returns>
-        /// <response code="200">Returns the list of bookings</response>
+        /// <param name="page">Page number (1-based)</param>
+        /// <param name="pageSize">Page size (max 100)</param>
+        /// <returns>Paginated list of all bookings</returns>
+        /// <response code="200">Returns the paginated list of bookings</response>
         /// <response code="401">If the user is not authenticated</response>
         /// <response code="403">If the user is not an admin</response>
         /// <response code="500">If there was an internal server error</response>
         [HttpGet("UserBookings/{touristId:int:min(1)}")]
         [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(typeof(IReadOnlyList<BookingResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaginatedUserBookingsResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IReadOnlyList<BookingResponse>>> GetAll(int touristId, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<PaginatedUserBookingsResponse>> GetAll(
+            int touristId,
+            int page = 1,
+            int pageSize = 20,
+            CancellationToken cancellationToken = default)
         {
-            var bookings = await _bookingService.GetAllAsync(touristId, cancellationToken);
+            var bookings = await _bookingService.GetAllAsync(touristId, page, pageSize, cancellationToken);
             return Ok(bookings);
         }
 

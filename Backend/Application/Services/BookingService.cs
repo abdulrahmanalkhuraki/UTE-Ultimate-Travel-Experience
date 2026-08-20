@@ -17,7 +17,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using ValidationException = Application.Exceptions.ValidationException;
-
 namespace Application.Services
 {
     public class BookingService : IBookingService
@@ -270,13 +269,16 @@ namespace Application.Services
             }
         }
 
-        public async Task<IReadOnlyList<BookingResponse>> GetAllAsync(int userId, CancellationToken cancellationToken)
+        public async Task<PaginatedUserBookingsResponse> GetAllAsync(int userId, int page, int pageSize, CancellationToken cancellationToken)
         {
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                throw new ValidationException(ExceptionMessages.InvalidPagination());
+
             _logger.LogDebug($"Retrieving all bookings for user with Id = {userId}");
 
-            var listCacheKey = $"{BookingsListCacheKeyPrefix}{userId}_{_language.LanguageCode}";
+            var listCacheKey = $"{BookingsListCacheKeyPrefix}{userId}_page{page}_size{pageSize}_{_language.LanguageCode}";
 
-            if (_cache.TryGetValue(listCacheKey, out IReadOnlyList<BookingResponse>? cached) && cached is not null)
+            if (_cache.TryGetValue(listCacheKey, out PaginatedUserBookingsResponse? cached) && cached is not null)
             {
                 _logger.LogDebug("Cache hit for all bookings of user {UserId}", userId);
                 return cached;
@@ -284,17 +286,43 @@ namespace Application.Services
 
             try
             {
-                var entities = await _unitOfWork.Bookings
+                var query = _unitOfWork.Bookings
                     .Query()
-                    .Where(b => b.UserId == userId)
+                    .Where(b => b.UserId == userId);
+
+                var totalAmountSpent = (await query
+                    .AsNoTracking()
+                    .SumAsync(b => b.TotalCost, cancellationToken)) ?? 0m;
+
+                var totalItemsCount = await query
+                    .AsNoTracking()
+                    .CountAsync(cancellationToken);
+
+                var entities = await query
                     .Include(b => b.TourPackage)
                     .Include(b => b.Payment)
                     .Include(b => b.CompanionBookings)
                         .ThenInclude(cb => cb.Companion)
+                            .ThenInclude(cb => cb.Person)
+                    .AsNoTracking()
                     .OrderByDescending(b => b.BookingDate)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync(cancellationToken);
 
-                var response = _mapper.Map<IReadOnlyList<BookingResponse>>(entities);
+                var items = _mapper.Map<IReadOnlyList<BookingResponse>>(entities);
+
+                var response = new PaginatedUserBookingsResponse
+                {
+                    Items = items,
+                    Pagination = new PaginationMetadata
+                    {
+                        Page = page,
+                        PageSize = pageSize,
+                        TotalItems = totalItemsCount
+                    },
+                    TotalAmountSpent = totalAmountSpent
+                };
 
                 _cache.Set(listCacheKey, response, new MemoryCacheEntryOptions
                 {
@@ -302,7 +330,7 @@ namespace Application.Services
                     Priority = CacheItemPriority.Low
                 });
 
-                _logger.LogDebug("Successfully retrieved {Count} bookings", response.Count);
+                _logger.LogDebug("Successfully retrieved {Count} bookings", items.Count);
 
                 return response;
             }
@@ -313,17 +341,20 @@ namespace Application.Services
             }
         }
 
-        public async Task<IReadOnlyList<BookingResponse>> FilterAsync(BookingStatus? status, CancellationToken cancellationToken)
+        public async Task<PaginatedResponse<BookingResponse>> FilterAsync(BookingStatus? status, int page, int pageSize, CancellationToken cancellationToken)
         {
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                throw new ValidationException(ExceptionMessages.InvalidPagination());
+
             _logger.LogDebug("Retrieving bookings with status filter");
 
             var userId = _currentUser.UserId ?? throw new AuthException("You must be loged in to preform this action.");
 
             var filterCacheKey = status.HasValue
-                ? $"{FilteredCacheKeyPrefix}{userId}_{status.Value}_{_language.LanguageCode}"
-                : $"{FilteredCacheKeyPrefix}{userId}_all_{_language.LanguageCode}";
+                ? $"{FilteredCacheKeyPrefix}{userId}_{status.Value}_page{page}_size{pageSize}_{_language.LanguageCode}"
+                : $"{FilteredCacheKeyPrefix}{userId}_all_page{page}_size{pageSize}_{_language.LanguageCode}";
 
-            if (_cache.TryGetValue(filterCacheKey, out IReadOnlyList<BookingResponse>? cached) && cached is not null)
+            if (_cache.TryGetValue(filterCacheKey, out PaginatedResponse<BookingResponse>? cached) && cached is not null)
             {
                 _logger.LogDebug("Cache hit for filtered bookings of user {UserId} with status {Status}", userId, status);
                 return cached;
@@ -340,15 +371,33 @@ namespace Application.Services
                     query = query.Where(b => b.Status == status.Value);
                 }
 
+                var totalItemsCount = await query
+                    .AsNoTracking()
+                    .CountAsync(cancellationToken);
+
                 var entities = await query
                     .Include(b => b.TourPackage)
                     .Include(b => b.Payment)
                     .Include(b => b.CompanionBookings)
                         .ThenInclude(cb => cb.Companion)
+                    .AsNoTracking()
                     .OrderByDescending(b => b.BookingDate)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync(cancellationToken);
 
-                var response = _mapper.Map<IReadOnlyList<BookingResponse>>(entities);
+                var items = _mapper.Map<IReadOnlyList<BookingResponse>>(entities);
+
+                var response = new PaginatedResponse<BookingResponse>
+                {
+                    Items = items,
+                    Pagination = new PaginationMetadata
+                    {
+                        Page = page,
+                        PageSize = pageSize,
+                        TotalItems = totalItemsCount
+                    }
+                };
 
                 _cache.Set(filterCacheKey, response, new MemoryCacheEntryOptions
                 {
@@ -356,7 +405,7 @@ namespace Application.Services
                     Priority = CacheItemPriority.Normal
                 });
 
-                _logger.LogDebug("Successfully retrieved {Count} bookings with filter {Status}", response.Count, status);
+                _logger.LogDebug("Successfully retrieved {Count} bookings with filter {Status}", items.Count, status);
 
                 return response;
             }
