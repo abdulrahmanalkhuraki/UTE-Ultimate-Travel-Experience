@@ -10,7 +10,9 @@ namespace Application.DTOs.Booking.Response
 {
     public sealed class BookingResponse
     {
-        public int Id { get; set; } 
+        public int Id { get; set; }
+
+        public string? BookingNumber { get; set; }
 
         public DateTime BookingDate { get; set; }
 
