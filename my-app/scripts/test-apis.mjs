@@ -118,7 +118,7 @@ async function main() {
 
   console.log('--- 4) Tour Packages ---');
   await call('GET', '/api/TourPackage', { params: { page: 1, pageSize: 5 } });
-  await call('GET', '/api/TourPackage/unApproved');
+  await call('GET', '/api/TourPackage/by-status', { params: { status: 0, page: 1, pageSize: 5 } });
 
   console.log('--- 5) Users ---');
   const touristUsers = await call('GET', '/api/User/filter', { params: { roleName: 'Tourist', page: 1, pageSize: 5 } });

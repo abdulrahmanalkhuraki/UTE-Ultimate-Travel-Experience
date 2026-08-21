@@ -41,6 +41,36 @@ namespace UTE.Controllers
             return Ok(await _service.GetAllAsync(page, pageSize, cancellationToken));
         }
 
+        [HttpGet("by-status")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(PaginatedResponse<TourPackageResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PaginatedResponse<TourPackageResponse>>> GetByStatus(
+            [FromQuery] TourPackageStatus status,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken cancellationToken = default)
+        {
+            if (page < 1 || pageSize < 1 || pageSize > 100)
+                return BadRequest(CreateProblemDetails(
+                    "Invalid Pagination",
+                    "Page must be >= 1, PageSize must be between 1 and 100.",
+                    StatusCodes.Status400BadRequest));
+
+            return Ok(await _service.GetByStatusAsync(status, page, pageSize, cancellationToken));
+        }
+
+        [HttpGet("status-counts")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(TourPackageStatusCountsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<TourPackageStatusCountsResponse>> GetStatusCounts(
+            CancellationToken cancellationToken = default)
+        {
+            return Ok(await _service.GetStatusCountsAsync(cancellationToken));
+        }
+
         [HttpGet("mine/all")]
         [Authorize(Policy = "RequireCompletedProfile")]
         [Authorize(Roles = "TourCompany")]
@@ -172,25 +202,6 @@ namespace UTE.Controllers
         public async Task<ActionResult<ProgramStatusResponse>> Cancel(int id, CancellationToken cancellationToken = default)
         {
             return Ok(await _service.CancelAsync(id, cancellationToken));
-        }
-
-        [HttpGet("unApproved")]
-        [Authorize(Roles = "Admin")]
-        [ProducesResponseType(typeof(PaginatedResponse<TourPackageResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<PaginatedResponse<TourPackageResponse>>> GetUnApproved(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20,
-            CancellationToken cancellationToken = default)
-        {
-            if (page < 1 || pageSize < 1 || pageSize > 100)
-                return BadRequest(CreateProblemDetails(
-                    "Invalid Pagination",
-                    "Page must be >= 1, PageSize must be between 1 and 100.",
-                    StatusCodes.Status400BadRequest));
-
-            return Ok(await _service.GetUnApprovedAsync(page, pageSize, cancellationToken));
         }
 
         [HttpPost("{id:int:min(1)}/approve")]

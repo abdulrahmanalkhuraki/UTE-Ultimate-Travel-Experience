@@ -43,15 +43,19 @@ export const rejectTourCompany = (id, reason) => apiPost(`/api/TourCompany/${id}
 export const getTourPackages = (page = 1, pageSize = 20) =>
   apiGet('/api/TourPackage', { page, pageSize });
 
-// GET /api/TourPackage/unApproved?page=&pageSize= (Admin only — البرامج قيد المراجعة فقط)
-export const getUnapprovedTourPackages = (page = 1, pageSize = 100) =>
-  apiGet('/api/TourPackage/unApproved', { page, pageSize });
-
 // POST /api/TourPackage/:id/approve
 export const approveTourPackage = (id) => apiPost(`/api/TourPackage/${id}/approve`);
 
 // POST /api/TourPackage/:id/reject  body: { reason }
 export const rejectTourPackage = (id, reason) => apiPost(`/api/TourPackage/${id}/reject`, { reason });
+
+// GET /api/TourPackage/by-status?status=&page=&pageSize= (Admin only — tour packages filtered by status)
+export const getTourPackagesByStatus = (status, page = 1, pageSize = 20) =>
+  apiGet('/api/TourPackage/by-status', { status, page, pageSize });
+
+// GET /api/TourPackage/status-counts (Admin only — count of tour packages per status)
+export const getTourPackageStatusCounts = () =>
+  apiGet('/api/TourPackage/status-counts');
 
 // GET /api/User?page=&pageSize= -> PaginatedResponse<UserResponse>
 export const getAllUsers = (page = 1, pageSize = 12) =>

@@ -445,56 +445,6 @@ namespace Application.Services
             }
         }
 
-        public async Task<PaginatedResponse<TourPackageResponse>> GetUnApprovedAsync(int page = 1, int pageSize = 20,
-            CancellationToken cancellationToken = default)
-        {
-            if (page < 1 || pageSize < 1 || pageSize > 100)
-                throw new ValidationException(ExceptionMessages.InvalidPagination());
-
-            var cacheKey = $"{UnapprovedCacheKey}_page{page}_size{pageSize}_{_language.LanguageCode}";
-            if (_cache.TryGetValue(cacheKey, out PaginatedResponse<TourPackageResponse>? cached) && cached is not null)
-                return cached;
-
-            try
-            {
-                var query = QueryWithGraph().Where(p => p.Status == TourPackageStatus.Pending);
-
-                var totalItemsCount = await query.CountAsync(cancellationToken);
-
-                var entities = await query
-                    .OrderBy(p => p.CreatedAtUtc) // longest-waiting first
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync(cancellationToken);
-
-                var items = _mapper.Map<IReadOnlyList<TourPackageResponse>>(entities);
-
-                var response = new PaginatedResponse<TourPackageResponse>
-                {
-                    Items = items,
-                    Pagination = new PaginationMetadata
-                    {
-                        Page = page,
-                        PageSize = pageSize,
-                        TotalItems = totalItemsCount
-                    }
-                };
-
-                _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = UnapprovedCacheDuration,
-                    Priority = CacheItemPriority.Normal
-                });
-
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.ServerError("Retrieve", ObjectName, ex);
-                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
-            }
-        }
-
         public async Task<ProgramStatusResponse> ApproveAsync(int id, CancellationToken cancellationToken = default)
         {
             if (id <= 0)
@@ -765,6 +715,95 @@ namespace Application.Services
             catch (Exception ex)
             {
                 _logger.ServerError("Retrieve All", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
+            }
+        }
+
+        public async Task<PaginatedResponse<TourPackageResponse>> GetByStatusAsync(TourPackageStatus status, int page = 1, int pageSize = 20,
+            CancellationToken cancellationToken = default)
+        {
+            var cacheKey = $"{CacheKeyPrefix}bystatus_{status}_page{page}_pageSize{pageSize}_{_language.LanguageCode}";
+
+            if (_cache.TryGetValue(cacheKey, out PaginatedResponse<TourPackageResponse>? cached) && cached is not null)
+                return cached;
+
+            try
+            {
+                var query = QueryWithGraph()
+                    .Where(p => p.Status == status && !p.IsDeleted);
+
+                var entities = await query
+                    .OrderByDescending(p => p.CreatedAtUtc)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync(cancellationToken);
+
+                var packageResponses = _mapper.Map<IReadOnlyCollection<TourPackageResponse>>(entities);
+                var paginationMetadata = new PaginationMetadata
+                {
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalItems = await query.CountAsync(cancellationToken)
+                };
+
+                var response = new PaginatedResponse<TourPackageResponse>
+                {
+                    Items = packageResponses,
+                    Pagination = paginationMetadata
+                };
+
+                _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = CacheDuration,
+                    Priority = CacheItemPriority.Low
+                });
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.ServerError("Retrieve By Status", ObjectName, ex);
+                throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
+            }
+        }
+
+        public async Task<TourPackageStatusCountsResponse> GetStatusCountsAsync(CancellationToken cancellationToken = default)
+        {
+            var cacheKey = $"{CacheKeyPrefix}statuscounts_{_language.LanguageCode}";
+
+            if (_cache.TryGetValue(cacheKey, out TourPackageStatusCountsResponse? cached) && cached is not null)
+                return cached;
+
+            try
+            {
+                var counts = await _unitOfWork.TourPackages
+                    .Query()
+                    .AsNoTracking()
+                    .Where(p => !p.IsDeleted)
+                    .GroupBy(p => p.Status)
+                    .Select(g => new { Status = g.Key, Count = g.Count() })
+                    .ToListAsync(cancellationToken);
+
+                var response = new TourPackageStatusCountsResponse
+                {
+                    Pending = counts.FirstOrDefault(c => c.Status == TourPackageStatus.Pending)?.Count ?? 0,
+                    Active = counts.FirstOrDefault(c => c.Status == TourPackageStatus.Active)?.Count ?? 0,
+                    Completed = counts.FirstOrDefault(c => c.Status == TourPackageStatus.Completed)?.Count ?? 0,
+                    Cancelled = counts.FirstOrDefault(c => c.Status == TourPackageStatus.Cancelled)?.Count ?? 0,
+                    Rejected = counts.FirstOrDefault(c => c.Status == TourPackageStatus.Rejected)?.Count ?? 0,
+                };
+
+                _cache.Set(cacheKey, response, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = CacheDuration,
+                    Priority = CacheItemPriority.Low
+                });
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.ServerError("Retrieve Status Counts", ObjectName, ex);
                 throw new ServiceException(ExceptionMessages.ServiceException("retrieve", ObjectName, ex.Message), ex);
             }
         }

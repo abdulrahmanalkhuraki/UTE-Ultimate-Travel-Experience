@@ -23,8 +23,6 @@ namespace Application.Interfaces.TourPackage
 
         Task<ProgramStatusResponse> CancelAsync(int id, CancellationToken cancellationToken);
 
-        Task<PaginatedResponse<TourPackageResponse>> GetUnApprovedAsync(int page, int pageSize, CancellationToken cancellationToken);
-
         Task<ProgramStatusResponse> ApproveAsync(int id, CancellationToken cancellationToken);
 
         Task<ProgramStatusResponse> RejectAsync(int id, string reason, CancellationToken cancellationToken);
@@ -60,5 +58,11 @@ namespace Application.Interfaces.TourPackage
         Task<RateAndReviewStatsResponse> GetRateAndReviewStatsAsync(CancellationToken cancellationToken);
         /// <summary>Retrieves tourist statistics for the authenticated company's dashboard.</summary>
         Task<TouristStatsResponse> GetTouristStatsAsync(CancellationToken cancellationToken);
+
+        /// <summary>Retrieves paginated tour packages filtered by status for the admin dashboard.</summary>
+        Task<PaginatedResponse<TourPackageResponse>> GetByStatusAsync(TourPackageStatus status, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
+
+        /// <summary>Retrieves the count of tour packages for each status.</summary>
+        Task<TourPackageStatusCountsResponse> GetStatusCountsAsync(CancellationToken cancellationToken);
     }
 }

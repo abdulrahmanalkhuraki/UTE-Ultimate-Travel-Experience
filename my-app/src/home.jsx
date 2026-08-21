@@ -13,7 +13,7 @@ import { useSyncedState } from './hooks/useSyncedState';
 import {
   getMainDashboard,
   getCompaniesDashboard,
-  getUnapprovedTourPackages,
+  getTourPackagesByStatus,
   getPendingTourCompanies,
   approveTourPackage,
   rejectTourPackage,
@@ -52,8 +52,7 @@ export default function Home() {
   const [approveTargetType, setApproveTargetType] = useState('program');
   const [actionError, setActionError] = useState('');
 
-  // GET /api/TourPackage/unApproved -> برامج قيد المراجعة (نفس endpoint صفحة Group Trips)
-  const { data: unapprovedData } = useApiData(getUnapprovedTourPackages, []);
+  const { data: unapprovedData } = useApiData(() => getTourPackagesByStatus(0, 1, 20), []);
   const [programRows, setProgramRows] = useSyncedState(unapprovedData, (d) =>
     (d?.items ?? []).map(mapTourPackage).map((p) => ({ name: p.title, trip: p.title, comp: p.company, program: p }))
   );
@@ -186,7 +185,7 @@ export default function Home() {
         {[
           { title: 'TOTAL TOURISTS', value: dashboardData ? dashboardData.activeTourists.toLocaleString() : '—', icon: Users, color: '#91B3FA' },
           { title: 'ACTIVE COMPANIES', value: dashboardData ? dashboardData.activeCompanies.toLocaleString() : '—', icon: Building2, color: '#91B3FA' },
-          { title: 'PUBLISHED PROGRAMS', value: dashboardData ? dashboardData.tourPackages.active.toLocaleString() : '—', icon: Map, color: '#91B3FA' },
+          { title: 'ACTIVE TOUR PACKAGES', value: dashboardData ? dashboardData.tourPackages.active.toLocaleString() : '—', icon: Map, color: '#91B3FA' },
           { title: 'TOTAL REVENUE', value: dashboardData ? `$${dashboardData.totalRevenue.toLocaleString()}` : '—', icon: Wallet, color: '#F4A261', highlight: true },
         ].map((stat, idx) => (
           <div key={idx} className="bg-[#1C1C1E] p-6 rounded-xl border border-[#D4AF37]/30 relative overflow-hidden shadow-lg group cursor-pointer hover:border-[#D4AF37]/70 transition-all">
