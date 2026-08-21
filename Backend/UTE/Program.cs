@@ -380,7 +380,19 @@ Application.Common.Constants.ExceptionMessages.Initialize(
 using (var scope = app.Services.CreateScope())
 {
     var seeder = scope.ServiceProvider.GetRequiredService<IDbSeedService>();
-    await seeder.SeedAsync();
+    try
+    {
+        await seeder.SeedAsync();
+    }
+    catch (Exception ex)
+    {
+        // Seed data is demo content. A bad seed row must never stop the API from
+        // starting -- previously any seeding error crash-looped the container.
+        scope.ServiceProvider
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("DbSeed")
+            .LogError(ex, "Database seeding failed; starting without seed data.");
+    }
 }
 
 // ==========================================

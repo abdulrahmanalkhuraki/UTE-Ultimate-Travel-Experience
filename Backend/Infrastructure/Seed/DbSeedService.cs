@@ -593,7 +593,21 @@ public class DbSeedService : IDbSeedService
 
         var items = await LoadJsonAsync<SupportReplyJson>("support_replies.json", ct);
 
-        _context.SupportReplies.AddRange(items.Select(x => new SupportReply
+        // Tickets/Users may already hold live rows, in which case their own seeders
+        // were skipped by the AnyAsync guard and the ids referenced here need not
+        // exist. Inserting a reply for a missing ticket or admin violates the FK and,
+        // because seeding runs at startup, would take the entire API down.
+        var ticketIds = await _context.Tickets.Select(t => t.Id).ToListAsync(ct);
+        var adminIds = await _context.Users.Select(u => u.Id).ToListAsync(ct);
+
+        var seedable = items
+            .Where(x => ticketIds.Contains(x.TicketId) && adminIds.Contains(x.AdminId))
+            .ToList();
+
+        if (seedable.Count == 0)
+            return;
+
+        _context.SupportReplies.AddRange(seedable.Select(x => new SupportReply
         {
             Id = x.Id,
             TicketId = x.TicketId,
