@@ -292,6 +292,10 @@ namespace Application.Services
 
                 var totalAmountSpent = (await query
                     .AsNoTracking()
+                    .Where(b => b.Status != BookingStatus.Pending &&
+                    b.Status != BookingStatus.Cancelled &&
+                    b.Status != BookingStatus.Rejected_By_Company &&
+                    b.Status != BookingStatus.Rejected_By_Tourist)
                     .SumAsync(b => b.TotalCost, cancellationToken)) ?? 0m;
 
                 var totalItemsCount = await query

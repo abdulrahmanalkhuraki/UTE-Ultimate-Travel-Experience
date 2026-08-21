@@ -3,7 +3,7 @@ import UserDetails from './UserDetails';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { ChevronLeft, ChevronRight, UsersRound, UserRoundX, TrendingUp, UserRound, MapPin, Calendar } from 'lucide-react';
 import { useApiData } from './hooks/useApiData';
-import { getTouristsDashboard, getAllUsers, getDeletedUsers } from './services/dashboardApi';
+import { getTouristsDashboard, getUsersByRole, getDeletedUsers } from './services/dashboardApi';
 import { timeAgo, formatDate, calcAge } from './utils/format';
 
 const FALLBACK_AVATAR =
@@ -64,7 +64,7 @@ export default function Users() {
 
   const { data: touristsData, loading: chartLoading, error: chartError } = useApiData(getTouristsDashboard, []);
   const { data: allUsersData, loading: allUsersLoading, error: allUsersError } = useApiData(
-    () => getAllUsers(allUsersPage, allUsersPageSize),
+    () => getUsersByRole('Tourist', allUsersPage, allUsersPageSize),
     [allUsersPage, allUsersPageSize]
   );
   const { data: deletedUsersData, loading: deletedLoading, error: deletedError } = useApiData(getDeletedUsers, []);

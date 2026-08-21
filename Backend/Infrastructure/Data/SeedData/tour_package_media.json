@@ -7,7 +7,13 @@
     "DisplayOrder": 1
   },
   {"Id":2,"TourPackageId":2,"MediaUrl":"https://images.unsplash.com/photo-1590769570008-46c8e7b5f5cb","MediaType":0,"DisplayOrder":1},
-  {"Id":3,"TourPackageId":3,"MediaUrl":"https://images.unsplash.com/photo-1590769570008-46c8e7b5f5cb","MediaType":0,"DisplayOrder":1},
+  {
+    "Id": 3,
+    "TourPackageId": 3,
+    "MediaUrl": "https://images.unsplash.com/photo-1602674471917-2f5fbd54535e?q=80&w=1330&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "MediaType": 0,
+    "DisplayOrder": 1
+  },
   {"Id":4,"TourPackageId":4,"MediaUrl":"https://images.unsplash.com/photo-1590769570008-46c8e7b5f5cb","MediaType":0,"DisplayOrder":1},
   {"Id":5,"TourPackageId":5,"MediaUrl":"https://images.unsplash.com/photo-1590769570008-46c8e7b5f5cb","MediaType":0,"DisplayOrder":1},
   {"Id":6,"TourPackageId":6,"MediaUrl":"https://images.unsplash.com/photo-1590769570008-46c8e7b5f5cb","MediaType":0,"DisplayOrder":1},
