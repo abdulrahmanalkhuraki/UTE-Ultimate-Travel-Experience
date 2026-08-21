@@ -1,10 +1,8 @@
-
-import  { useState } from 'react'; // تأكد من استيراد useState
-import CompanyFinancialDetails from './CompanyFinancialDetails'; // <--- الإضافة هنا
-//import { ... } from 'lucide-react';
+import { useState } from 'react';
+import CompanyFinancialDetails from './CompanyFinancialDetails'; 
 
 import {
-  DollarSign, Wallet, Building2, MapPin, TrendingUp, BarChart3
+  Wallet, Building2, MapPin, TrendingUp, BarChart3
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
@@ -42,9 +40,6 @@ export default function Financials() {
   // إجمالي ربح التطبيق ياخد مباشرة من /financial (مصدر أدق من جمع صفحة الشركات)
   const totalAppProfit = financialData ? financialData.totalProfit : 0;
   const totalCompaniesEarnings = sortedCompanies.reduce((sum, company) => sum + company.companyEarnings, 0);
-  const totalVolume = totalAppProfit + totalCompaniesEarnings; // المبلغ الكلي المدفوع في التطبيق
-
-
 
   if (selectedCompany) {
     return (
@@ -54,7 +49,6 @@ export default function Financials() {
       />
     );
   }
-  
   
   return (
     <div className="p-8 space-y-8 font-sans animate-in fade-in duration-300">
@@ -102,8 +96,8 @@ export default function Financials() {
           </ResponsiveContainer>
         </div>
 
-        {/* الإحصائيات (المربعات الثلاثة أسفل المخطط داخل نفس الحاوية) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#333] border-t border-[#333] bg-[#18181A]/50">
+        {/* الإحصائيات (مربعين فقط بعد التعديل) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#333] border-t border-[#333] bg-[#18181A]/50">
           
           {/* 1. الربح الكلي للتطبيق */}
           <div className="p-6 flex flex-col justify-center hover:bg-[#ffffff05] transition-colors">
@@ -115,17 +109,7 @@ export default function Financials() {
             </h4>
           </div>
 
-          {/* 2. المبلغ الكلي المدفوع في التطبيق */}
-          <div className="p-6 flex flex-col justify-center hover:bg-[#ffffff05] transition-colors">
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-[#91B3FA]" /> Total Volume Spent
-            </p>
-            <h4 className="text-3xl font-bold text-white">
-              ${totalVolume.toLocaleString()}
-            </h4>
-          </div>
-
-          {/* 3. ما حصلت عليه الشركات */}
+          {/* 2. ما حصلت عليه الشركات */}
           <div className="p-6 flex flex-col justify-center hover:bg-[#ffffff05] transition-colors">
             <p className="text-xs text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
               <Building2 className="w-4 h-4 text-[#91B3FA]" /> Total Companies Earnings

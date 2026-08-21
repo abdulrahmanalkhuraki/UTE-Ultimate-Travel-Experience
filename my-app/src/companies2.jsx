@@ -7,7 +7,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import {
-  Building2, Calendar, MapPin, Map, Trash2, Hourglass, ChevronDown
+  Building2, Calendar, MapPin, Map, Hourglass, ChevronDown
 } from 'lucide-react';
 import { useApiData } from './hooks/useApiData';
 import { useSyncedState } from './hooks/useSyncedState';
@@ -16,15 +16,13 @@ import {
   getCompaniesDashboard,
   getTourCompanies,
   getPendingTourCompanies,
-  getDeletedUsers,
   approveTourCompany,
   rejectTourCompany,
 } from './services/dashboardApi';
 import { mapApiCompany } from './utils/mappers';
 
 export default function Companies() {
-  const [isDeletedExpanded, setIsDeletedExpanded] = useState(false);
-  const [isCurrentExpanded, setIsCurrentExpanded] = useState(true); // مفتوح كقيمة افتراضية
+  const [isCurrentExpanded, setIsCurrentExpanded] = useState(true);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [selectedPendingCompany, setSelectedPendingCompany] = useState(null);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
@@ -32,13 +30,12 @@ export default function Companies() {
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [itemToApprove, setItemToApprove] = useState(null);
   const [actionError, setActionError] = useState('');
+  
   const { data: companiesData } = useApiData(getCompaniesDashboard, []);
   const { data: allCompaniesData } = useApiData(getTourCompanies, []);
   const { data: pendingCompaniesData } = useApiData(getPendingTourCompanies, []);
-  // "شركة محذوفة" = شركة موافَق عليها لكن حساب مالكها انحذف (soft-deleted) — ما في status خاص فيها
-  const { data: deletedUsersData } = useApiData(getDeletedUsers, []);
 
-  // نسخة محلية قابلة للتعديل من قائمة الشركات المعلّقة (حتى تنشيل العنصر فوراً بعد قبول/رفض)
+  // نسخة محلية قابلة للتعديل من قائمة الشركات المعلّقة
   const [pendingCompanies, setPendingCompanies] = useSyncedState(
     pendingCompaniesData,
     (d) => (d ?? []).map(mapApiCompany)
@@ -50,31 +47,27 @@ export default function Companies() {
     count: g.count,
   }));
 
-  // GET /api/TourCompany -> Status بالباك: Pending/Approved/Rejected (ما في "Deleted")
+  // GET /api/TourCompany -> Status بالباك: Pending/Approved/Rejected
   const allCompanies = (allCompaniesData ?? []).map(mapApiCompany);
-  const deletedUserIds = new Set((deletedUsersData?.users ?? []).map((u) => u.id));
-  const approvedCompanies = allCompanies.filter((c) => c.status === 'Approved' && !deletedUserIds.has(c.userId));
-  const removedCompanies = allCompanies.filter((c) => c.status === 'Approved' && deletedUserIds.has(c.userId));
+  const approvedCompanies = allCompanies.filter((c) => c.status === 'Approved');
 
-  // GET /api/Admin/dashboard/companies/:companyId -> totalTourPackages (عدد البرامج المنشورة لكل شركة)
+  // GET /api/Admin/dashboard/companies/:companyId -> totalTourPackages
   const approvedProgramCounts = useCompanyProgramCounts(approvedCompanies.map((c) => c.id));
   const pendingProgramCounts = useCompanyProgramCounts(pendingCompanies.map((c) => c.id));
+  
   const withProgramCount = (list, counts) =>
     list.map((c) => ({ ...c, programs: counts[c.id] ?? c.programs }));
 
   const currentCompanies = withProgramCount(approvedCompanies, approvedProgramCounts);
-  const deletedCompanies = withProgramCount(removedCompanies, approvedProgramCounts);
   const pendingCompaniesDisplay = withProgramCount(pendingCompanies, pendingProgramCounts);
 
-  // دالة التعامل مع ضغطة زر الرفض
   const handleRejectClick = (e, company) => {
-    e.stopPropagation(); // لمنع فتح تفاصيل الشركة عند الضغط على الزر
+    e.stopPropagation();
     setActionError('');
     setItemToReject(company);
     setIsRejectDialogOpen(true);
   };
 
-  // POST /api/TourCompany/:id/reject  body: { reason }
   const handleConfirmRejection = async (reason) => {
     if (!itemToReject) return;
     setActionError('');
@@ -99,7 +92,6 @@ export default function Companies() {
     setIsApproveDialogOpen(true);
   };
 
-  // POST /api/TourCompany/:id/approve
   const handleConfirmApproval = async () => {
     if (!itemToApprove) return;
     setActionError('');
@@ -117,16 +109,10 @@ export default function Companies() {
     }
   };
 
-  // تصميم موحد لكارت الشركة للـ Accordion (يمين اللوجو، يسار التاريخ)
-  const CompanyCard = ({ company, isDeleted }) => (
-    <div  onClick={() => !isDeleted && setSelectedCompany(company)}
-    className="flex justify-between items-center bg-[#18181A] border border-[#333] p-5 rounded-2xl transition hover:border-[#D4AF37]/50 shadow-md">
-      {/* يسار: تاريخ الحذف (إن وجد) */}
-      <div className="text-xs text-gray-500 font-medium whitespace-nowrap w-24">
-        {isDeleted ? 'Deleted' : ''}
-      </div>
-
-      {/* يمين: المعلومات واللوجو */}
+  const CompanyCard = ({ company }) => (
+    <div onClick={() => setSelectedCompany(company)}
+    className="flex justify-between items-center bg-[#18181A] border border-[#333] p-5 rounded-2xl transition hover:border-[#D4AF37]/50 shadow-md cursor-pointer">
+      
       <div className="flex items-center gap-5 text-right flex-1 justify-end">
         <div className="space-y-2">
           <h4 className="text-base font-bold text-white">{company.name}</h4>
@@ -208,14 +194,13 @@ export default function Companies() {
                   <YAxis stroke="#666" tick={{fill: '#888', fontSize: 12}} />
                   <Tooltip contentStyle={{backgroundColor: '#1C1C1E', borderColor: '#F4A261', border: '1px solid #F4A261', borderRadius: '0.8rem'}} />
                   <Legend iconType="plainline" />
-                  {/* <Line type="monotone" dataKey="Local" stroke="#91B3FA" strokeWidth={3} dot={false} /> */}
                   <Line type="monotone" dataKey="count" name="Company Growth" stroke="#F4A261" strokeWidth={3} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
 
             {/* الإحصائيات أسفل المخطط */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-[#333]">
+            <div className="grid grid-cols-2 gap-4 pt-6 border-t border-[#333]">
               <div className="flex items-center gap-4 bg-[#121212] p-4 rounded-xl border border-[#2a2a2a]">
                 <Building2 className="w-8 h-8 text-[#91B3FA]" />
                 <div>
@@ -223,13 +208,7 @@ export default function Companies() {
                   <p className="text-xl font-bold text-white mt-0.5">{companiesData ? companiesData.activeCompanies.toLocaleString() : '—'}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4 bg-[#121212] p-4 rounded-xl border border-[#2a2a2a]">
-                <Trash2 className="w-8 h-8 text-red-400" />
-                <div>
-                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Deleted Companies</p>
-                  <p className="text-xl font-bold text-red-400 mt-0.5">{companiesData ? companiesData.deletedCompanies.toLocaleString() : '—'}</p>
-                </div>
-              </div>
+              
               <div className="flex items-center gap-4 bg-[#121212] p-4 rounded-xl border border-[#2a2a2a]">
                 <Hourglass className="w-8 h-8 text-[#F4A261]" />
                 <div>
@@ -238,28 +217,6 @@ export default function Companies() {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* قائمة الشركات المحذوفة (المتمددة) */}
-          <div className="bg-[#1C1C1E] border border-[#D4AF37]/30 rounded-2xl overflow-hidden shadow-lg transition-all duration-300">
-            <button 
-              onClick={() => setIsDeletedExpanded(!isDeletedExpanded)}
-              className="w-full p-5  flex justify-between items-center bg-[#202022] hover:bg-[#252528] transition "
-            >
-              <div className="flex items-center gap-4">
-              <Trash2 className="w-8 h-8 text-red-400 ml-5" />
-              <h3 className="text-base text-lg font-semibold text-red-400 ">Users who deleted their accounts</h3>
-              </div>
-              <ChevronDown className={`w-5 h-5 text-gray-400 mr-10 transition-transform  duration-300 ${isDeletedExpanded ? 'rotate-180' : ''}`} />
-              
-            </button>
-            {isDeletedExpanded && (
-              <div className="p-5 space-y-4 max-h-[350px] overflow-y-auto custom-scrollbar border-t border-[#333]">
-                {deletedCompanies.map(company => (
-                  <CompanyCard key={company.id} company={company} isDeleted={true} />
-                ))}
-              </div>
-            )}
           </div>
 
           {/* قائمة الشركات الحالية (المتمددة) */}
@@ -278,7 +235,7 @@ export default function Companies() {
             {isCurrentExpanded && (
               <div className="p-5 space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar border-t border-[#333]">
                 {currentCompanies.map(company => (
-                  <CompanyCard key={company.id} company={company} isDeleted={false} />
+                  <CompanyCard key={company.id} company={company} />
                 ))}
               </div>
             )}
@@ -306,7 +263,6 @@ export default function Companies() {
                 <div key={company.id} 
                 onClick={() => setSelectedPendingCompany(company)}
                 className="bg-[#18181A] border border-[#333] p-5 rounded-2xl cursor-pointer hover:border-[#91B3FA]/50 transition-colors shadow-md"
-                //className="bg-[#18181A] border border-[#333] p-5 rounded-2xl"
                 >
                   {/* معلومات الشركة */}
                   <div className="flex items-center gap-4 text-right justify-end mb-5">
@@ -330,7 +286,7 @@ export default function Companies() {
                   {/* أزرار القبول والرفض */}
                   <div className="flex gap-3 mt-2">
                     <button 
-                    onClick={(e) => handleRejectClick(e, company)} // <--- الربط هنا
+                    onClick={(e) => handleRejectClick(e, company)}
                     className="flex-1 bg-[#2A2A2D] text-gray-300 py-2.5 rounded-xl font-medium hover:bg-[#333] transition duration-200">
                       Reject
                     </button>
@@ -347,22 +303,22 @@ export default function Companies() {
         </div>
 
       </div>
+      
       <RejectDialog 
-    isOpen={isRejectDialogOpen}
-    onClose={() => setIsRejectDialogOpen(false)}
-    onSubmit={handleConfirmRejection}
-    targetName={itemToReject?.name}
-  />
-  <ApproveDialog
-    isOpen={isApproveDialogOpen}
-    onClose={() => {
-      setIsApproveDialogOpen(false);
-      setItemToApprove(null);
-    }}
-    onConfirm={handleConfirmApproval}
-    targetName={itemToApprove?.name}
-  />
+        isOpen={isRejectDialogOpen}
+        onClose={() => setIsRejectDialogOpen(false)}
+        onSubmit={handleConfirmRejection}
+        targetName={itemToReject?.name}
+      />
+      <ApproveDialog
+        isOpen={isApproveDialogOpen}
+        onClose={() => {
+          setIsApproveDialogOpen(false);
+          setItemToApprove(null);
+        }}
+        onConfirm={handleConfirmApproval}
+        targetName={itemToApprove?.name}
+      />
     </div>
-   
   );
 }

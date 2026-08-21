@@ -1,12 +1,9 @@
-// src/companies.jsx
-import  { useState } from 'react';
+import { useState } from 'react';
 import {
   Building2,
-  Trash2,
   Hourglass,
   MapPin,
   Grid,
-  //Calendar,
   CheckCircle,
   XCircle,
 } from 'lucide-react';
@@ -58,15 +55,7 @@ function CompanyProfile({ company, showActions }) {
 }
 
 export default function Companies() {
-  // sample data (replace with real data / props)
-  const [deletedExpanded, setDeletedExpanded] = useState(true);
-  const [currentExpanded, setCurrentExpanded] = useState(false);
-
-  const deletedCompanies = [
-    { id: 1, name: 'TravelCo', logo: 'https://via.placeholder.com/64?text=T', founded: 'Founded: 2015', location: 'Dubai, UAE', programs: 9 },
-    { id: 2, name: 'Wanderlust', logo: 'https://via.placeholder.com/64?text=W', founded: 'Founded: 2017', location: 'London, UK', programs: 4 },
-    { id: 3, name: 'ExploreNow', logo: 'https://via.placeholder.com/64?text=E', founded: 'Founded: 2014', location: 'New York, USA', programs: 7 },
-  ];
+  const [currentExpanded, setCurrentExpanded] = useState(true);
 
   const currentCompanies = [
     { id: 11, name: 'GlobeTrips', logo: 'https://via.placeholder.com/64?text=G', founded: 'Founded: 2012', location: 'Berlin, Germany', programs: 12 },
@@ -102,14 +91,6 @@ export default function Companies() {
             </div>
 
             <div className="flex-1 bg-[#141414] border border-[#262626] rounded-lg p-4 flex items-center space-x-3">
-              <Trash2 className="w-6 h-6 text-[#F87171]" />
-              <div>
-                <div className="text-xs text-gray-400">Companies deleted</div>
-                <div className="text-xl font-semibold">3,120</div>
-              </div>
-            </div>
-
-            <div className="flex-1 bg-[#141414] border border-[#262626] rounded-lg p-4 flex items-center space-x-3">
               <Hourglass className="w-6 h-6 text-[#F4A261]" />
               <div>
                 <div className="text-xs text-gray-400">Companies pending approval</div>
@@ -127,35 +108,15 @@ export default function Companies() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         {/* Left and center area (col-span-2) */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Deleted companies card */}
-          <div className="bg-[#0f1113] border border-[#262626] rounded-lg">
-            <button
-              onClick={() => setDeletedExpanded((s) => !s)}
-              className="w-full text-left px-4 py-3 flex items-center justify-between"
-            >
-              <div className="flex items-center space-x-3">
-                <h4 className="text-sm font-semibold text-white">companies who deleted their accounts</h4>
-              </div>
-              <div className="text-xs text-gray-400">{deletedExpanded ? 'Collapse' : 'Expand'}</div>
-            </button>
-
-            {deletedExpanded && (
-              <div className="px-4 pb-4 space-y-3">
-                {deletedCompanies.map((c) => (
-                  <CompanyProfile key={c.id} company={c} showActions={false} />
-                ))}
-              </div>
-            )}
-          </div>
-
+          
           {/* Current companies card */}
           <div className="bg-[#0f1113] border border-[#262626] rounded-lg">
             <button
               onClick={() => setCurrentExpanded((s) => !s)}
-              className="w-full text-left px-4 py-3 flex items-center justify-between"
+              className="w-full text-left px-4 py-3 flex items-center justify-between hover:bg-[#141414] transition-colors rounded-t-lg"
             >
               <div className="flex items-center space-x-3">
-                <h4 className="text-sm font-semibold text-white">current companies</h4>
+                <h4 className="text-sm font-semibold text-white">Current Companies</h4>
               </div>
               <div className="text-xs text-gray-400">{currentExpanded ? 'Collapse' : 'Expand'}</div>
             </button>
