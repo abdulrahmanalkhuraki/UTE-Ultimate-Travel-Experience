@@ -5,29 +5,29 @@ export default function SendConfirmDialog({ isOpen, onClose, onConfirm, targetNa
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-[#1C1C1E] border border-[#333] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="flex items-center justify-between p-5 border-b border-[#333] bg-[#18181A]">
+      <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="flex items-center justify-between p-5 border-b border-[var(--color-border)] bg-[var(--color-surface-alt)]">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
+            <div className="p-2 bg-[var(--color-accent-soft)] rounded-lg text-[var(--color-accent)]">
               <Mail className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-bold text-white">Send solution to {targetName}?</h3>
+            <h3 className="text-lg font-bold text-[var(--color-text)]">Send reply to {targetName}?</h3>
           </div>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-white hover:bg-[#333] rounded-md transition-colors">
+          <button onClick={onClose} className="p-1 text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] rounded-md transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm text-gray-300">
-            The solution will be sent to the user's email and sending will be disabled for more messages regarding this issue.
+          <p className="text-sm text-[var(--color-text-muted)]">
+            This reply will close the ticket and no further replies can be sent for it.
           </p>
         </div>
 
-        <div className="flex items-center justify-end gap-3 p-5 border-t border-[#333] bg-[#18181A]">
-          <button onClick={onClose} className="px-5 py-2.5 text-sm font-semibold text-gray-300 hover:text-white hover:bg-[#333] rounded-xl transition-colors">cancel</button>
-          <button onClick={onConfirm} className="flex items-center gap-2 px-5 py-2.5 bg-[#91B3FA] hover:bg-[#7fa1e8] text-black font-bold text-sm rounded-xl transition-colors">
-            <CheckCircle2 className="w-4 h-4" /> confirm
+        <div className="flex items-center justify-end gap-3 p-5 border-t border-[var(--color-border)] bg-[var(--color-surface-alt)]">
+          <button onClick={onClose} className="px-5 py-2.5 text-sm font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] rounded-xl transition-colors">Cancel</button>
+          <button onClick={onConfirm} className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-accent)] hover:opacity-90 text-white font-bold text-sm rounded-xl transition-colors">
+            <CheckCircle2 className="w-4 h-4" /> Confirm
           </button>
         </div>
       </div>

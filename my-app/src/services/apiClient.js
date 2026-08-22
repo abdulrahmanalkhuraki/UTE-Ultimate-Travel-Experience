@@ -1,5 +1,10 @@
 import { API_BASE_URL } from '../config/constants';
 
+function getCurrentLang() {
+  const stored = localStorage.getItem('lang');
+  return stored === 'ar' || stored === 'en' ? stored : 'en';
+}
+
 async function request(path, { params, isFormData, ...options } = {}) {
   const url = new URL(`${API_BASE_URL}${path}`);
   if (params) {
@@ -9,6 +14,7 @@ async function request(path, { params, isFormData, ...options } = {}) {
       }
     });
   }
+  url.searchParams.set('lang', getCurrentLang());
 
   const token = localStorage.getItem('authToken');
 

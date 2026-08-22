@@ -1,0 +1,89 @@
+{
+  "app": {
+    "name": "UTE Tourism",
+    "subtitle": "Admin Dashboard"
+  },
+  "nav": {
+    "home": "Home",
+    "tourists": "Tourists",
+    "tourPackages": "Tour Packages",
+    "companies": "Companies",
+    "financials": "Financials",
+    "support": "Support"
+  },
+  "header": {
+    "welcome": "Welcome, {{name}}",
+    "profile": "Profile",
+    "language": "Language",
+    "theme": "Theme",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode"
+  },
+  "common": {
+    "search": "Search",
+    "save": "Save",
+    "cancel": "Cancel",
+    "approve": "Approve",
+    "reject": "Reject",
+    "send": "Send",
+    "loading": "Loading...",
+    "noResults": "No results found.",
+    "back": "Back",
+    "error": "Something went wrong.",
+    "retry": "Retry",
+    "actions": "Actions",
+    "status": "Status",
+    "close": "Close"
+  },
+  "login": {
+    "title": "Login",
+    "welcome": "Welcome back to UTE Tourism Admin Dashboard",
+    "email": "Email Address",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "signIn": "Sign In",
+    "signingIn": "Signing In...",
+    "orSignInWith": "Or sign in with",
+    "notAdmin": "This account is not an admin account. Only admins can access this dashboard.",
+    "failed": "Login failed. Please check your credentials."
+  },
+  "home": {
+    "totalTourists": "Total Tourists",
+    "activeCompanies": "Active Companies",
+    "activeTourPackages": "Active Tour Packages",
+    "totalRevenue": "Total Revenue",
+    "touristsGrowth": "Tourists Growth Over Time",
+    "past12Months": "(past 12 months)",
+    "companiesAndProgramGrowth": "Companies and Program Growth",
+    "pendingPrograms": "Pending Programs",
+    "pendingCompanies": "Pending Company Applications",
+    "tripName": "Trip Name",
+    "companyName": "Company Name",
+    "since": "Since",
+    "noPendingPrograms": "No pending programs currently.",
+    "noPendingCompanies": "No pending companies currently."
+  },
+  "support": {
+    "title": "Support & Tickets",
+    "subtitle": "Manage tourist and company support requests",
+    "searchPlaceholder": "Search tickets by subject...",
+    "allStatuses": "All statuses",
+    "open": "Open",
+    "pending": "Pending",
+    "resolved": "Resolved",
+    "noTickets": "No tickets found.",
+    "selectTicket": "Select a ticket to view details.",
+    "ticketFrom": "Ticket {{id}} from {{user}}",
+    "replyHistory": "Reply history",
+    "resolvedNotice": "A reply has already been sent for this ticket. It is now marked as resolved.",
+    "replyPlaceholder": "Write your reply...",
+    "sendReply": "Send Reply",
+    "sending": "Sending...",
+    "replySentAt": "Replied on {{date}}",
+    "loadError": "Failed to load tickets.",
+    "replyLoadError": "Failed to load the reply for this ticket.",
+    "replySendError": "Failed to send the reply.",
+    "userId": "User ID",
+    "createdAt": "Created"
+  }
+}

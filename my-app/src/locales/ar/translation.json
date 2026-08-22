@@ -1,0 +1,89 @@
+{
+  "app": {
+    "name": "يو تي إي للسياحة",
+    "subtitle": "لوحة تحكم الإدارة"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "tourists": "السياح",
+    "tourPackages": "الباقات السياحية",
+    "companies": "الشركات",
+    "financials": "الماليات",
+    "support": "الدعم الفني"
+  },
+  "header": {
+    "welcome": "أهلاً بك، {{name}}",
+    "profile": "الملف الشخصي",
+    "language": "اللغة",
+    "theme": "المظهر",
+    "lightMode": "الوضع الفاتح",
+    "darkMode": "الوضع الداكن"
+  },
+  "common": {
+    "search": "بحث",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "approve": "قبول",
+    "reject": "رفض",
+    "send": "إرسال",
+    "loading": "جارٍ التحميل...",
+    "noResults": "لا توجد نتائج.",
+    "back": "رجوع",
+    "error": "حدث خطأ ما.",
+    "retry": "إعادة المحاولة",
+    "actions": "الإجراءات",
+    "status": "الحالة",
+    "close": "إغلاق"
+  },
+  "login": {
+    "title": "تسجيل الدخول",
+    "welcome": "مرحباً بك مجدداً في لوحة تحكم يو تي إي للسياحة",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "signIn": "تسجيل الدخول",
+    "signingIn": "جارٍ تسجيل الدخول...",
+    "orSignInWith": "أو سجل الدخول عبر",
+    "notAdmin": "هذا الحساب ليس حساب إداري. فقط المدراء يمكنهم الوصول إلى هذه اللوحة.",
+    "failed": "فشل تسجيل الدخول. يرجى التحقق من بيانات الاعتماد."
+  },
+  "home": {
+    "totalTourists": "إجمالي السياح",
+    "activeCompanies": "الشركات النشطة",
+    "activeTourPackages": "الباقات السياحية النشطة",
+    "totalRevenue": "إجمالي الإيرادات",
+    "touristsGrowth": "نمو عدد السياح عبر الوقت",
+    "past12Months": "(آخر 12 شهراً)",
+    "companiesAndProgramGrowth": "نمو الشركات والبرامج",
+    "pendingPrograms": "البرامج قيد المراجعة",
+    "pendingCompanies": "طلبات الشركات قيد المراجعة",
+    "tripName": "اسم الرحلة",
+    "companyName": "اسم الشركة",
+    "since": "منذ",
+    "noPendingPrograms": "لا توجد برامج قيد المراجعة حالياً.",
+    "noPendingCompanies": "لا توجد شركات قيد المراجعة حالياً."
+  },
+  "support": {
+    "title": "الدعم الفني والتذاكر",
+    "subtitle": "إدارة طلبات الدعم الخاصة بالسياح والشركات",
+    "searchPlaceholder": "ابحث عن تذكرة بالعنوان...",
+    "allStatuses": "كل الحالات",
+    "open": "جديدة",
+    "pending": "قيد الانتظار",
+    "resolved": "تم الحل",
+    "noTickets": "لا توجد تذاكر.",
+    "selectTicket": "اختر تذكرة لعرض تفاصيلها.",
+    "ticketFrom": "تذكرة {{id}} من {{user}}",
+    "replyHistory": "سجل الرد",
+    "resolvedNotice": "تم إرسال رد على هذه التذكرة مسبقاً، وأصبحت الآن بحالة تم الحل.",
+    "replyPlaceholder": "اكتب ردك...",
+    "sendReply": "إرسال الرد",
+    "sending": "جارٍ الإرسال...",
+    "replySentAt": "تم الرد بتاريخ {{date}}",
+    "loadError": "فشل تحميل التذاكر.",
+    "replyLoadError": "فشل تحميل الرد الخاص بهذه التذكرة.",
+    "replySendError": "فشل إرسال الرد.",
+    "userId": "معرّف المستخدم",
+    "createdAt": "تاريخ الإنشاء"
+  }
+}
